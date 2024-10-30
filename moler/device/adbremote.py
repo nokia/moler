@@ -404,7 +404,6 @@ class AdbRemote(UnixRemote):
                 AdbRemote.adb_shell_root: AdbRemote.unix_local,
             },
             AdbRemote.unix_remote: {
-                AdbRemote.unix_local_root: AdbRemote.unix_local,
                 AdbRemote.adb_shell_root: AdbRemote.adb_shell,
             },
             AdbRemote.unix_remote_root: {
@@ -459,8 +458,6 @@ class AdbRemote(UnixRemote):
                 AdbRemote.adb_shell_root: AdbRemote.unix_local,
             },
             AdbRemote.unix_remote: {
-                AdbRemote.unix_local: AdbRemote.proxy_pc,
-                AdbRemote.unix_local_root: AdbRemote.proxy_pc,
                 AdbRemote.adb_shell_root: AdbRemote.adb_shell,
             },
             AdbRemote.unix_remote_root: {
@@ -490,7 +487,7 @@ class AdbRemote(UnixRemote):
                 AdbRemote.unix_remote_root: AdbRemote.unix_remote,
                 AdbRemote.adb_shell: AdbRemote.unix_remote,
                 AdbRemote.adb_shell_root: AdbRemote.unix_remote,
-                AdbRemote.not_connected: AdbRemote.unix_remote,
+                AdbRemote.not_connected: AdbRemote.unix_local,
                 AdbRemote.unix_local_root: AdbRemote.unix_local,
             }
         }

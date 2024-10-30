@@ -11,7 +11,6 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import logging
 
-from moler.device.textualdevice import TextualDevice
 from moler.device.unixremote3 import UnixRemote3
 from moler.cmd.adb.adb_shell import AdbShell
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
@@ -82,9 +81,8 @@ class AdbRemote3(UnixRemote3):
         Return State Machine default configuration without proxy_pc state.
         :return: default sm configuration without proxy_pc state.
         """
-        print(f"\n\n****************\n{self.name} AdbRemote3._get_default_sm_configuration_with_proxy_pc\n\n")
         config = {
-            TextualDevice.connection_hops: {
+            AdbRemote3.connection_hops: {
                 AdbRemote3.unix_remote: {  # from
                     AdbRemote3.adb_shell: {  # to
                         "execute_command": "adb_shell",
@@ -134,71 +132,38 @@ class AdbRemote3(UnixRemote3):
         }
         return config
 
-    @mark_to_call_base_class_method_with_same_name
-    def _prepare_state_hops_with_proxy_pc(self):
+    def _overwrite_prompts(self):
         """
-        Prepare non direct transitions for each state for State Machine without proxy_pc state.
-        :return: non direct transitions for each state without proxy_pc state.
+        Overwrite prompts for some states to easily configure the SM.
         """
-        state_hops = {
-            TextualDevice.not_connected: {
-                AdbRemote3.unix_local_root: AdbRemote3.unix_local,
-                AdbRemote3.proxy_pc: AdbRemote3.unix_local,
-                AdbRemote3.unix_remote: AdbRemote3.unix_local,
-                AdbRemote3.unix_remote_root: AdbRemote3.unix_local,
-                AdbRemote3.adb_shell: AdbRemote3.unix_local,
-                AdbRemote3.adb_shell_root: AdbRemote3.unix_local,
-            },
-            AdbRemote3.unix_local: {
-                AdbRemote3.unix_remote_root: AdbRemote3.proxy_pc,
-                AdbRemote3.adb_shell: AdbRemote3.proxy_pc,
-                AdbRemote3.adb_shell_root: AdbRemote3.proxy_pc,
-            },
-            AdbRemote3.unix_local_root: {
-                TextualDevice.not_connected: AdbRemote3.unix_local,
-                AdbRemote3.proxy_pc: AdbRemote3.unix_local,
-                AdbRemote3.unix_remote: AdbRemote3.unix_local,
-                AdbRemote3.unix_remote_root: AdbRemote3.unix_local,
-                AdbRemote3.adb_shell: AdbRemote3.unix_local,
-                AdbRemote3.adb_shell_root: AdbRemote3.unix_local,
-            },
-            AdbRemote3.unix_remote: {
-                AdbRemote3.unix_local: AdbRemote3.proxy_pc,
-                AdbRemote3.unix_local_root: AdbRemote3.proxy_pc,
-                AdbRemote3.adb_shell_root: AdbRemote3.adb_shell,
-            },
-            AdbRemote3.unix_remote_root: {
-                TextualDevice.not_connected: AdbRemote3.unix_remote,
-                AdbRemote3.proxy_pc: AdbRemote3.unix_remote,
-                AdbRemote3.unix_local: AdbRemote3.unix_remote,
-                AdbRemote3.unix_local_root: AdbRemote3.unix_remote,
-                AdbRemote3.adb_shell: AdbRemote3.unix_remote,
-                AdbRemote3.adb_shell_root: AdbRemote3.unix_remote,
-            },
-            AdbRemote3.adb_shell: {
-                TextualDevice.not_connected: AdbRemote3.unix_remote,
-                AdbRemote3.proxy_pc: AdbRemote3.unix_remote,
-                AdbRemote3.unix_local: AdbRemote3.unix_remote,
-                AdbRemote3.unix_local_root: AdbRemote3.unix_remote,
-                AdbRemote3.unix_remote_root: AdbRemote3.unix_remote,
-            },
-            AdbRemote3.adb_shell_root: {
-                TextualDevice.not_connected: AdbRemote3.adb_shell,
-                AdbRemote3.proxy_pc: AdbRemote3.adb_shell,
-                AdbRemote3.unix_local: AdbRemote3.adb_shell,
-                AdbRemote3.unix_local_root: AdbRemote3.adb_shell,
-                AdbRemote3.unix_remote: AdbRemote3.adb_shell,
-                AdbRemote3.unix_remote_root: AdbRemote3.adb_shell,
-            },
-            AdbRemote3.proxy_pc: {
-                AdbRemote3.unix_remote_root: AdbRemote3.unix_remote,
-                AdbRemote3.adb_shell: AdbRemote3.unix_remote,
-                AdbRemote3.adb_shell_root: AdbRemote3.unix_remote,
-                AdbRemote3.not_connected: AdbRemote3.unix_remote,
-                AdbRemote3.unix_local_root: AdbRemote3.unix_local,
-            }
-        }
-        return state_hops
+        super(AdbRemote3, self)._overwrite_prompts()
+        hops_config = self._configurations[AdbRemote3.connection_hops]
+        cfg_ux2adb = hops_config[AdbRemote3.unix_remote][AdbRemote3.adb_shell]
+        cfg_adb2adbroot = hops_config[AdbRemote3.adb_shell][AdbRemote3.adb_shell_root]
+        adb_shell_cmd_params = cfg_ux2adb["command_params"]
+        adb_shell_prompt = self._get_adb_shell_prompt(adb_shell_cmd_params)
+        adb_shell_root_prompt = cfg_adb2adbroot["command_params"]["expected_prompt"]
+        if adb_shell_root_prompt is None:
+            if adb_shell_prompt.endswith("$"):
+                adb_shell_root_prompt = f"{adb_shell_prompt[:-1]}#"
+            else:
+                consequence = f"Won't be able to detect {AdbRemote3.adb_shell_root} state"
+                fix = f"Please provide configuration with 'expected_prompt' for {AdbRemote3.adb_shell_root} state"
+                self._log(logging.WARNING, f"Unknown prompt for {AdbRemote3.adb_shell_root} state. {consequence}. {fix}.")
+                adb_shell_root_prompt = "Unknown_adb_root_prompt"
+
+        if self._use_proxy_pc:
+            cfg_uxloc2ux = hops_config[AdbRemote3.proxy_pc][AdbRemote3.unix_remote]
+        else:
+            cfg_uxloc2ux = hops_config[AdbRemote3.unix_local][AdbRemote3.unix_remote]
+        cfg_adb2ux = hops_config[AdbRemote3.adb_shell][AdbRemote3.unix_remote]
+        remote_ux_prompt = cfg_uxloc2ux["command_params"]["expected_prompt"]
+        cfg_adb2ux["command_params"]["expected_prompt"] = remote_ux_prompt
+
+        # copy prompt for ADB_SHELL_ROOT/exit from UNIX_REMOTE/adb shell
+        cfg_adbroot2adb = hops_config[AdbRemote3.adb_shell_root][AdbRemote3.adb_shell]
+        cfg_adbroot2adb["command_params"]["expected_prompt"] = adb_shell_prompt
+        cfg_adb2adbroot["command_params"]["expected_prompt"] = adb_shell_root_prompt
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_prompts_without_proxy_pc(self):
@@ -206,7 +171,7 @@ class AdbRemote3(UnixRemote3):
         Prepare textual prompt for each state for State Machine without proxy_pc state.
         :return: textual prompt for each state without proxy_pc state.
         """
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[AdbRemote3.connection_hops]
         cfg_ux2adb = hops_config[AdbRemote3.unix_remote][AdbRemote3.adb_shell]
         cfg_adb2adbroot = hops_config[AdbRemote3.adb_shell][AdbRemote3.adb_shell_root]
         adb_shell_cmd_params = cfg_ux2adb["command_params"]
@@ -233,7 +198,7 @@ class AdbRemote3(UnixRemote3):
         Prepare textual prompt for each state for State Machine without proxy_pc state.
         :return: textual prompt for each state without proxy_pc state.
         """
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[AdbRemote3.connection_hops]
         cfg_ux2adb = hops_config[AdbRemote3.unix_remote][AdbRemote3.adb_shell]
         cfg_adb2adbroot = hops_config[AdbRemote3.adb_shell][AdbRemote3.adb_shell_root]
         adb_shell_cmd_params = cfg_ux2adb["command_params"]
@@ -261,7 +226,7 @@ class AdbRemote3(UnixRemote3):
 
         :return: serial_number.
         """
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[AdbRemote3.connection_hops]
         cfg_ux2adb = hops_config[AdbRemote3.unix_remote][AdbRemote3.adb_shell]
         serial_number = cfg_ux2adb["command_params"]["serial_number"]
         return serial_number
@@ -281,7 +246,7 @@ class AdbRemote3(UnixRemote3):
         Prepare newline char for each state for State Machine without proxy_pc state.
         :return: newline char for each state without proxy_pc state.
         """
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[AdbRemote3.connection_hops]
         cfg_ux2adb = hops_config[AdbRemote3.unix_remote][AdbRemote3.adb_shell]
         cfg_adb2adbroot = hops_config[AdbRemote3.adb_shell][AdbRemote3.adb_shell_root]
         adb_shell_newline = cfg_ux2adb["command_params"]["target_newline"]
@@ -301,7 +266,7 @@ class AdbRemote3(UnixRemote3):
         Prepare newline char for each state for State Machine without proxy_pc state.
         :return: newline char for each state without proxy_pc state.
         """
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[AdbRemote3.connection_hops]
         cfg_ux2adb = hops_config[AdbRemote3.unix_remote][AdbRemote3.adb_shell]
         cfg_adb2adbroot = hops_config[AdbRemote3.adb_shell][AdbRemote3.adb_shell_root]
         adb_shell_newline = cfg_ux2adb["command_params"]["target_newline"]
@@ -322,7 +287,7 @@ class AdbRemote3(UnixRemote3):
         :return: non direct transitions for each state without proxy_pc state.
         """
         state_hops = {
-            TextualDevice.not_connected: {
+            AdbRemote3.not_connected: {
                 AdbRemote3.unix_local_root: AdbRemote3.unix_local,
                 AdbRemote3.proxy_pc: AdbRemote3.unix_local,
                 AdbRemote3.unix_remote: AdbRemote3.unix_local,
@@ -336,7 +301,7 @@ class AdbRemote3(UnixRemote3):
                 AdbRemote3.adb_shell_root: AdbRemote3.proxy_pc,
             },
             AdbRemote3.unix_local_root: {
-                TextualDevice.not_connected: AdbRemote3.unix_local,
+                AdbRemote3.not_connected: AdbRemote3.unix_local,
                 AdbRemote3.proxy_pc: AdbRemote3.unix_local,
                 AdbRemote3.unix_remote: AdbRemote3.unix_local,
                 AdbRemote3.unix_remote_root: AdbRemote3.unix_local,
@@ -349,7 +314,7 @@ class AdbRemote3(UnixRemote3):
                 AdbRemote3.adb_shell_root: AdbRemote3.adb_shell,
             },
             AdbRemote3.unix_remote_root: {
-                TextualDevice.not_connected: AdbRemote3.unix_remote,
+                AdbRemote3.not_connected: AdbRemote3.unix_remote,
                 AdbRemote3.proxy_pc: AdbRemote3.unix_remote,
                 AdbRemote3.unix_local: AdbRemote3.unix_remote,
                 AdbRemote3.unix_local_root: AdbRemote3.unix_remote,
@@ -357,14 +322,14 @@ class AdbRemote3(UnixRemote3):
                 AdbRemote3.adb_shell_root: AdbRemote3.unix_remote,
             },
             AdbRemote3.adb_shell: {
-                TextualDevice.not_connected: AdbRemote3.unix_remote,
+                AdbRemote3.not_connected: AdbRemote3.unix_remote,
                 AdbRemote3.proxy_pc: AdbRemote3.unix_remote,
                 AdbRemote3.unix_local: AdbRemote3.unix_remote,
                 AdbRemote3.unix_local_root: AdbRemote3.unix_remote,
                 AdbRemote3.unix_remote_root: AdbRemote3.unix_remote,
             },
             AdbRemote3.adb_shell_root: {
-                TextualDevice.not_connected: AdbRemote3.adb_shell,
+                AdbRemote3.not_connected: AdbRemote3.adb_shell,
                 AdbRemote3.proxy_pc: AdbRemote3.adb_shell,
                 AdbRemote3.unix_local: AdbRemote3.adb_shell,
                 AdbRemote3.unix_local_root: AdbRemote3.adb_shell,
@@ -372,11 +337,8 @@ class AdbRemote3(UnixRemote3):
                 AdbRemote3.unix_remote_root: AdbRemote3.adb_shell,
             },
             AdbRemote3.proxy_pc: {
-                AdbRemote3.unix_remote_root: AdbRemote3.unix_remote,
                 AdbRemote3.adb_shell: AdbRemote3.unix_remote,
                 AdbRemote3.adb_shell_root: AdbRemote3.unix_remote,
-                AdbRemote3.not_connected: AdbRemote3.unix_remote,
-                AdbRemote3.unix_local_root: AdbRemote3.unix_local,
             }
         }
         return state_hops
@@ -389,7 +351,7 @@ class AdbRemote3(UnixRemote3):
         """
         super(AdbRemote3, self)._configure_state_machine(sm_params)
 
-        hops_config = self._configurations[TextualDevice.connection_hops]
+        hops_config = self._configurations[AdbRemote3.connection_hops]
 
         # copy prompt for ADB_SHELL/exit from UNIX_LOCAL/ssh
         if self._use_proxy_pc:
@@ -424,12 +386,48 @@ class AdbRemote3(UnixRemote3):
 
         if not available:
             if (state == AdbRemote3.adb_shell) or (state == AdbRemote3.adb_shell_root):
-                available = {TextualDevice.cmds: ['moler.cmd.unix'],
-                             TextualDevice.events: ['moler.events.shared']}
+                available = {AdbRemote3.cmds: ['moler.cmd.unix'],
+                             AdbRemote3.events: ['moler.events.shared']}
             if available:
                 return available[observer]
         elif state == AdbRemote3.unix_remote:  # this is unix extended with adb commands
-            if observer == TextualDevice.cmds:
+            if observer == AdbRemote3.cmds:
                 available.append('moler.cmd.adb')
 
         return available
+
+    @mark_to_call_base_class_method_with_same_name
+    def _prepare_transitions_with_proxy_pc(self):
+        """
+        Prepare transitions to change states without proxy_pc state.
+        :return: transitions without proxy_pc state.
+        """
+        transitions = {
+            AdbRemote3.unix_remote: {
+                AdbRemote3.adb_shell: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
+            },
+            AdbRemote3.adb_shell: {
+                AdbRemote3.unix_remote: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+                AdbRemote3.adb_shell_root: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
+            },
+            AdbRemote3.adb_shell_root: {
+                AdbRemote3.adb_shell: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+            },
+        }
+        return transitions

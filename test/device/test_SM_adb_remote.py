@@ -8,16 +8,15 @@ from moler.util.devices_SM import iterate_over_device_states, get_device
 from moler.device import DeviceFactory
 
 
-adb_remotes = ['ADB_REMOTE',]  # 'ADB_REMOTE3']
-# adb_remotes_proxy_pc = ['ADB_REMOTE_PROXY_PC', 'ADB_REMOTE_PROXY_PC3']
-adb_remotes_proxy_pc = ['ADB_REMOTE_PROXY_PC3']
+adb_remotes = ['ADB_REMOTE', 'ADB_REMOTE3']
+adb_remotes_proxy_pc = ['ADB_REMOTE_PROXY_PC', 'ADB_REMOTE_PROXY_PC3']
 
-# @pytest.mark.parametrize("device_name", adb_remotes)
-# def test_adb_remote_device(device_name, device_connection, adb_remote_output):
-#     adb_remote = get_device(name=device_name, connection=device_connection, device_output=adb_remote_output,
-#                             test_file_path=__file__)
+@pytest.mark.parametrize("device_name", adb_remotes)
+def test_adb_remote_device(device_name, device_connection, adb_remote_output):
+    adb_remote = get_device(name=device_name, connection=device_connection, device_output=adb_remote_output,
+                            test_file_path=__file__)
 
-#     iterate_over_device_states(device=adb_remote)
+    iterate_over_device_states(device=adb_remote)
 
 
 @pytest.mark.parametrize("device_name", adb_remotes_proxy_pc)
@@ -27,18 +26,21 @@ def test_adb_remote_device_proxy_pc(device_name, device_connection, adb_remote_o
 
     iterate_over_device_states(device=adb_remote)
 
-# @pytest.mark.parametrize("devices", [adb_remotes_proxy_pc])
-# def test_unix_sm_identity(devices):
-#     dev0 = DeviceFactory.get_device(name=devices[0])
-#     dev1 = DeviceFactory.get_device(name=devices[1])
 
-#     print(f"tests: {dev0.name},  {dev1.name}")
+@pytest.mark.parametrize("devices", [adb_remotes_proxy_pc, adb_remotes])
+def test_unix_sm_identity(devices, device_connection, adb_remote_output):
 
-#     assert dev0._stored_transitions == dev1._stored_transitions
-#     assert dev0._state_hops == dev1._state_hops
-#     assert dev0._state_prompts == dev1._state_prompts
-#     assert dev0._configurations == dev1._configurations
-#     assert dev0._newline_chars == dev1._newline_chars
+    dev0 = get_device(name=devices[0], connection=device_connection, device_output=adb_remote_output,
+                      test_file_path=__file__)
+    dev1 = get_device(name=devices[1], connection=device_connection, device_output=adb_remote_output,
+                      test_file_path=__file__)
+
+    assert dev0._state_hops == dev1._state_hops
+    assert dev0._configurations == dev1._configurations
+
+    assert dev0._stored_transitions == dev1._stored_transitions
+    assert dev0._state_prompts == dev1._state_prompts
+    assert dev0._newline_chars == dev1._newline_chars
 
 
 @pytest.fixture

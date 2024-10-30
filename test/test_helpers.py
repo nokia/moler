@@ -694,3 +694,117 @@ def test_remove_state_hops_from_sm():
 
     current_hops = remove_state_hops_from_sm(source_hops, UnixRemote.proxy_pc)
     assert expected_hops == current_hops
+
+
+def test_remove_state_hops_from_sm_adb():
+    from moler.helpers import remove_state_hops_from_sm
+    source_hops = {
+        'ADB_SHELL': {
+            'NOT_CONNECTED': 'UNIX_REMOTE',
+            'PROXY_PC': 'UNIX_REMOTE',
+            'UNIX_LOCAL': 'UNIX_REMOTE',
+            'UNIX_LOCAL_ROOT': 'UNIX_REMOTE',
+            'UNIX_REMOTE_ROOT': 'UNIX_REMOTE'
+        },
+        'ADB_SHELL_ROOT': {
+            'NOT_CONNECTED': 'ADB_SHELL',
+            'PROXY_PC': 'ADB_SHELL',
+            'UNIX_LOCAL': 'ADB_SHELL',
+            'UNIX_LOCAL_ROOT': 'ADB_SHELL',
+            'UNIX_REMOTE': 'ADB_SHELL',
+            'UNIX_REMOTE_ROOT': 'ADB_SHELL'
+        },
+        'NOT_CONNECTED': {
+            'ADB_SHELL': 'UNIX_LOCAL',
+            'ADB_SHELL_ROOT': 'UNIX_LOCAL',
+            'PROXY_PC': 'UNIX_LOCAL',
+            'UNIX_LOCAL_ROOT': 'UNIX_LOCAL',
+            'UNIX_REMOTE': 'UNIX_LOCAL',
+            'UNIX_REMOTE_ROOT': 'UNIX_LOCAL'
+        },
+        'PROXY_PC': {
+            'ADB_SHELL': 'UNIX_REMOTE',
+            'ADB_SHELL_ROOT': 'UNIX_REMOTE',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'UNIX_LOCAL_ROOT': 'UNIX_LOCAL',
+            'UNIX_REMOTE_ROOT': 'UNIX_REMOTE'
+        },
+        'UNIX_LOCAL': {
+            'ADB_SHELL': 'PROXY_PC',
+            'ADB_SHELL_ROOT': 'PROXY_PC',
+            'UNIX_REMOTE': 'PROXY_PC',
+            'UNIX_REMOTE_ROOT': 'PROXY_PC'
+        },
+        'UNIX_LOCAL_ROOT': {
+            'ADB_SHELL': 'UNIX_LOCAL',
+            'ADB_SHELL_ROOT': 'UNIX_LOCAL',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'PROXY_PC': 'UNIX_LOCAL',
+            'UNIX_REMOTE': 'UNIX_LOCAL',
+            'UNIX_REMOTE_ROOT': 'UNIX_LOCAL'
+        },
+        'UNIX_REMOTE': {
+            'ADB_SHELL_ROOT': 'ADB_SHELL',
+            'NOT_CONNECTED': 'PROXY_PC',
+            'UNIX_LOCAL': 'PROXY_PC',
+            'UNIX_LOCAL_ROOT': 'PROXY_PC'
+        },
+        'UNIX_REMOTE_ROOT': {
+            'ADB_SHELL': 'UNIX_REMOTE',
+            'ADB_SHELL_ROOT': 'UNIX_REMOTE',
+            'NOT_CONNECTED': 'UNIX_REMOTE',
+            'PROXY_PC': 'UNIX_REMOTE',
+            'UNIX_LOCAL': 'UNIX_REMOTE',
+            'UNIX_LOCAL_ROOT': 'UNIX_REMOTE'
+        }
+    }
+
+    expected_hops = {
+        'ADB_SHELL': {
+            'NOT_CONNECTED': 'UNIX_REMOTE',
+            'UNIX_LOCAL': 'UNIX_REMOTE',
+            'UNIX_LOCAL_ROOT': 'UNIX_REMOTE',
+            'UNIX_REMOTE_ROOT': 'UNIX_REMOTE'
+        },
+        'ADB_SHELL_ROOT': {
+            'NOT_CONNECTED': 'ADB_SHELL',
+            'UNIX_LOCAL': 'ADB_SHELL',
+            'UNIX_LOCAL_ROOT': 'ADB_SHELL',
+            'UNIX_REMOTE': 'ADB_SHELL',
+            'UNIX_REMOTE_ROOT': 'ADB_SHELL'
+        },
+        'NOT_CONNECTED': {
+            'ADB_SHELL': 'UNIX_LOCAL',
+            'ADB_SHELL_ROOT': 'UNIX_LOCAL',
+            'UNIX_LOCAL_ROOT': 'UNIX_LOCAL',
+            'UNIX_REMOTE': 'UNIX_LOCAL',
+            'UNIX_REMOTE_ROOT': 'UNIX_LOCAL'
+        },
+        'UNIX_LOCAL': {
+            'ADB_SHELL': 'UNIX_REMOTE',
+            'ADB_SHELL_ROOT': 'UNIX_REMOTE',
+            'UNIX_REMOTE_ROOT': 'UNIX_REMOTE'
+        },
+        'UNIX_LOCAL_ROOT': {
+            'ADB_SHELL': 'UNIX_LOCAL',
+            'ADB_SHELL_ROOT': 'UNIX_LOCAL',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'UNIX_REMOTE': 'UNIX_LOCAL',
+            'UNIX_REMOTE_ROOT': 'UNIX_LOCAL'
+        },
+        'UNIX_REMOTE': {
+            'ADB_SHELL_ROOT': 'ADB_SHELL',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'UNIX_LOCAL_ROOT': 'UNIX_LOCAL'
+        },
+        'UNIX_REMOTE_ROOT': {
+            'ADB_SHELL': 'UNIX_REMOTE',
+            'ADB_SHELL_ROOT': 'UNIX_REMOTE',
+            'NOT_CONNECTED': 'UNIX_REMOTE',
+            'UNIX_LOCAL': 'UNIX_REMOTE',
+            'UNIX_LOCAL_ROOT': 'UNIX_REMOTE'
+        }
+    }
+
+    current_hops = remove_state_hops_from_sm(source_hops, "PROXY_PC")
+    assert expected_hops == current_hops

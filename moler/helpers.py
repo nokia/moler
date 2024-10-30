@@ -19,6 +19,7 @@ from math import isclose
 from types import FunctionType, MethodType
 
 from six import string_types, integer_types
+from moler.exceptions import MolerException
 
 
 class ClassProperty(property):
@@ -666,6 +667,9 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
             direct_state = item[dest_state]
             if direct_state == state_to_remove:
                 if state_to_remove in source_hops and dest_state in source_hops[state_to_remove]:
+                    if source_hops[state_to_remove][dest_state] == from_state:
+                        msg = f"Found cycle from '{from_state}' to '{dest_state}' via '{source_hops[state_to_remove][dest_state]}'. Please verify state hops: {source_hops}"
+                        raise(MolerException(msg))
                     new_hops[from_state][dest_state] = source_hops[state_to_remove][dest_state]
                 else:
                     del new_hops[from_state][dest_state]

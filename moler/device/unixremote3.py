@@ -139,7 +139,6 @@ class UnixRemote3(ProxyPc3):
         Return State Machine default configuration with proxy_pc state.
         :return: default sm configuration with proxy_pc state.
         """
-        print(f"\n\n****************\n{self.name} ProxyPC3._get_default_sm_configuration_with_proxy_pc\n\n")
         config = {
             UnixRemote3.connection_hops: {
                 UnixRemote3.proxy_pc: {  # from
