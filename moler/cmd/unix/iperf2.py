@@ -277,7 +277,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         if self._regex_helper.search_compiled(Iperf2._re_command_failure, line):
             self.set_exception(
                 CommandFailure(
-                    self, f"ERROR: {self._regex_helper.group('FAILURE_MSG')}"
+                    self, f"ERROR: found in command output: \"{self._regex_helper.group('FAILURE_MSG')}\""
                 )
             )
             raise ParsingDone
