@@ -70,10 +70,10 @@ class AdbRemote3(UnixRemote3):
         """
         initial_state = initial_state if initial_state is not None else AdbRemote3.adb_shell
         super(AdbRemote3, self).__init__(name=name, io_connection=io_connection,
-                                        io_type=io_type, variant=variant,
-                                        io_constructor_kwargs=io_constructor_kwargs,
-                                        sm_params=sm_params, initial_state=initial_state,
-                                        lazy_cmds_events=lazy_cmds_events)
+                                         io_type=io_type, variant=variant,
+                                         io_constructor_kwargs=io_constructor_kwargs,
+                                         sm_params=sm_params, initial_state=initial_state,
+                                         lazy_cmds_events=lazy_cmds_events)
 
     @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_with_proxy_pc(self):
