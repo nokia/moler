@@ -331,7 +331,7 @@ class AtRemote(UnixRemote):
             AtRemote.proxy_pc: {
                 AtRemote.unix_remote_root: AtRemote.unix_remote,
                 AtRemote.at_remote: AtRemote.unix_remote,
-                AtRemote.not_connected: AtRemote.unix_remote,
+                AtRemote.not_connected: AtRemote.unix_local,
                 AtRemote.unix_local_root: AtRemote.unix_local,
             }
         }
