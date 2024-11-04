@@ -47,7 +47,6 @@ class Bzip2(GenericUnixCommand):
         return cmd
 
     def on_new_line(self, line, is_full_line):
-        print(f"on_new_line: {is_full_line}-> '{line}'")
         try:
             if is_full_line:
                 self._parse_error_via_output_line(line)
