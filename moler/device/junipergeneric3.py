@@ -8,14 +8,13 @@ __copyright__ = 'Copyright (C) 2019-2024, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, jakub.kupiec@nokia.com, marcin.usielski@nokia.com'
 
 import logging
-from abc import ABCMeta
-from six import add_metaclass
 from moler.device.proxy_pc3 import ProxyPc3
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
+
+# Do not create object directly. Use subclass instead - JuniperEX.
 @call_base_class_method_with_same_name
-@add_metaclass(ABCMeta)
 class JuniperGeneric3(ProxyPc3):
     """Junipergeneric device class."""
 
