@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   test:
-    timeout-minutes: 50
+    timeout-minutes: 15
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -12,7 +12,7 @@ jobs:
         python-version: [3.7, 3.8, 3.9, "3.10", 3.11, 3.12]
     env:
       MOLER_DEBUG_THREADS: True
-      PYTHON_COVERAGE: '3.12'
+      PYTHON_COVERAGE: '3.15'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}

@@ -10,4 +10,3 @@ pytest-asyncio
 flake8
 pydocstyle
 pylint
-coverage
