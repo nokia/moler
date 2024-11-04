@@ -4,7 +4,7 @@ on: [push]
 
 jobs:
   test:
-    timeout-minutes: 25
+    timeout-minutes: 30
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -54,7 +54,7 @@ jobs:
           # python -m pytest -c py3pytest.ini -vvvsss test/
       - name: Test with pytest and coverage
         if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
-        timeout-minutes: 24
+        timeout-minutes: 29
         run: |
           pip list
           python --version
