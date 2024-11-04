@@ -5,7 +5,7 @@ pytest
 pytest-mccabe
 pytest-random
 mock
-pytest-cov
+pytest-cov < 6.0.0
 pytest-asyncio
 flake8
 pydocstyle
