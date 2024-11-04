@@ -5,8 +5,9 @@ pytest
 pytest-mccabe
 pytest-random
 mock
-pytest-cov < 6.0.0
+pytest-cov
 pytest-asyncio
 flake8
 pydocstyle
 pylint
+coverage
