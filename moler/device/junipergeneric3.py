@@ -12,7 +12,6 @@ from moler.device.proxy_pc3 import ProxyPc3
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
-
 # Do not create object directly. Use subclass instead - JuniperEX.
 @call_base_class_method_with_same_name
 class JuniperGeneric3(ProxyPc3):
