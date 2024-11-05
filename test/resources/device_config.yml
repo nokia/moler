@@ -175,6 +175,44 @@ DEVICES:
           command_params:
             expected_prompt: "proxy_pc#"
 
+  JUNIPER_EX3:
+    DEVICE_CLASS: moler.device.juniper_ex3.JuniperEX3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        CLI:
+          execute_command: ssh # default value
+          command_params:
+            host: cli_host
+            login: cli_login
+            password: password
+
+  JUNIPER_EX_PROXY_PC3:
+    DEVICE_CLASS: moler.device.juniper_ex3.JuniperEX3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      PROXY_PC:
+        CLI:
+          execute_command: ssh
+          command_params:
+            host: cli_host
+            login: cli_login
+            password: password
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      CLI:
+        PROXY_PC:
+          execute_command: exit
+          command_params:
+            expected_prompt: "proxy_pc#"
+
   SCPI:
     DEVICE_CLASS: moler.device.scpi.Scpi
     INITIAL_STATE: UNIX_LOCAL
@@ -190,6 +228,46 @@ DEVICES:
 
   SCPI_PROXY_PC:
     DEVICE_CLASS: moler.device.scpi.Scpi
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      PROXY_PC:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            expected_prompt: SCPI>
+            host: 10.0.0.1
+            port: 99999
+            set_timeout: null
+      SCPI:
+        PROXY_PC:
+          execute_command: exit_telnet # default value
+          command_params:
+            expected_prompt: "proxy_pc#"
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+
+  SCPI3:
+    DEVICE_CLASS: moler.device.scpi3.Scpi3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        SCPI:
+          execute_command: telnet # default value
+          command_params:
+            expected_prompt: SCPI>
+            host: 10.0.0.1
+            port: 99999
+            set_timeout: null
+
+  SCPI_PROXY_PC3:
+    DEVICE_CLASS: moler.device.scpi3.Scpi3
     INITIAL_STATE: UNIX_LOCAL
     CONNECTION_HOPS:
       PROXY_PC:
@@ -252,6 +330,42 @@ DEVICES:
             set_timeout: null
 
 
+  PDU3:
+    DEVICE_CLASS: moler.device.pdu_aten3.PduAten3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        PDU:
+          execute_command: telnet # default value
+          command_params:
+            host: 10.0.0.1
+            cmds_before_establish_connection: null
+
+  PDU_PROXY_PC3:
+    DEVICE_CLASS: moler.device.pdu_aten3.PduAten3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      PROXY_PC:
+        PDU:
+          execute_command: telnet # default value
+          command_params:
+            host: 10.0.0.1
+            cmds_before_establish_connection: null
+      PDU:
+        PROXY_PC:
+          execute_command: exit_telnet # default value
+          command_params:
+            expected_prompt: "proxy_pc#"
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+
   AT_REMOTE:
     DEVICE_CLASS: moler.device.atremote.AtRemote
     INITIAL_STATE: UNIX_LOCAL
@@ -271,11 +385,161 @@ DEVICES:
           command_params:
             serial_devname: 'COM5'
 
+  AT_REMOTE_PROXY_PC:
+    DEVICE_CLASS: moler.device.atremote.AtRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      PROXY_PC:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        AT_REMOTE:
+          execute_command: plink_serial # default value
+          command_params:
+            serial_devname: 'COM5'
+
+  AT_REMOTE3:
+    DEVICE_CLASS: moler.device.atremote3.AtRemote3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        AT_REMOTE:
+          execute_command: plink_serial # default value
+          command_params:
+            serial_devname: 'COM5'
+
+  AT_REMOTE_PROXY_PC3:
+    DEVICE_CLASS: moler.device.atremote3.AtRemote3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      PROXY_PC:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        AT_REMOTE:
+          execute_command: plink_serial # default value
+          command_params:
+            serial_devname: 'COM5'
+
   ADB_REMOTE:
     DEVICE_CLASS: moler.device.adbremote.AdbRemote
     INITIAL_STATE: UNIX_LOCAL
     CONNECTION_HOPS:
       UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        ADB_SHELL:
+          execute_command: adb_shell # default value; default command is:  adb shell
+          command_params:
+            serial_number: 'f57e6b77'  #  to create:  adb -s f57e6b77 shell
+
+  ADB_REMOTE_PROXY_PC:
+    DEVICE_CLASS: moler.device.adbremote.AdbRemote
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      PROXY_PC:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        ADB_SHELL:
+          execute_command: adb_shell # default value; default command is:  adb shell
+          command_params:
+            serial_number: 'f57e6b77'  #  to create:  adb -s f57e6b77 shell
+
+  ADB_REMOTE3:
+    DEVICE_CLASS: moler.device.adbremote3.AdbRemote3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        UNIX_REMOTE:
+          execute_command: ssh # default value
+          command_params:
+            expected_prompt: 'remote#'
+            host: remote_host
+            login: remote_login
+            password: passwd4remote
+            set_timeout: null
+      UNIX_REMOTE:
+        ADB_SHELL:
+          execute_command: adb_shell # default value; default command is:  adb shell
+          command_params:
+            serial_number: 'f57e6b77'  #  to create:  adb -s f57e6b77 shell
+
+  ADB_REMOTE_PROXY_PC3:
+    DEVICE_CLASS: moler.device.adbremote3.AdbRemote3
+    INITIAL_STATE: UNIX_LOCAL
+    CONNECTION_HOPS:
+      UNIX_LOCAL:
+        PROXY_PC:
+          execute_command: ssh
+          command_params:
+            expected_prompt: "proxy_pc#"
+            host: proxy_pc_host
+            login: proxy_pc_login
+            password: password
+            set_timeout: null
+      PROXY_PC:
         UNIX_REMOTE:
           execute_command: ssh # default value
           command_params:

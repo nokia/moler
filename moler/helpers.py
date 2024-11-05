@@ -19,6 +19,7 @@ from math import isclose
 from types import FunctionType, MethodType
 
 from six import string_types, integer_types
+from moler.exceptions import MolerException
 
 
 class ClassProperty(property):
@@ -603,7 +604,11 @@ def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_rem
             new_sm[new_from] = {}
         if new_from not in new_transitions:
             new_transitions[new_from] = {}
+
         new_sm[new_from][to_state] = copy.deepcopy(source_sm[state_to_remove][to_state])
+        if 'execute_command' in source_sm[new_from][state_to_remove]:
+            new_sm[new_from][to_state]['execute_command'] = source_sm[new_from][state_to_remove]['execute_command']
+
         if state_to_remove in source_transitions and to_state in source_transitions[state_to_remove]:
             new_transitions[new_from][to_state] = copy.deepcopy(source_transitions[state_to_remove][to_state])
         else:
@@ -615,6 +620,8 @@ def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_rem
 
     _delete_state(sm=new_sm, state_to_remove=state_to_remove)
     _delete_state(sm=new_transitions, state_to_remove=state_to_remove)
+    _delete_empty_states(new_sm)
+    _delete_empty_states(new_transitions)
 
     return (new_sm, new_transitions)
 
@@ -633,6 +640,18 @@ def _delete_state(sm: dict, state_to_remove: str) -> None:
             del sm[from_state][state_to_remove]
 
 
+def _delete_empty_states(sm: dict) -> None:
+    """
+    Delete empty states from a state machine dict (in place).
+    :param sm: dict with state machine
+    :return: None
+    """
+    states = list(sm.keys())
+    for state in states:
+        if sm[state] is None or not sm[state]:
+            del sm[state]
+
+
 def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
     """
     Remove a state from a state machine dict.
@@ -648,6 +667,9 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
             direct_state = item[dest_state]
             if direct_state == state_to_remove:
                 if state_to_remove in source_hops and dest_state in source_hops[state_to_remove]:
+                    if source_hops[state_to_remove][dest_state] == from_state:
+                        msg = f"Found cycle from '{from_state}' to '{dest_state}' via '{source_hops[state_to_remove][dest_state]}'. Please verify state hops: {source_hops}"
+                        raise MolerException(msg)
                     new_hops[from_state][dest_state] = source_hops[state_to_remove][dest_state]
                 else:
                     del new_hops[from_state][dest_state]
@@ -659,4 +681,5 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
     if state_to_remove in new_hops:
         del new_hops[state_to_remove]
 
+    _delete_empty_states(new_hops)
     return new_hops

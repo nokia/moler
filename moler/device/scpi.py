@@ -267,6 +267,7 @@ class Scpi(ProxyPc):
         state_hops = {
             Scpi.not_connected: {
                 Scpi.scpi: Scpi.unix_local,
+                Scpi.unix_local_root: Scpi.unix_local,
             },
             Scpi.scpi: {
                 Scpi.not_connected: Scpi.unix_local,

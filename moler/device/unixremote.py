@@ -435,6 +435,10 @@ class UnixRemote(ProxyPc):
         Overwrite prompts for some states to easily configure the SM.
         """
         if self._use_proxy_pc:
+            self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.proxy_pc][
+                "command_params"]["expected_prompt"] = \
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.proxy_pc][
+                "command_params"]["expected_prompt"]
             self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
                 "command_params"]["expected_prompt"] = \
                 self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
