@@ -1,3 +1,8 @@
+## moler 3.12.0
+ * Remove state from state machine dict. Devices (with suffix 3) can conditionally delete state PROXY_PC
+ * Readability logs
+ * Debug info
+
 ## moler 3.11.1
  * Fix the Wait4prompts (data processing in reverse order)
 
