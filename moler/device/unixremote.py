@@ -11,6 +11,7 @@ __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.erns
 
 from moler.device.proxy_pc import ProxyPc
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
+from moler.exceptions import DeviceFailure
 
 
 @call_base_class_method_with_same_name
@@ -434,20 +435,23 @@ class UnixRemote(ProxyPc):
         """
         Overwrite prompts for some states to easily configure the SM.
         """
-        if self._use_proxy_pc:
-            self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.proxy_pc][
-                "command_params"]["expected_prompt"] = \
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.proxy_pc][
-                "command_params"]["expected_prompt"]
-            self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
-                "command_params"]["expected_prompt"] = \
-                self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
+        try:
+            if self._use_proxy_pc:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote][UnixRemote.proxy_pc][
+                    "command_params"]["expected_prompt"] = \
+                    self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.proxy_pc][
                     "command_params"]["expected_prompt"]
-        else:
-            self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
-                "command_params"]["expected_prompt"] = \
-                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
-                    "command_params"]["expected_prompt"]
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
+                    "command_params"]["expected_prompt"] = \
+                    self._configurations[UnixRemote.connection_hops][UnixRemote.proxy_pc][UnixRemote.unix_remote][
+                        "command_params"]["expected_prompt"]
+            else:
+                self._configurations[UnixRemote.connection_hops][UnixRemote.unix_remote_root][UnixRemote.unix_remote][
+                    "command_params"]["expected_prompt"] = \
+                    self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
+                        "command_params"]["expected_prompt"]
+        except KeyError as ke:
+            raise DeviceFailure(f"Wrong configuration. Cannot get prompts. {ke} {repr(ke)}")
 
     def _get_packages_for_state(self, state, observer):
         """
