@@ -28,10 +28,26 @@ moler.device.adbremote2 module
    :undoc-members:
    :show-inheritance:
 
+moler.device.adbremote3 module
+------------------------------
+
+.. automodule:: moler.device.adbremote3
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 moler.device.atremote module
 ----------------------------
 
 .. automodule:: moler.device.atremote
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+moler.device.atremote3 module
+-----------------------------
+
+.. automodule:: moler.device.atremote3
    :members:
    :undoc-members:
    :show-inheritance:
@@ -52,6 +68,14 @@ moler.device.juniper\_ex module
    :undoc-members:
    :show-inheritance:
 
+moler.device.juniper\_ex3 module
+--------------------------------
+
+.. automodule:: moler.device.juniper_ex3
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 moler.device.junipergeneric module
 ----------------------------------
 
@@ -60,10 +84,26 @@ moler.device.junipergeneric module
    :undoc-members:
    :show-inheritance:
 
+moler.device.junipergeneric3 module
+-----------------------------------
+
+.. automodule:: moler.device.junipergeneric3
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 moler.device.pdu\_aten module
 -----------------------------
 
 .. automodule:: moler.device.pdu_aten
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+moler.device.pdu\_aten3 module
+------------------------------
+
+.. automodule:: moler.device.pdu_aten3
    :members:
    :undoc-members:
    :show-inheritance:
@@ -84,10 +124,26 @@ moler.device.proxy\_pc2 module
    :undoc-members:
    :show-inheritance:
 
+moler.device.proxy\_pc3 module
+------------------------------
+
+.. automodule:: moler.device.proxy_pc3
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 moler.device.scpi module
 ------------------------
 
 .. automodule:: moler.device.scpi
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+moler.device.scpi3 module
+-------------------------
+
+.. automodule:: moler.device.scpi3
    :members:
    :undoc-members:
    :show-inheritance:
@@ -128,6 +184,14 @@ moler.device.unixremote2 module
 -------------------------------
 
 .. automodule:: moler.device.unixremote2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+moler.device.unixremote3 module
+-------------------------------
+
+.. automodule:: moler.device.unixremote3
    :members:
    :undoc-members:
    :show-inheritance:
