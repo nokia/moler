@@ -155,8 +155,10 @@ class ProxyPc(UnixLocal):
             else:
                 state_prompts = self._prepare_state_prompts_without_proxy_pc()
         except KeyError as ke:
-            raise DeviceFailure(device=self.__class__.__name__,
-                message=f"Wrong configuration. Cannot get prompts. {ke} {repr(ke)}")
+            raise DeviceFailure(
+                device=self.__class__.__name__,
+                message=f"Wrong configuration. Cannot get prompts. {ke} {repr(ke)}"
+            )
 
         self._update_dict(self._state_prompts, state_prompts)
 

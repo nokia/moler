@@ -451,8 +451,10 @@ class UnixRemote(ProxyPc):
                     self._configurations[UnixRemote.connection_hops][UnixRemote.unix_local][UnixRemote.unix_remote][
                         "command_params"]["expected_prompt"]
         except KeyError as ke:
-            raise DeviceFailure(device=self.__class__.__name__,
-                message=f"Wrong configuration. Cannot get prompts. {ke} {repr(ke)}")
+            raise DeviceFailure(
+                device=self.__class__.__name__,
+                message=f"Wrong configuration. Cannot get prompts. {ke} {repr(ke)}"
+            )
 
     def _get_packages_for_state(self, state, observer):
         """
