@@ -79,7 +79,7 @@ class ProxyPc2(UnixLocal):
                                        io_constructor_kwargs=io_constructor_kwargs,
                                        sm_params=sm_params, initial_state=initial_state,
                                        lazy_cmds_events=lazy_cmds_events)
-        self._prompt_detector_timeout = 1.9
+        self._prompt_detector_timeout = 3.9
         self._after_open_prompt_detector = None
         self._warn_about_temporary_life_of_class()
 
@@ -258,6 +258,7 @@ class ProxyPc2(UnixLocal):
         self._set_state(NOT_CONNECTED)
 
     def _detect_after_open_prompt(self, set_callback):
+        self._prompt_detected = False
         self._after_open_prompt_detector = Wait4(
             detect_patterns=[rf'^(.+){self._detecting_prompt_cmd}'],
             connection=self.io_connection.moler_connection,
@@ -446,7 +447,7 @@ class ProxyPc2(UnixLocal):
          returned.
         :return: Instance of command
         """
-        if self._prompt_detected is False:
+        if not self._prompt_detected:
             self._detect_prompt_get_cmd()
         return super(ProxyPc2, self).get_cmd(cmd_name=cmd_name, cmd_params=cmd_params,
                                              check_state=check_state,
@@ -454,21 +455,11 @@ class ProxyPc2(UnixLocal):
 
     def _detect_prompt_get_cmd(self):
         self.logger.debug("get_cmd was called but prompt has not been detected yet.")
-        # pylint: disable-next=unused-variable
-        for try_nr in range(1, 10, 1):
-            if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is False:
-                self._detect_after_open_prompt(self._set_after_open_prompt)
-            while time.monotonic() - self._after_open_prompt_detector.life_status.start_time < self._prompt_detector_timeout:
-                time.sleep(0.1)
-                if self._prompt_detected is True:
-                    break
-                self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
-            self.logger.debug("get_cmd is canceling prompt detector.")
-            self._after_open_prompt_detector.cancel()
-            if self._prompt_detected is True:
-                break
+        if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is False:
+            self._detect_after_open_prompt(self._set_after_open_prompt)
+        self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
 
         self._after_open_prompt_detector.cancel()
         self._after_open_prompt_detector = None
-        if self._prompt_detected is False:
+        if not self._prompt_detected:
             raise MolerException(f"Device {self.public_name} cannot detect prompt!")
