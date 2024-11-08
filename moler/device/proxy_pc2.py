@@ -10,7 +10,6 @@ __copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import re
-import time
 import six
 import abc
 import platform
@@ -175,7 +174,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_transitions(self):
         """
         Prepare transitions to change states.
-        :return: Nothing.
+        :return: None.
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_transitions()
@@ -239,7 +238,7 @@ class ProxyPc2(UnixLocal):
         """
         Execute action when connection made.
         :param connection: device connection.
-        :return: Nothing.
+        :return: None.
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self).on_connection_made(connection)
@@ -253,7 +252,7 @@ class ProxyPc2(UnixLocal):
         """
         Execute action when connection lost.
         :param connection: device connection.
-        :return: Nothing.
+        :return: None.
         """
         self._set_state(NOT_CONNECTED)
 
@@ -297,7 +296,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_state_prompts(self):
         """
         Prepare textual prompt for each state.
-        :return: Nothing.
+        :return: None.
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_state_prompts()
@@ -336,7 +335,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_newline_chars(self):
         """
         Prepare newline char for each state.
-        :return: Nothing.
+        :return: None.
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_newline_chars()
@@ -374,7 +373,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_state_hops(self):
         """
         Prepare hops for non direct transitions between states.
-        :return: Nothing.
+        :return: None.
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_state_hops()
