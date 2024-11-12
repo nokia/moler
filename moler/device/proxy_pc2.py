@@ -257,6 +257,7 @@ class ProxyPc2(UnixLocal):
         self._set_state(NOT_CONNECTED)
 
     def _detect_after_open_prompt(self, set_callback):
+        print("Detecting prompt")
         self._prompt_detected = False
         self._after_open_prompt_detector = Wait4(
             detect_patterns=[rf'^(.+){self._detecting_prompt_cmd}'],
@@ -454,7 +455,7 @@ class ProxyPc2(UnixLocal):
 
     def _detect_prompt_get_cmd(self):
         self.logger.debug("get_cmd was called but prompt has not been detected yet.")
-        if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is False:
+        if self._after_open_prompt_detector is None or not self._after_open_prompt_detector.running():
             self._detect_after_open_prompt(self._set_after_open_prompt)
         self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
 
