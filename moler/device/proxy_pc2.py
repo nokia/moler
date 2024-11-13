@@ -247,6 +247,7 @@ class ProxyPc2(UnixLocal):
             self._prompt_detected = False  # prompt not defined in SM
             self._set_state(PROXY_PC)
             self._detect_after_open_prompt(self._set_after_open_prompt)
+            self._detect_prompt_get_cmd()
 
     def on_connection_lost(self, connection):
         """
@@ -257,7 +258,7 @@ class ProxyPc2(UnixLocal):
         self._set_state(NOT_CONNECTED)
 
     def _detect_after_open_prompt(self, set_callback):
-        self.logger.debug("Command to detect prompt will be sent.")
+        self.logger.info(f"Command to detect prompt will be sent. Callback: {set_callback}")
         self._prompt_detected = False
         self._after_open_prompt_detector = Wait4(
             detect_patterns=[rf'^(.+){self._detecting_prompt_cmd}'],
@@ -277,20 +278,21 @@ class ProxyPc2(UnixLocal):
         occurrence = event.get_last_occurrence()
         prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
-        self.logger.debug(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}'.")
+        self.logger.info(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}'.")
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
             prompt = re.escape(prompt)
             self._state_prompts[state] = prompt
             if old_prompt is not None and prompt != old_prompt:
                 self.logger.info(f"Different prompt candidates: '{old_prompt}' -> '{prompt}' for state {state}.")
-            self.logger.debug(f"New prompts: {self._state_prompts}")
+            self.logger.info(f"New prompts: {self._state_prompts}")
             self._prepare_reverse_state_prompts_dict()
-            self.logger.debug(f"After prepare_reverse_state_prompts_dict: {self._reverse_state_prompts_dict}")
+            self.logger.info(f"After prepare_reverse_state_prompts_dict: {self._reverse_state_prompts_dict}")
             if self._prompts_event is not None:
-                self.logger.debug("prompts event is not none")
+                self.logger.info("prompts event is not none")
                 self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
             self._prompt_detected = True
+            self.logger.info("Prompt detected")
 
     def _prepare_state_prompts(self):
         """
@@ -452,7 +454,7 @@ class ProxyPc2(UnixLocal):
                                              for_state=for_state)
 
     def _detect_prompt_get_cmd(self):
-        self.logger.debug("get_cmd was called but prompt has not been detected yet.")
+        self.logger.info("get_cmd was called but prompt has not been detected yet.")
         if self._after_open_prompt_detector is None or not self._after_open_prompt_detector.running():
             self._detect_after_open_prompt(self._set_after_open_prompt)
         self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
