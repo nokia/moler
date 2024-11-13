@@ -84,7 +84,6 @@ class ProxyPc2(UnixLocal):
         self._after_open_prompt_detector = None
         self._warn_about_temporary_life_of_class()
 
-
     @property
     def _prompt_detected(self):
         """
