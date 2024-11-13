@@ -13,6 +13,7 @@ import re
 import six
 import abc
 import platform
+import time
 
 from moler.device.textualdevice import TextualDevice
 from moler.device.unixlocal import UnixLocal
@@ -247,7 +248,8 @@ class ProxyPc2(UnixLocal):
             self._prompt_detected = False  # prompt not defined in SM
             self._set_state(PROXY_PC)
             self._detect_after_open_prompt(self._set_after_open_prompt)
-            self._detect_prompt_get_cmd()
+            if self._sleep_after_state_change is not None and self._sleep_after_state_change > 0:
+                time.sleep(self._sleep_after_state_change)
 
     def on_connection_lost(self, connection):
         """
