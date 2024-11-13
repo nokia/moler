@@ -24,6 +24,7 @@ except ImportError:  # ThreadedTerminal won't load on Windows
     ThreadedTerminal = None
 
 from moler.events.shared.wait4 import Wait4
+import inspect
 
 # helper variables to improve readability of state machines
 # f.ex. moler.device.textualdevice introduces state TextualDevice.not_connected = "NOT_CONNECTED"
@@ -68,7 +69,7 @@ class ProxyPc2(UnixLocal):
                         commands and events when they are required for the first time.
         """
         self._detecting_prompt_cmd = "echo DETECTING PROMPT"
-        self._prompt_detected = False
+        self.__prompt_detected = False
         self._use_local_unix_state = want_local_unix_state(io_type, io_connection)
         base_state = UNIX_LOCAL if self._use_local_unix_state else NOT_CONNECTED
         self._use_proxy_pc = self._should_use_proxy_pc(sm_params, PROXY_PC)
@@ -82,6 +83,30 @@ class ProxyPc2(UnixLocal):
         self._prompt_detector_timeout = 3.9
         self._after_open_prompt_detector = None
         self._warn_about_temporary_life_of_class()
+
+
+    @property
+    def _prompt_detected(self):
+        """
+        Get prompt detected.
+        :return: bool value.
+        """
+        frame = inspect.currentframe().f_back
+        caller = frame.f_code.co_name
+        self.logger.info(f"Getter _prompt_detected: {self.__prompt_detected} called by {caller}")
+        return self.__prompt_detected
+
+    @_prompt_detected.setter
+    def _prompt_detected(self, value):
+        """
+        Set prompt detected.
+        :param value: bool value.
+        :return: None.
+        """
+        frame = inspect.currentframe().f_back
+        caller = frame.f_code.co_name
+        self.logger.info(f"Setter _prompt_detected: {self.__prompt_detected} -> {value} called by {caller}")
+        self.__prompt_detected = value
 
     def _warn_about_temporary_life_of_class(self):
         what = "experimental/temporary implementation of device utilizing sshshell connection"
