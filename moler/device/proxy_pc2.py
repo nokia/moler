@@ -241,6 +241,7 @@ class ProxyPc2(UnixLocal):
         :param connection: device connection.
         :return: None.
         """
+        self.logger.info(f"Connection made: {connection}")
         if self._use_local_unix_state:
             super(ProxyPc2, self).on_connection_made(connection)
             self._prompt_detected = True  # prompt defined in SM
@@ -257,6 +258,7 @@ class ProxyPc2(UnixLocal):
         :param connection: device connection.
         :return: None.
         """
+        self.logger.info(f"Connection lost: {connection}")
         self._set_state(NOT_CONNECTED)
 
     def _detect_after_open_prompt(self, set_callback):
