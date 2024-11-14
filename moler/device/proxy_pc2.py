@@ -303,10 +303,11 @@ class ProxyPc2(UnixLocal):
         self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
 
     def _set_after_open_prompt(self, event):
+        current_thread = threading.current_thread()
         occurrence = event.get_last_occurrence()
         prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
-        self.logger.info(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}'.")
+        self.logger.info(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}' Current thread: {current_thread.name}, ID: {current_thread.ident}.")
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
             prompt = re.escape(prompt)

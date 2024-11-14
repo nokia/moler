@@ -10,6 +10,7 @@ __copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import re
+import threading
 from moler.device.textualdevice import TextualDevice
 from moler.device.unixlocal import UnixLocal
 from moler.device.proxy_pc2 import ProxyPc2, PROXY_PC
@@ -388,10 +389,11 @@ class UnixRemote2(ProxyPc2):
             self._detect_after_open_prompt(self._set_after_open_prompt)
 
     def _set_after_open_prompt(self, event):
+        current_thread = threading.current_thread()
         occurrence = event.get_last_occurrence()
         prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
-        self.logger.info(f"UnixRemote2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}'.")
+        self.logger.info(f"UnixRemote2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}' Current thread: {current_thread.name}, ID: {current_thread.ident}.")
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
             prompt = re.escape(prompt)
