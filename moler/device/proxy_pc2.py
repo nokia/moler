@@ -25,6 +25,7 @@ except ImportError:  # ThreadedTerminal won't load on Windows
 
 from moler.events.shared.wait4 import Wait4
 import inspect
+import threading
 
 # helper variables to improve readability of state machines
 # f.ex. moler.device.textualdevice introduces state TextualDevice.not_connected = "NOT_CONNECTED"
@@ -273,8 +274,6 @@ class ProxyPc2(UnixLocal):
             self._prompt_detected = False  # prompt not defined in SM
             self._set_state(PROXY_PC)
             self._detect_after_open_prompt(self._set_after_open_prompt)
-            if self._sleep_after_state_change is not None and self._sleep_after_state_change > 0:
-                time.sleep(self._sleep_after_state_change)
 
     def on_connection_lost(self, connection):
         """
@@ -286,7 +285,8 @@ class ProxyPc2(UnixLocal):
         self._set_state(NOT_CONNECTED)
 
     def _detect_after_open_prompt(self, set_callback):
-        self.logger.info(f"Command to detect prompt will be sent. Callback: {set_callback}")
+        current_thread = threading.current_thread()
+        self.logger.info(f"Command to detect prompt will be sent. Callback: {set_callback} Current thread: {current_thread.name}, ID: {current_thread.ident}")
         self._prompt_detected = False
         self._after_open_prompt_detector = Wait4(
             detect_patterns=[rf'^(.+){self._detecting_prompt_cmd}'],
@@ -491,3 +491,5 @@ class ProxyPc2(UnixLocal):
         self._after_open_prompt_detector = None
         if not self._prompt_detected:
             raise MolerException(f"Device {self.public_name} cannot detect prompt!")
+        self.io_connection.moler_connection.sendline("")
+        time.sleep(self._prompt_detector_timeout)
