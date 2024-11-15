@@ -297,6 +297,7 @@ class ProxyPc2(UnixLocal):
         detector.add_event_occurred_callback(callback=set_callback,
                                              callback_params={"event": detector})
         detector.start(timeout=self._prompt_detector_timeout)
+        self.logger.info("Prompt detector started")
         self.io_connection.moler_connection.sendline("")
         self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
         self.io_connection.moler_connection.sendline("")
@@ -483,14 +484,22 @@ class ProxyPc2(UnixLocal):
                                              for_state=for_state)
 
     def _detect_prompt_get_cmd(self):
-        self.logger.info("get_cmd was called but prompt has not been detected yet.")
-        if self._after_open_prompt_detector is None or not self._after_open_prompt_detector.running():
+        self.logger.info("get_cmd was called v5 but prompt has not been detected yet.")
+        if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is not True:
+            self.logger.info("_detect_prompt_get_cmd after_open_prompt_detector is not running! Let's run it.")
             self._detect_after_open_prompt(self._set_after_open_prompt)
-        self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
+        try:
+            self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
+        except MolerException:
+            self.logger.info(f"Timeout for prompt detector {self._after_open_prompt_detector}.")
 
         self._after_open_prompt_detector.cancel()
         self._after_open_prompt_detector = None
+        self.logger.info("SET self._after_open_prompt_detector = None")
         if not self._prompt_detected:
-            raise MolerException(f"Device {self.public_name} cannot detect prompt!")
+            msg = f"Device {self.public_name} cannot detect prompt!"
+            self.logger.info(msg)
+            raise MolerException(msg)
         self.io_connection.moler_connection.sendline("")
+        self.logger.info(f"Sleep after prompt detection for {self._prompt_detector_timeout} seconds.")
         time.sleep(self._prompt_detector_timeout)
