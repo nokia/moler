@@ -191,6 +191,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         if is_full_line:
             try:
                 self._command_failure(line)
+                self._parse_version(line)
                 self._parse_connection_name_and_id(line)
                 self._parse_headers(line)
                 self._parse_connection_info(line)
@@ -200,6 +201,14 @@ class Iperf2(GenericUnixCommand, Publisher):
             except ParsingDone:
                 pass
         return super(Iperf2, self).on_new_line(line, is_full_line)
+
+    # iperf version 2.0.12 (25 June 2018) pthreads
+    _re_version = re.compile(r"iperf version\s+(?P<VERSION>\S.*\S)\s*$")
+
+    def _parse_version(self, line):
+        if self._regex_helper.search_compiled(Iperf2._re_version, line):
+            self.current_ret["VERSION"] = self._regex_helper.group("VERSION")
+            raise ParsingDone()
 
     def _process_line_from_command(self, current_chunk, line, is_full_line):
         decoded_line = self._decode_line(line=line)
@@ -625,6 +634,63 @@ class Iperf2(GenericUnixCommand, Publisher):
             self.break_cmd()  # send Ctrl-C once more
             raise ParsingDone
 
+    def has_any_result(self) -> bool:
+        """
+        Checks if any result was already set by command.
+
+        :return: True if current_ret has collected any data. Otherwise False.
+        """
+        if '--version' in self.options:
+            if "VERSION" in self.current_ret:
+                return True
+            else:
+                return False
+        else:
+            return super(Iperf2, self).has_any_result()
+
+
+COMMAND_OUTPUT_version = """xyz@debian:~$ iperf --version
+iperf version 2.0.5 (08 Jul 2010) pthreads
+xyz@debian:~$"""
+
+COMMAND_KWARGS_version = {"options": "--version"}
+
+COMMAND_RESULT_version = {
+    "VERSION": "2.0.5 (08 Jul 2010) pthreads",
+    "CONNECTIONS": {},
+    "INFO": [],
+}
+
+COMMAND_OUTPUT_version_bla = """xyz@debian:~$ iperf --version
+Last login: Thu Nov 14 16:35:41 2024 from 127.0.0.1
+xyz@debian:~$
+xyz@debian:~$echo DETECTING PROMPT
+DETECTING PROMPT
+xyz@debian:~$
+xyz@debian:~$echo DETECTING PROMPT
+DETECTING PROMPT
+xyz@debian:~$
+xyz@debian:~$iperf --version
+iperf version 2.0.12 (25 June 2018) pthreads
+xyz@debian:~$"""
+
+COMMAND_KWARGS_version_bla = {"options": "--version"}
+
+COMMAND_RESULT_version_bla = {
+    "VERSION": "2.0.12 (25 June 2018) pthreads",
+    "CONNECTIONS": {},
+    "INFO": [
+        'Last login: Thu Nov 14 16:35:41 2024 from 127.0.0.1',
+        'xyz@debian:~$',
+        'xyz@debian:~$echo DETECTING PROMPT',
+        'DETECTING PROMPT',
+        'xyz@debian:~$',
+        'xyz@debian:~$echo DETECTING PROMPT',
+        'DETECTING PROMPT',
+        'xyz@debian:~$',
+        'xyz@debian:~$iperf --version'
+    ],
+}
 
 COMMAND_OUTPUT_basic_client = """
 xyz@debian:~$ iperf -c 10.1.1.1 -i 1
