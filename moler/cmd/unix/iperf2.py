@@ -16,9 +16,9 @@ Important changes:
 - as a consequence -b doesn't force -u
 """
 
-__author__ = "Grzegorz Latuszek"
-__copyright__ = "Copyright (C) 2019-2023, Nokia"
-__email__ = "grzegorz.latuszek@nokia.com"
+__author__ = "Grzegorz Latuszek, Marcin Usielski"
+__copyright__ = "Copyright (C) 2019-2024, Nokia"
+__email__ = "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com"
 
 
 import re
@@ -94,6 +94,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         self._got_server_report_hdr = False
         self._got_server_report = False
         self._stopping_server = False
+        self._output_parsed = False
 
     def __str__(self):
         str_base_value = super(Iperf2, self).__str__()
@@ -625,6 +626,70 @@ class Iperf2(GenericUnixCommand, Publisher):
             self.break_cmd()  # send Ctrl-C once more
             raise ParsingDone
 
+     # iperf version 2.0.12 (25 June 2018) pthreads
+    _re_version = re.compile(r"iperf\S*(\s+version)?\s+(?P<VERSION>\d.*\S)\s*$")
+
+    def has_any_result(self) -> bool:
+        """
+        Checks if any result was already set by command.
+
+        :return: True if current_ret has collected any data. Otherwise False.
+        """
+
+        if not self._output_parsed:
+            if '--version' in self.options:
+                was_version = any(self._regex_helper.search_compiled(Iperf2._re_version, line) for line in self.current_ret["INFO"])
+                if was_version:
+                    self._output_parsed = True
+                return was_version
+            else:
+                self._output_parsed = True  # we don't exepect any specific data for this instance.
+            return super(Iperf2, self).has_any_result()
+
+
+COMMAND_OUTPUT_version = """xyz@debian:~$ iperf --version
+iperf version 2.0.5 (08 Jul 2010) pthreads
+xyz@debian:~$"""
+
+COMMAND_KWARGS_version = {"options": "--version"}
+
+COMMAND_RESULT_version = {
+    "CONNECTIONS": {},
+    "INFO": [
+        "iperf version 2.0.5 (08 Jul 2010) pthreads"
+    ],
+}
+
+COMMAND_OUTPUT_version_bla = """xyz@debian:~$ iperf --version
+Last login: Thu Nov 14 16:35:41 2024 from 127.0.0.1
+xyz@debian:~$
+xyz@debian:~$echo DETECTING PROMPT
+DETECTING PROMPT
+xyz@debian:~$
+xyz@debian:~$echo DETECTING PROMPT
+DETECTING PROMPT
+xyz@debian:~$
+xyz@debian:~$iperf --version
+iperf version 2.0.12 (25 June 2018) pthreads
+xyz@debian:~$"""
+
+COMMAND_KWARGS_version_bla = {"options": "--version"}
+
+COMMAND_RESULT_version_bla = {
+    "CONNECTIONS": {},
+    "INFO": [
+        'Last login: Thu Nov 14 16:35:41 2024 from 127.0.0.1',
+        'xyz@debian:~$',
+        'xyz@debian:~$echo DETECTING PROMPT',
+        'DETECTING PROMPT',
+        'xyz@debian:~$',
+        'xyz@debian:~$echo DETECTING PROMPT',
+        'DETECTING PROMPT',
+        'xyz@debian:~$',
+        'xyz@debian:~$iperf --version',
+        'iperf version 2.0.12 (25 June 2018) pthreads',
+    ],
+}
 
 COMMAND_OUTPUT_basic_client = """
 xyz@debian:~$ iperf -c 10.1.1.1 -i 1

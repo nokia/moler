@@ -13,9 +13,9 @@ Important changes (in comparison to Iperf2) to note:
 - Added several new stats: Retr and Cwnd for TCP; Total Datagrams for UDP.
 """
 
-__author__ = "Kacper Kozik"
-__copyright__ = "Copyright (C) 2023, Nokia"
-__email__ = "kacper.kozik@nokia.com"
+__author__ = "Kacper Kozik, Marcin Usielski"
+__copyright__ = "Copyright (C) 2023-2024, Nokia"
+__email__ = "kacper.kozik@nokia.com, marcin.usielski@nokia.com"
 
 
 import re
@@ -2849,3 +2849,20 @@ COMMAND_RESULT_singlerun_udp_server = {
     'INFO': ['Server listening on 5001',
              'Accepted connection from 127.0.0.1, port 39914',
              'Server listening on 5001']}
+
+COMMAND_OUTPUT_version = """xyz@debian:~$ iperf3 --version
+iperf 3.12 (cJSON 1.7.15)
+Linux ute-image12 6.1.0-26-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.112-1 (2024-09-30) x86_64
+Optional features available: CPU affinity setting, IPv6 flow label, SCTP, TCP congestion algorithm setting, sendfile / zerocopy, socket pacing, authentication, bind to device, support IPv4 don't fragment
+xyz@debian:~$"""
+
+COMMAND_KWARGS_version = {"options": "--version"}
+
+COMMAND_RESULT_version = {
+    "CONNECTIONS": {},
+    "INFO": [
+        "iperf 3.12 (cJSON 1.7.15)",
+        "Linux ute-image12 6.1.0-26-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.112-1 (2024-09-30) x86_64",
+        "Optional features available: CPU affinity setting, IPv6 flow label, SCTP, TCP congestion algorithm setting, sendfile / zerocopy, socket pacing, authentication, bind to device, support IPv4 don't fragment",
+    ],
+}
