@@ -498,6 +498,6 @@ class ProxyPc2(UnixLocal):
             self.logger.warning(msg)
             raise MolerException(msg)
         self.io_connection.moler_connection.sendline("")
-        sleep = 0.6
-        self.logger.info(f"Sleep after prompt detection for {sleep} seconds.")
-        time.sleep(sleep)
+        if self._sleep_after_state_change is not None and self._sleep_after_state_change > 0:
+            self.logger.info(f"Sleep after prompt detection for {self._sleep_after_state_change:.2f} seconds.")
+            time.sleep(self._sleep_after_state_change)
