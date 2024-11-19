@@ -626,7 +626,7 @@ class Iperf2(GenericUnixCommand, Publisher):
             self.break_cmd()  # send Ctrl-C once more
             raise ParsingDone
 
-     # iperf version 2.0.12 (25 June 2018) pthreads
+    # iperf version 2.0.12 (25 June 2018) pthreads
     _re_version = re.compile(r"iperf\S*(\s+version)?\s+(?P<VERSION>\d.*\S)\s*$")
 
     def has_any_result(self) -> bool:
