@@ -91,9 +91,6 @@ class ProxyPc2(UnixLocal):
         Get prompt detected.
         :return: bool value.
         """
-        frame = inspect.currentframe().f_back
-        caller = frame.f_code.co_name
-        self.logger.info(f"Getter _prompt_detected: {self.__prompt_detected} called by {caller}")
         return self.__prompt_detected
 
     @_prompt_detected.setter
@@ -105,7 +102,8 @@ class ProxyPc2(UnixLocal):
         """
         frame = inspect.currentframe().f_back
         caller = frame.f_code.co_name
-        self.logger.info(f"Setter _prompt_detected: {self.__prompt_detected} -> {value} called by {caller}")
+        msg = f"Setter _prompt_detected: {self.__prompt_detected} -> {value} called by {caller}"
+        self.logger.debug(msg)
         self.__prompt_detected = value
 
     def _warn_about_temporary_life_of_class(self):
@@ -308,21 +306,20 @@ class ProxyPc2(UnixLocal):
         occurrence = event.get_last_occurrence()
         prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
-        self.logger.info(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}' Current thread: {current_thread.name}, ID: {current_thread.ident}.")
+        self.logger.debug(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}' Current thread: {current_thread.name}, ID: {current_thread.ident}.")
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
             prompt = re.escape(prompt)
             self._state_prompts[state] = prompt
             if old_prompt is not None and prompt != old_prompt:
                 self.logger.info(f"Different prompt candidates: '{old_prompt}' -> '{prompt}' for state {state}.")
-            self.logger.info(f"New prompts: {self._state_prompts}")
+            self.logger.debug(f"New prompts: {self._state_prompts}")
             self._prepare_reverse_state_prompts_dict()
-            self.logger.info(f"After prepare_reverse_state_prompts_dict: {self._reverse_state_prompts_dict}")
+            self.logger.debug(f"After prepare_reverse_state_prompts_dict: {self._reverse_state_prompts_dict}")
             if self._prompts_event is not None:
-                self.logger.info("prompts event is not none")
+                self.logger.debug("prompts event is not none")
                 self._prompts_event.change_prompts(prompts=self._reverse_state_prompts_dict)
             self._prompt_detected = True
-            self.logger.info("Prompt detected")
 
     def _prepare_state_prompts(self):
         """
@@ -484,9 +481,9 @@ class ProxyPc2(UnixLocal):
                                              for_state=for_state)
 
     def _detect_prompt_get_cmd(self):
-        self.logger.info("get_cmd was called v5 but prompt has not been detected yet.")
+        self.logger.debug("get_cmd was called but prompt has not been detected yet.")
         if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is not True:
-            self.logger.info("_detect_prompt_get_cmd after_open_prompt_detector is not running! Let's run it.")
+            self.logger.debug("_detect_prompt_get_cmd after_open_prompt_detector is not running! Let's run it.")
             self._detect_after_open_prompt(self._set_after_open_prompt)
         try:
             self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
@@ -495,11 +492,12 @@ class ProxyPc2(UnixLocal):
 
         self._after_open_prompt_detector.cancel()
         self._after_open_prompt_detector = None
-        self.logger.info("SET self._after_open_prompt_detector = None")
+        self.logger.debug("SET self._after_open_prompt_detector = None")
         if not self._prompt_detected:
             msg = f"Device {self.public_name} cannot detect prompt!"
-            self.logger.info(msg)
+            self.logger.warning(msg)
             raise MolerException(msg)
         self.io_connection.moler_connection.sendline("")
-        self.logger.info(f"Sleep after prompt detection for {self._prompt_detector_timeout} seconds.")
-        time.sleep(self._prompt_detector_timeout)
+        sleep = 0.6
+        self.logger.info(f"Sleep after prompt detection for {sleep} seconds.")
+        time.sleep(sleep)
