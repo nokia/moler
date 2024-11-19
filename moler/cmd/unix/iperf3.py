@@ -13,9 +13,9 @@ Important changes (in comparison to Iperf2) to note:
 - Added several new stats: Retr and Cwnd for TCP; Total Datagrams for UDP.
 """
 
-__author__ = "Kacper Kozik"
-__copyright__ = "Copyright (C) 2023, Nokia"
-__email__ = "kacper.kozik@nokia.com"
+__author__ = "Kacper Kozik,Marcin Usielski"
+__copyright__ = "Copyright (C) 2023-2024, Nokia"
+__email__ = "kacper.kozik@nokia.com, marcin.usielski@nokia.com"
 
 
 import re
