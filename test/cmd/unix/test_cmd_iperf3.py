@@ -3,15 +3,15 @@
 Iperf3 command test module.
 """
 
-__author__ = "Kacper Kozik"
-__copyright__ = "Copyright (C) 2023, Nokia"
-__email__ = "kacper.kozik@nokia.com"
+__author__ = "Kacper Kozik, Marcin Usielski"
+__copyright__ = "Copyright (C) 2023-2024, Nokia"
+__email__ = "kacper.kozik@nokia.com, marcin.usielski@nokia.com"
 
 import pytest
 import mock
 import time
 from moler.cmd.unix.iperf3 import Iperf3
-from moler.exceptions import CommandFailure
+from moler.exceptions import CommandFailure, CommandTimeout
 
 
 def test_iperf_returns_proper_command_string(buffer_connection):
@@ -33,7 +33,7 @@ def test_iperf_raise_error_on_bind_failed(buffer_connection, command_output_and_
     buffer_connection.remote_inject_response([command_output])
     assert 'iperf3 -s' == iperf_cmd.command_string
     with pytest.raises(CommandFailure):
-        iperf_cmd()
+        iperf_cmd(timeout=0.2)
 
 
 def test_iperf_raise_error_on_no_such_file(buffer_connection, command_output_and_expected_result_on_connect_failed):
@@ -43,7 +43,7 @@ def test_iperf_raise_error_on_no_such_file(buffer_connection, command_output_and
     buffer_connection.remote_inject_response([command_output])
     assert 'iperf3 -c 10.156.236.132' == iperf_cmd.command_string
     with pytest.raises(CommandFailure):
-        iperf_cmd()
+        iperf_cmd(timeout=0.2)
 
 
 def test_iperf_raise_error_on_iperf_problem(buffer_connection, command_output_and_expected_result_on_iperf_problem):
@@ -347,6 +347,37 @@ def test_iperf_sends_additional_ctrl_c_after_detecting_to_early_ctrl_c(buffer_co
             iperf_cmd()
     break_cmd_method.assert_called_once_with()
 
+
+def test_iperf_timeout_on_version_not_provied_but_prompt(buffer_connection):
+    iperf_cmd = Iperf3(connection=buffer_connection.moler_connection, options='--version')
+    command_output = """xyz@debian:~$ iperf3 --version
+Last login: Thu Nov 14 16:35:41 2024 from 127.0.0.1
+xyz@debian:~$
+xyz@debian:~$echo DETECTING PROMPT
+DETECTING PROMPT
+xyz@debian:~$"""
+    buffer_connection.remote_inject_response([command_output])
+    assert 'iperf3 --version' == iperf_cmd.command_string
+    iperf_cmd.terminating_timeout = 0
+    with pytest.raises(CommandTimeout):
+        iperf_cmd(timeout=0.2)
+    assert iperf_cmd._cmd_output_started is True
+
+
+def test_iperf_not_timeout_on_version_not_provied_but_prompt(buffer_connection):
+    iperf_cmd = Iperf3(connection=buffer_connection.moler_connection, options='--blabla')
+    command_output = """xyz@debian:~$ iperf3 --version
+Last login: Thu Nov 14 16:35:41 2024 from 127.0.0.1
+xyz@debian:~$
+xyz@debian:~$echo DETECTING PROMPT
+DETECTING PROMPT
+xyz@debian:~$"""
+    iperf_cmd.command_string = 'iperf3 --version'
+    buffer_connection.remote_inject_response([command_output])
+    assert 'iperf3 --version' == iperf_cmd.command_string
+    iperf_cmd.terminating_timeout = 0
+    iperf_cmd(timeout=0.2)
+    assert iperf_cmd._cmd_output_started is True
 
 iperf_server_output_start = """
 xyz@debian:~$ iperf3 -s -i 1

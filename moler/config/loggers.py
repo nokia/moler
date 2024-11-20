@@ -589,7 +589,7 @@ def configure_moler_main_logger():
         logger.info(moler_logo)
         msg = f"Using specific packages version:\nPython: {platform.python_version()}\nmoler: {_get_moler_version()}"
         logger.info(msg)
-        msg_sys = f"OS: '{os.name}' sys: '{sys.platform}' system: '{platform.system()}' release: '{platform.release()}' version: '{platform.version()}'"
+        msg_sys = f"OS: '{os.name}' sys: '{sys.platform}' system: '{platform.system()}' release: '{platform.release()}' version: '{platform.version()}', cpu: '{platform.processor()}', architecture '{platform.architecture()}'"
         logger.info(msg_sys)
         configure_moler_threads_logger()
         logger.info(f"More logs in: {_logging_path}")

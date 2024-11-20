@@ -10,10 +10,10 @@ __copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'michal.ernst@nokia.com, grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import re
-import time
 import six
 import abc
 import platform
+import time
 
 from moler.device.textualdevice import TextualDevice
 from moler.device.unixlocal import UnixLocal
@@ -24,6 +24,8 @@ except ImportError:  # ThreadedTerminal won't load on Windows
     ThreadedTerminal = None
 
 from moler.events.shared.wait4 import Wait4
+import inspect
+import threading
 
 # helper variables to improve readability of state machines
 # f.ex. moler.device.textualdevice introduces state TextualDevice.not_connected = "NOT_CONNECTED"
@@ -68,7 +70,7 @@ class ProxyPc2(UnixLocal):
                         commands and events when they are required for the first time.
         """
         self._detecting_prompt_cmd = "echo DETECTING PROMPT"
-        self._prompt_detected = False
+        self.__prompt_detected = False
         self._use_local_unix_state = want_local_unix_state(io_type, io_connection)
         base_state = UNIX_LOCAL if self._use_local_unix_state else NOT_CONNECTED
         self._use_proxy_pc = self._should_use_proxy_pc(sm_params, PROXY_PC)
@@ -79,9 +81,30 @@ class ProxyPc2(UnixLocal):
                                        io_constructor_kwargs=io_constructor_kwargs,
                                        sm_params=sm_params, initial_state=initial_state,
                                        lazy_cmds_events=lazy_cmds_events)
-        self._prompt_detector_timeout = 1.9
+        self._prompt_detector_timeout = 3.9
         self._after_open_prompt_detector = None
         self._warn_about_temporary_life_of_class()
+
+    @property
+    def _prompt_detected(self):
+        """
+        Get prompt detected.
+        :return: bool value.
+        """
+        return self.__prompt_detected
+
+    @_prompt_detected.setter
+    def _prompt_detected(self, value):
+        """
+        Set prompt detected.
+        :param value: bool value.
+        :return: None.
+        """
+        frame = inspect.currentframe().f_back
+        caller = frame.f_code.co_name
+        msg = f"Setter _prompt_detected: {self.__prompt_detected} -> {value} called by {caller}"
+        self.logger.debug(msg)
+        self.__prompt_detected = value
 
     def _warn_about_temporary_life_of_class(self):
         what = "experimental/temporary implementation of device utilizing sshshell connection"
@@ -175,7 +198,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_transitions(self):
         """
         Prepare transitions to change states.
-        :return: Nothing.
+        :return: None.
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_transitions()
@@ -239,8 +262,9 @@ class ProxyPc2(UnixLocal):
         """
         Execute action when connection made.
         :param connection: device connection.
-        :return: Nothing.
+        :return: None.
         """
+        self.logger.info(f"Connection made: {connection}")
         if self._use_local_unix_state:
             super(ProxyPc2, self).on_connection_made(connection)
             self._prompt_detected = True  # prompt defined in SM
@@ -253,11 +277,15 @@ class ProxyPc2(UnixLocal):
         """
         Execute action when connection lost.
         :param connection: device connection.
-        :return: Nothing.
+        :return: None.
         """
+        self.logger.info(f"Connection lost: {connection}")
         self._set_state(NOT_CONNECTED)
 
     def _detect_after_open_prompt(self, set_callback):
+        current_thread = threading.current_thread()
+        self.logger.info(f"Command to detect prompt will be sent. Callback: {set_callback} Current thread: {current_thread.name}, ID: {current_thread.ident}")
+        self._prompt_detected = False
         self._after_open_prompt_detector = Wait4(
             detect_patterns=[rf'^(.+){self._detecting_prompt_cmd}'],
             connection=self.io_connection.moler_connection,
@@ -267,18 +295,18 @@ class ProxyPc2(UnixLocal):
         detector.add_event_occurred_callback(callback=set_callback,
                                              callback_params={"event": detector})
         detector.start(timeout=self._prompt_detector_timeout)
+        self.logger.info("Prompt detector started")
         self.io_connection.moler_connection.sendline("")
         self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
         self.io_connection.moler_connection.sendline("")
         self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
-
-        # detector.await_done(timeout=self._prompt_detector_timeout)
 
     def _set_after_open_prompt(self, event):
+        current_thread = threading.current_thread()
         occurrence = event.get_last_occurrence()
         prompt = occurrence['groups'][0].rstrip()
         state = self._get_current_state()
-        self.logger.debug(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}'.")
+        self.logger.debug(f"ProxyPc2 for state '{state}' new prompt '{prompt}' reverse_state_prompts_dict: '{self._reverse_state_prompts_dict}' Current thread: {current_thread.name}, ID: {current_thread.ident}.")
         with self._state_prompts_lock:
             old_prompt = self._state_prompts.get(state, None)
             prompt = re.escape(prompt)
@@ -296,7 +324,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_state_prompts(self):
         """
         Prepare textual prompt for each state.
-        :return: Nothing.
+        :return: None.
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_state_prompts()
@@ -335,7 +363,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_newline_chars(self):
         """
         Prepare newline char for each state.
-        :return: Nothing.
+        :return: None.
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_newline_chars()
@@ -373,7 +401,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_state_hops(self):
         """
         Prepare hops for non direct transitions between states.
-        :return: Nothing.
+        :return: None.
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_state_hops()
@@ -446,7 +474,7 @@ class ProxyPc2(UnixLocal):
          returned.
         :return: Instance of command
         """
-        if self._prompt_detected is False:
+        if not self._prompt_detected:
             self._detect_prompt_get_cmd()
         return super(ProxyPc2, self).get_cmd(cmd_name=cmd_name, cmd_params=cmd_params,
                                              check_state=check_state,
@@ -454,21 +482,22 @@ class ProxyPc2(UnixLocal):
 
     def _detect_prompt_get_cmd(self):
         self.logger.debug("get_cmd was called but prompt has not been detected yet.")
-        # pylint: disable-next=unused-variable
-        for try_nr in range(1, 10, 1):
-            if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is False:
-                self._detect_after_open_prompt(self._set_after_open_prompt)
-            while time.monotonic() - self._after_open_prompt_detector.life_status.start_time < self._prompt_detector_timeout:
-                time.sleep(0.1)
-                if self._prompt_detected is True:
-                    break
-                self.io_connection.moler_connection.sendline(self._detecting_prompt_cmd)
-            self.logger.debug("get_cmd is canceling prompt detector.")
-            self._after_open_prompt_detector.cancel()
-            if self._prompt_detected is True:
-                break
+        if self._after_open_prompt_detector is None or self._after_open_prompt_detector.running() is not True:
+            self.logger.debug("_detect_prompt_get_cmd after_open_prompt_detector is not running! Let's run it.")
+            self._detect_after_open_prompt(self._set_after_open_prompt)
+        try:
+            self._after_open_prompt_detector.await_done(timeout=self._prompt_detector_timeout)
+        except MolerException:
+            self.logger.info(f"Timeout for prompt detector {self._after_open_prompt_detector}.")
 
         self._after_open_prompt_detector.cancel()
         self._after_open_prompt_detector = None
-        if self._prompt_detected is False:
-            raise MolerException(f"Device {self.public_name} cannot detect prompt!")
+        self.logger.debug("SET self._after_open_prompt_detector = None")
+        if not self._prompt_detected:
+            msg = f"Device {self.public_name} cannot detect prompt!"
+            self.logger.warning(msg)
+            raise MolerException(msg)
+        self.io_connection.moler_connection.sendline("")
+        if self._sleep_after_state_change is not None and self._sleep_after_state_change > 0:
+            self.logger.info(f"Sleep after prompt detection for {self._sleep_after_state_change:.2f} seconds.")
+            time.sleep(self._sleep_after_state_change)
