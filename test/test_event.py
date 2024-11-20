@@ -147,12 +147,13 @@ def test_event_unicode_error(buffer_connection):
                 raise exc
             super(Wait4promptUnicodeError, self).on_new_line(line, is_full_line)
 
+    timeout = 0.3
     output = "bash\n"
     dict_output = {'line': u'abcbash', 'matched': u'bash', 'named_groups': {}, 'groups': (), 'time': 0}
     event = Wait4promptUnicodeError(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event._ignore_unicode_errors = False
     event.raise_unicode = True
-    event.start(timeout=0.1)
+    event.start(timeout=timeout)
     buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(0.01)
     event.raise_unicode = False
@@ -164,7 +165,7 @@ def test_event_unicode_error(buffer_connection):
     event = Wait4promptUnicodeError(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
     event._ignore_unicode_errors = True
     event.raise_unicode = True
-    event.start(timeout=0.1)
+    event.start(timeout=timeout)
     buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
     MolerTest.sleep(0.01)
     event.raise_unicode = False
