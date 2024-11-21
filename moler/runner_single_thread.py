@@ -462,7 +462,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
 
     def _start_command(self, connection_observer):
         """
-        Srart command if connection_observer is an instance of a command. If an instance of event then do nothing.
+        Start command if connection_observer is an instance of a command. If an instance of event then do nothing.
         :param connection_observer: ConnectionObserver
         :return: None
         """
