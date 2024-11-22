@@ -4,7 +4,7 @@ Testing resources for tests of AT commands.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 from pytest import fixture
@@ -21,20 +21,20 @@ from moler.moler_connection_for_single_thread_runner import MolerConnectionForSi
 
 
 current_process = psutil.Process()
-if platform.system() == 'Linux':
-    (max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
-else:
+if platform.system() == 'Windows':
     # https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/setmaxstdio?view=vs-2019
     (max_open_files_limit_soft, max_open_files_limit_hard) = (510, 512)  # TODO: any way on Win?
+else:
+    (max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
 
 
 def system_resources_usage():
-    if platform.system() == 'Linux':
-        curr_fds_open = current_process.num_fds()
-    else:
+    if platform.system() == 'Windows':
         ofiles = current_process.open_files()
         osockets = current_process.connections(kind="all")
         curr_fds_open = len(ofiles) + len(osockets)  # TODO: any better way on Win?
+    else:
+        curr_fds_open = current_process.num_fds()
     curr_threads_nb = threading.active_count()
     return curr_fds_open, curr_threads_nb
 
