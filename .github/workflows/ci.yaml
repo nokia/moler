@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt-get -y install sshpass
-          python -m pip install --upgrade pip setuptools wheel
+          # python -m pip install --upgrade pip setuptools wheel
           pip install -Ur requirements/test.txt
       - name:  Create local users required by integration tests
         run: |
