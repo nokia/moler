@@ -4,7 +4,7 @@ Ping command module.
 """
 
 __author__ = 'Julia Patacz, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'julia.patacz@nokia.com, marcin.usielski@nokia.com'
 
 import re
@@ -58,6 +58,7 @@ class Ping(GenericUnixCommand):
             try:
                 self._parse_trans_recv_loss_time_plus_errors(line)
                 self._parse_trans_recv_loss_time(line)
+                self._parse_trans_recv_loss(line)
                 self._parse_min_avg_max_mdev_unit_time(line)
             except ParsingDone:
                 pass  # line has been fully parsed by one of above parse-methods
@@ -86,6 +87,27 @@ class Ping(GenericUnixCommand):
             self.current_ret['time_seconds'] = value_in_seconds
             raise ParsingDone
 
+    # 1 packets transmitted, 1 packets received, 0.0% packet loss
+    _re_trans_recv_loss = re.compile(
+        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) packets received, (?P<PKT_LOSS>\S+)% packet loss")
+
+    def _parse_trans_recv_loss(self, line):
+        """
+        Parses packets from the line of command output
+        :param line: Line of output of command.
+        :return: None but raises ParsingDone if line has information to handle by this method.
+        """
+        if self._regex_helper.search_compiled(Ping._re_trans_recv_loss, line):
+            self.current_ret['packets_transmitted'] = self._converter_helper.to_number(
+                self._regex_helper.group('PKTS_TRANS'))
+            self.current_ret['packets_received'] = self._converter_helper.to_number(
+                self._regex_helper.group('PKTS_RECV'))
+            self.current_ret['packet_loss'] = self._converter_helper.to_number(self._regex_helper.group('PKT_LOSS'))
+            self.current_ret['time'] = None
+            self.current_ret['packets_time_unit'] = None
+            self.current_ret['time_seconds'] = None
+            raise ParsingDone
+
     # 4 packets transmitted, 3 received, +1 errors, 25% packet loss, time 3008ms
     _re_trans_recv_loss_time_plus_errors = re.compile(
         r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, \+?(?P<ERRORS>\d+) errors, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\w+)")
@@ -111,8 +133,9 @@ class Ping(GenericUnixCommand):
             raise ParsingDone
 
     # rtt min/avg/max/mdev = 0.033/0.050/0.084/0.015 ms
+    # round-trip min/avg/max/stddev = 0.133/0.133/0.133/0.000 ms
     _re_min_avg_max_mdev_unit_time = re.compile(
-        r"rtt min\/avg\/max\/mdev = (?P<MIN>[\d\.]+)\/(?P<AVG>[\d\.]+)\/(?P<MAX>[\d\.]+)\/(?P<MDEV>[\d\.]+)\s+(?P<UNIT>\w+)")
+        r"(rtt|round-trip) min\/avg\/max\/(m|std)dev = (?P<MIN>[\d\.]+)\/(?P<AVG>[\d\.]+)\/(?P<MAX>[\d\.]+)\/(?P<MDEV>[\d\.]+)\s+(?P<UNIT>\w+)")
 
     def _parse_min_avg_max_mdev_unit_time(self, line):
         """
@@ -373,5 +396,40 @@ COMMAND_RESULT_float = {
     'time_avg_seconds': 0.281 * 0.001,
     'time_max_seconds': 0.606 * 0.001,
     'time_mdev_seconds': 0.058 * 0.001,
+    'time_unit': 'ms',
+}
+
+
+COMMAND_OUTPUT_Darwin = """ping 127.0.0.1 -c 1
+PING 127.0.0.1 (127.0.0.1): 56 data bytes
+64 bytes from 127.0.0.1: icmp_seq=0 ttl=64 time=0.133 ms
+
+--- 127.0.0.1 ping statistics ---
+1 packets transmitted, 1 packets received, 0.0% packet loss
+round-trip min/avg/max/stddev = 0.133/0.133/0.133/0.000 ms
+moler@moler:> """
+
+
+COMMAND_KWARGS_Darwin = {
+    'destination': '127.0.0.1',
+    'options': '-c 1'
+}
+
+
+COMMAND_RESULT_Darwin = {
+    'packets_transmitted': 1,
+    'packets_received': 1,
+    'packet_loss': 0.0,
+    'time': None,
+    'time_seconds': None,
+    'packets_time_unit': None,
+    'time_min': 0.133,
+    'time_avg': 0.133,
+    'time_max': 0.133,
+    'time_mdev': 0.000,
+    'time_min_seconds': 0.133 * 0.001,
+    'time_avg_seconds': 0.133 * 0.001,
+    'time_max_seconds': 0.133 * 0.001,
+    'time_mdev_seconds': 0.000 * 0.001,
     'time_unit': 'ms',
 }

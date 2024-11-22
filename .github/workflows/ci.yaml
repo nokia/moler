@@ -64,15 +64,15 @@ jobs:
           coverage run -m pytest -vvvsss test/
           ls -l .coverage
       - name: Validate moler overall coverage
-        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version == env.PYTHON_COVERAGE) && (matrix.os == 'ubuntu-latest') }}
         run: |
           coverage report -m --fail-under=91
       - name: Validate coverage for moler commands
-        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version == env.PYTHON_COVERAGE) && (matrix.os == 'ubuntu-latest') }}
         run: |
           coverage report -m --fail-under=100 --include="moler/cmd/**/*.py"
       - name: Validate coverage for moler events
-        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version == env.PYTHON_COVERAGE) && (matrix.os == 'ubuntu-latest') }}
         run: |
           coverage report -m --fail-under=100 --include="moler/events/**/*.py"
       - name: Upload pytest test results
@@ -89,7 +89,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: [3.13]
     steps:
       - uses: actions/checkout@v2
