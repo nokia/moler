@@ -23,6 +23,7 @@ jobs:
         run: |
           pip install -Ur requirements/test.txt
       - name:  Create local users required by integration tests
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get -y install sshpass
           cat /etc/passwd | grep home
@@ -38,6 +39,7 @@ jobs:
           sshpass -p proxy_password ssh -oStrictHostKeyChecking=no sshproxy@localhost pwd
           sshpass -p adb_password ssh -oStrictHostKeyChecking=no adbshell@localhost pwd
       - name:  Upload adb simulator
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo cp adb_simulation.sh /usr/bin/adb
           sudo chmod +x /usr/bin/adb
@@ -52,7 +54,7 @@ jobs:
           python -m pytest -vvvsss test/
           # python -m pytest -c py3pytest.ini -vvvsss test/
       - name: Test with pytest and coverage
-        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version == env.PYTHON_COVERAGE) && (matrix.os == 'ubuntu-latest') }}
         timeout-minutes: 49
         run: |
           pip list
