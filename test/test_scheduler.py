@@ -94,7 +94,7 @@ def test_thread_test_job():
     assert (3 == values['number'])
 
 
-@pytest.mark.skipif(sys.version_info > (3, 12), reason="We don't use asyncio.")
+@pytest.mark.skipif(sys.version_info > (3, 6), reason="We don't use asyncio.")
 def test_asyncio_test_job():
     import asyncio
     loop = asyncio.get_event_loop()
