@@ -21,11 +21,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sudo apt-get -y install sshpass
-          # python -m pip install --upgrade pip setuptools wheel
           pip install -Ur requirements/test.txt
       - name:  Create local users required by integration tests
         run: |
+          sudo apt-get -y install sshpass
           cat /etc/passwd | grep home
           sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m
           echo 'molerssh:moler_password' | sudo chpasswd
