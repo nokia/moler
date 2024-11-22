@@ -34,7 +34,7 @@ def test_sudo_with_wrong_command_parameters(buffer_connection):
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass",
                     cmd_class_name="moler.cmd.unix.telnet.Telnet", cmd_params={"login": "login"})
     with pytest.raises(TypeError):
-        cmd_sudo(timeout=0.1)
+        cmd_sudo(timeout=0.3)
 
 
 def test_calling_by_command_class(buffer_connection, command_output_and_expected_result):
@@ -103,7 +103,7 @@ def test_failing_with_timeout(buffer_connection, command_output_and_expected_res
     cmd_pwd = Pwd(connection=buffer_connection.moler_connection)
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_pwd)
     with pytest.raises(CommandTimeout):
-        cmd_sudo(timeout=0.1)
+        cmd_sudo(timeout=0.3)
 
 
 def test_can_use_timeout_of_embedded_command(buffer_connection, command_output_and_expected_result_timeout):

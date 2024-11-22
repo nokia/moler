@@ -49,7 +49,7 @@ jobs:
           echo ----------- test adb simulator
           adb devices
       - name: Test with pytest
-        if: ${{ matrix.python-version != env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version != env.PYTHON_COVERAGE }) || (matrix.os == 'macos-latest')}
         timeout-minutes: 14
         run: |
           python -m pytest -vvvsss test/
