@@ -12,7 +12,7 @@ from moler.util.moler_test import MolerTest
 import time
 import pytest
 import sys
-import skip
+import platform
 
 
 pytestmark = pytest.mark.skipif('Linux' != platform.system(), reason="Skip for no Linux system.")
