@@ -31,6 +31,7 @@ class Ping(GenericUnixCommand):
         self.options = options
         self.destination = destination
         self._converter_helper = ConverterHelper.get_converter_helper()
+        print("\n\n******ping********\n\n")
 
     def build_command_string(self):
         """
@@ -52,6 +53,7 @@ class Ping(GenericUnixCommand):
         :param is_full_line: True if line had new line chars, False otherwise
         :return: None
         """
+        print(f"ping on_new_line is_full_line={is_full_line}, line='{line}'")
         if is_full_line:
             try:
                 self._parse_trans_recv_loss_time_plus_errors(line)
