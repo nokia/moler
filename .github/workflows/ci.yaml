@@ -13,10 +13,6 @@ jobs:
         exclude:
           - python-version: "3.7"
             runs-on: macos-latest
-          - python-version: "3.8"
-            runs-on:: macos-latest
-          - python-version: "3.9"
-            runs-on: macos-latest
     env:
       MOLER_DEBUG_THREADS: True
       PYTHON_COVERAGE: '3.13'
