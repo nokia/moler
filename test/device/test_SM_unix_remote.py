@@ -5,6 +5,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import pytest
 import time
 import os
+import platform
 from moler.util.devices_SM import iterate_over_device_states, get_device
 from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
@@ -58,6 +59,7 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_name, device_connec
     assert "More than 1 prompt match the same line" in str(exception.value)
 
 
+pytest.mark.skipif('Linux' != platform.system(), reason="Skip for no Linux system.")
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
 def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,

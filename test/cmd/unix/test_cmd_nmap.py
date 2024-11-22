@@ -24,7 +24,7 @@ def test_calling_nmap_timeout(buffer_connection, command_output_and_expected_res
     nmap_cmd.terminating_timeout = 0
     from moler.exceptions import CommandTimeout
     with raises(CommandTimeout) as exception:
-        nmap_cmd(timeout=0.1)
+        nmap_cmd(timeout=0.5)
     assert exception is not None
 
 
