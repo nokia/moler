@@ -199,11 +199,13 @@ class RunnerSingleThread(ConnectionObserverRunner):
     def _wait_for_connection_observer_done(self, connection_observer, timeout):
         while not connection_observer.done() and time.monotonic() < self._get_max_time(connection_observer=connection_observer):
             time.sleep(self._tick)
-        self._timeout_observer(connection_observer=connection_observer,
-             timeout=timeout,
-             passed_time=time.monotonic() - connection_observer.life_status.start_time,
-             runner_logger=self.logger,
-             kind="await_done")
+        if not connection_observer.done():
+            self._timeout_observer(connection_observer=connection_observer,
+                timeout=timeout,
+                passed_time=time.monotonic() - connection_observer.life_status.start_time,
+                runner_logger=self.logger,
+                kind="await_done"
+            )
 
     def _get_max_time(self, connection_observer):
         start_time = connection_observer.life_status.start_time
