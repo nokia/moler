@@ -3,7 +3,7 @@
 Testing of cat command.
 """
 __author__ = 'Sylwester Golonka, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.unix.cat import Cat
@@ -31,6 +31,14 @@ def test_cat_raise_exception_wrong_path_exception(buffer_connection, command_out
 
 
 def test_cat_raise_timeout_exception(buffer_connection, command_output_timeout_exception):
+    command_output = command_output_timeout_exception
+    buffer_connection.remote_inject_response([command_output])
+    cat_cmd = Cat(connection=buffer_connection.moler_connection, path="/home/test/test")
+    cat_cmd.terminating_timeout = 0
+    with pytest.raises(CommandTimeout):
+        cat_cmd(timeout=0.2)
+
+def test_cat_raise_minimal_timeout_timeout_exception(buffer_connection, command_output_timeout_exception):
     command_output = command_output_timeout_exception
     buffer_connection.remote_inject_response([command_output])
     timeout = 0.1
