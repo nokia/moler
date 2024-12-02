@@ -33,10 +33,22 @@ def test_cat_raise_exception_wrong_path_exception(buffer_connection, command_out
 def test_cat_raise_timeout_exception(buffer_connection, command_output_timeout_exception):
     command_output = command_output_timeout_exception
     buffer_connection.remote_inject_response([command_output])
-    cat_cmd = Cat(connection=buffer_connection.moler_connection, path="/home/test/test")
-    cat_cmd.terminating_timeout = 0
-    with pytest.raises(CommandTimeout):
-        cat_cmd(timeout=0.2)
+    timeout = 0.1
+    while timeout > 0:
+        cat_cmd = Cat(connection=buffer_connection.moler_connection, path="/home/test/test")
+        cat_cmd.terminating_timeout = 0
+        cat_cmd.timeout = timeout
+        try:
+            cat_cmd()
+        except CommandTimeout:
+            pass  # we expect timeout exception
+        except Exception as ex:
+            msg = f"Unexpected exception {ex} for timeout={timeout}"
+            raise ex
+        else:
+            msg = f"No exception for {timeout}, ref = {cat_cmd.result()}"
+            raise Exception(msg)
+        timeout /= 4.
 
 
 def test_cat_prompt_in_the_same_line(buffer_connection, command_output_prompt_in_the_same_line):
