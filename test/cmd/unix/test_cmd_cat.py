@@ -38,6 +38,7 @@ def test_cat_raise_timeout_exception(buffer_connection, command_output_timeout_e
     with pytest.raises(CommandTimeout):
         cat_cmd(timeout=0.2)
 
+
 def test_cat_raise_minimal_timeout_timeout_exception(buffer_connection, command_output_timeout_exception):
     command_output = command_output_timeout_exception
     buffer_connection.remote_inject_response([command_output])
