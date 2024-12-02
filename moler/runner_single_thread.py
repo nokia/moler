@@ -61,7 +61,6 @@ class RunnerSingleThread(ConnectionObserverRunner):
         assert (
             connection_observer.life_status.start_time > 0.0
         )  # connection-observer lifetime should already been
-        print(f"RunnerSingleThread.submit for {connection_observer}")
         self._add_connection_observer(connection_observer=connection_observer)
 
     def wait_for(self, connection_observer, connection_observer_future, timeout=10.0):
@@ -73,11 +72,6 @@ class RunnerSingleThread(ConnectionObserverRunner):
         :param timeout: Max time (in float seconds) you want to await before you give up.
         :return: None
         """
-        from pprint import pformat
-        import traceback
-        mg = pformat(traceback.format_list(traceback.extract_stack(limit=6))[::-1])
-        print(f"RunnerSingleThread::wait_for for {connection_observer}: mg=>>>>{mg}")
-        print("             <<<<")
         if connection_observer.done():
             self.logger.debug(
                 f"go foreground: {connection_observer} is already done"
@@ -173,20 +167,17 @@ class RunnerSingleThread(ConnectionObserverRunner):
                     connection_observer=connection_observer
                 )
                 self._connections_observers.append(connection_observer)
-                print(f"_add_connection_observer:: Appended {connection_observer}")
                 _, msg = RunnerSingleThread._its_remaining_time(
                     prefix="remaining",
                     timeout=connection_observer.timeout,
                     from_start_time=connection_observer.life_status.start_time,
                 )
-                print(f"{connection_observer} returned '{msg}'")
                 connection_observer._log(  # pylint: disable=protected-access
                     logging.INFO,
                     f"{connection_observer.get_long_desc()} started, {msg}",
                 )
                 self._start_command(connection_observer=connection_observer)
                 connection_observer.life_status.last_feed_time = time.monotonic()
-                print(f"RunnerSingleThread._add_connection_observer: {connection_observer} last fed: {connection_observer.life_status.last_feed_time}.")
 
     @classmethod
     def _its_remaining_time(cls, prefix, timeout, from_start_time):
@@ -359,19 +350,15 @@ class RunnerSingleThread(ConnectionObserverRunner):
             current_time = time.monotonic()
             run_duration = current_time - start_time
             timeout = connection_observer.timeout
-            print(f"_check_timeout_connection_observer for {connection_observer}. Timeout: {timeout}, run_duration: {run_duration}")
             if connection_observer.life_status.in_terminating:
                 timeout = connection_observer.life_status.terminating_timeout
             if (timeout is not None) and (run_duration >= timeout):
-                print(" time to say goodbye")
                 if connection_observer.life_status.in_terminating:
-                    print("   in terminating")
                     msg = f"{connection_observer} underlying real command failed to finish during {timeout} seconds. It will be forcefully terminated"
 
                     self.logger.info(msg)
                     connection_observer.set_end_of_life()
                 else:
-                    print("   NOT in terminating")
                     self._timeout_observer(
                         connection_observer=connection_observer,
                         timeout=connection_observer.timeout,
@@ -417,12 +404,9 @@ class RunnerSingleThread(ConnectionObserverRunner):
         :param kind: Kind of running
         :return: None
         """
-        print(f"RunnerSingleThread._timeout_observer for {connection_observer}")
         if not connection_observer.life_status.was_on_timeout_called:
-            print(f"RunnerSingleThread._timeout_observer for {connection_observer} was NOT called")
             connection_observer.life_status.was_on_timeout_called = True
-            if not connection_observer.done():
-                print(f"RunnerSingleThread._timeout_observer for {connection_observer} was NOT done")
+            if not connection_observer.done()
                 if connection_observer.is_command():
                     exception = CommandTimeout(
                         connection_observer=connection_observer,
@@ -437,7 +421,6 @@ class RunnerSingleThread(ConnectionObserverRunner):
                         kind=kind,
                         passed_time=passed_time,
                     )
-                    print("f                   set exception: {exception}")
                 connection_observer.set_exception(exception)
                 connection_observer.on_timeout()
 
@@ -453,10 +436,6 @@ class RunnerSingleThread(ConnectionObserverRunner):
                     msg=f"{connection_observer} {timeout_msg}",
                     levels_to_go_up=1,
                 )
-            else:
-                print(f"RunnerSingleThread._timeout_observer for {connection_observer} was already done")
-        else:
-            print(f"RunnerSingleThread._timeout_observer for {connection_observer} was already called")
 
     def _remove_unnecessary_connection_observers(self):
         """
