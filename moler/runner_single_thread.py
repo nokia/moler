@@ -200,7 +200,8 @@ class RunnerSingleThread(ConnectionObserverRunner):
         while not connection_observer.done() and time.monotonic() < self._get_max_time(connection_observer=connection_observer):
             time.sleep(self._tick)
         if not connection_observer.done():
-            self._timeout_observer(connection_observer=connection_observer,
+            self._timeout_observer(
+                connection_observer=connection_observer,
                 timeout=timeout,
                 passed_time=time.monotonic() - connection_observer.life_status.start_time,
                 runner_logger=self.logger,
