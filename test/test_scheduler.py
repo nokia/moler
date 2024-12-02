@@ -97,9 +97,8 @@ def test_thread_test_job():
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="Apscheduler")
 def test_asyncio_test_job():
-    was_loop_created = False
     try:
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
     except RuntimeError:
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
