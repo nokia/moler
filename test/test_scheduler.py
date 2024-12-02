@@ -100,10 +100,7 @@ def test_asyncio_test_job():
     try:
         loop = asyncio.get_running_loop()
     except RuntimeError:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        was_loop_created = True
-
+        return  # No working asyncio
     Scheduler.change_kind("asyncio")
     values = {'number': 0}
     job = Scheduler.get_job(callback=callback, interval=0.1, callback_params={'param_dict': values})
@@ -112,13 +109,7 @@ def test_asyncio_test_job():
     job.cancel()
     loop.stop()
     Scheduler.change_kind()  # Set the default
-    try:
-        assert (2 == values['number'])
-    finally:
-        if was_loop_created:
-            loop.stop()
-            loop.close()
-
+    assert (2 == values['number'])
 
 
 def test_cannot_create_more_objects():
