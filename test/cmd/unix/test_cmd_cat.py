@@ -48,7 +48,7 @@ def test_cat_raise_timeout_exception(buffer_connection, command_output_timeout_e
         else:
             msg = f"No exception for {timeout}, ref = {cat_cmd.result()}"
             raise Exception(msg)
-        timeout /= 4.
+        timeout /= 8.
 
 
 def test_cat_prompt_in_the_same_line(buffer_connection, command_output_prompt_in_the_same_line):

@@ -406,7 +406,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         """
         if not connection_observer.life_status.was_on_timeout_called:
             connection_observer.life_status.was_on_timeout_called = True
-            if not connection_observer.done()
+            if not connection_observer.done():
                 if connection_observer.is_command():
                     exception = CommandTimeout(
                         connection_observer=connection_observer,
