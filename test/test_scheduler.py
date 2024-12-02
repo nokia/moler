@@ -95,18 +95,18 @@ def test_thread_test_job():
     assert (3 == values['number'])
 
 
-# @pytest.mark.skipif(sys.version_info < (3, 4), reason="requires python3.4 or higher")
-# def test_asyncio_test_job():
-#     loop = asyncio.get_event_loop()
-#     Scheduler.change_kind("asyncio")
-#     values = {'number': 0}
-#     job = Scheduler.get_job(callback=callback, interval=0.1, callback_params={'param_dict': values})
-#     job.start()
-#     loop.run_until_complete(asyncio.sleep(0.23))
-#     job.cancel()
-#     loop.stop()
-#     Scheduler.change_kind()  # Set the default
-#     assert (2 == values['number'])
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="Apscheduler")
+def test_asyncio_test_job():
+    loop = asyncio.get_event_loop()
+    Scheduler.change_kind("asyncio")
+    values = {'number': 0}
+    job = Scheduler.get_job(callback=callback, interval=0.1, callback_params={'param_dict': values})
+    job.start()
+    loop.run_until_complete(asyncio.sleep(0.23))
+    job.cancel()
+    loop.stop()
+    Scheduler.change_kind()  # Set the default
+    assert (2 == values['number'])
 
 
 def test_cannot_create_more_objects():
