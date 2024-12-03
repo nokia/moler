@@ -36,6 +36,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         self._stop_loop_runner = threading.Event()
         self._stop_loop_runner.clear()
         self._tick = 0.001
+        self._time_to_wait_for_connection_observer_done = 1000 * self._tick
         self._in_shutdown = False
         self._loop_thread = threading.Thread(
             target=self._runner_loop,
@@ -213,7 +214,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         max_time = start_time + connection_observer.timeout
         if connection_observer.life_status.terminating_timeout is not None:
             max_time += connection_observer.life_status.terminating_timeout
-        max_time += 1000 * self._tick
+        max_time += self._time_to_wait_for_connection_observer_done
         return max_time
 
     def _wait_for_not_started_connection_observer_is_done(self, connection_observer):
