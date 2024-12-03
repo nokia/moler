@@ -95,9 +95,12 @@ def test_thread_test_job():
     assert (3 == values['number'])
 
 
-@pytest.mark.skipif(sys.version_info < (3, 4), reason="requires python3.4 or higher")
+@pytest.mark.skipif(sys.version_info < (3, 9), reason="Apscheduler")
 def test_asyncio_test_job():
-    loop = asyncio.get_event_loop()
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return  # No working asyncio
     Scheduler.change_kind("asyncio")
     values = {'number': 0}
     job = Scheduler.get_job(callback=callback, interval=0.1, callback_params={'param_dict': values})

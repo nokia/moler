@@ -36,6 +36,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         self._stop_loop_runner = threading.Event()
         self._stop_loop_runner.clear()
         self._tick = 0.001
+        self._time_to_wait_for_connection_observer_done = 1000 * self._tick
         self._in_shutdown = False
         self._loop_thread = threading.Thread(
             target=self._runner_loop,
@@ -98,13 +99,8 @@ class RunnerSingleThread(ConnectionObserverRunner):
                 )
             self.logger.debug(f"go foreground: {connection_observer} - {msg}")
             connection_observer.life_status.start_time = start_time
-            self._execute_till_eol(
-                connection_observer=connection_observer,
-                max_timeout=max_timeout,
-                await_timeout=await_timeout,
-                remain_time=remain_time,
-            )
-            connection_observer.set_end_of_life()
+            connection_observer.life_status.timeout = current_time + await_timeout - start_time
+            self._wait_for_connection_observer_done(connection_observer=connection_observer, timeout=max_timeout)
         return None
 
     def wait_for_iterator(self, connection_observer, connection_observer_future):
@@ -201,81 +197,25 @@ class RunnerSingleThread(ConnectionObserverRunner):
         msg = f"{prefix} {remain_time:.3f} [sec], already passed {already_passed:.3f} [sec]"
         return remain_time, msg
 
-    def _execute_till_eol(
-        self, connection_observer, max_timeout, await_timeout, remain_time
-    ):
-        """
-        Execute till end of life of connection_observer (done or timeout).
-        :param connection_observer: Instance of ConnectionObserver (command or timeout).
-        :param max_timeout: max timeout
-        :param await_timeout: await timeout
-        :param remain_time: remain time
-        :return: True if done normally, False if timeout.
-        """
-        eol_remain_time = remain_time
-        # either we wait forced-max-timeout or we check done-status each 0.1sec tick
-        if eol_remain_time > 0.0:
-            # future = connection_observer_future or connection_observer._future
-            # assert future is not None
-            if max_timeout:
-                connection_observer_timeout = max_timeout
-                check_timeout = False
-            else:
-                connection_observer_timeout = await_timeout
-                check_timeout = True
-            if connection_observer.done():
-                return True
-            was_done = self._wait_till_done(
-                connection_observer=connection_observer,
-                timeout=connection_observer_timeout,
-                check_timeout=check_timeout,
-            )
-            if was_done:
-                return True
-            self._prepare_for_time_out(connection_observer, timeout=await_timeout)
-            if connection_observer.life_status.terminating_timeout > 0.0:
-                connection_observer.life_status.in_terminating = True
-                was_done = self._wait_till_done(
-                    connection_observer=connection_observer,
-                    timeout=connection_observer.life_status.terminating_timeout,
-                    check_timeout=check_timeout,
-                )
-                if was_done:
-                    return True
-
-            self._wait_for_not_started_connection_observer_is_done(
-                connection_observer=connection_observer
-            )
-        return False
-
-    def _wait_till_done(self, connection_observer, timeout, check_timeout):
-        """
-        Wait till connection_obsertver is done.
-        :param connection_observer: ConnectionObserver (command or event)
-        :param timeout: timeout
-        :param check_timeout: True to check timeout from connection_observer
-        :return: True if done normally, False if timeout.
-        """
-        timeout_add = 0.1
-        term_timeout = (
-            0
-            if connection_observer.life_status.terminating_timeout is None
-            else connection_observer.life_status.terminating_timeout
-        )
-        remain_time = timeout - (time.monotonic() - connection_observer.life_status.start_time) + term_timeout + timeout_add
-        while remain_time >= 0:
-            if connection_observer.done():
-                return True
+    def _wait_for_connection_observer_done(self, connection_observer, timeout):
+        while not connection_observer.done() and time.monotonic() < self._get_max_time(connection_observer=connection_observer):
             time.sleep(self._tick)
-            if check_timeout:
-                timeout = connection_observer.timeout
-            term_timeout = (
-                0
-                if connection_observer.life_status.terminating_timeout is None
-                else connection_observer.life_status.terminating_timeout
+        if not connection_observer.done():
+            self._timeout_observer(
+                connection_observer=connection_observer,
+                timeout=timeout,
+                passed_time=time.monotonic() - connection_observer.life_status.start_time,
+                runner_logger=self.logger,
+                kind="await_done"
             )
-            remain_time = timeout - (time.monotonic() - connection_observer.life_status.start_time) + term_timeout + timeout_add
-        return False
+
+    def _get_max_time(self, connection_observer):
+        start_time = connection_observer.life_status.start_time
+        max_time = start_time + connection_observer.timeout
+        if connection_observer.life_status.terminating_timeout is not None:
+            max_time += connection_observer.life_status.terminating_timeout
+        max_time += self._time_to_wait_for_connection_observer_done
+        return max_time
 
     def _wait_for_not_started_connection_observer_is_done(self, connection_observer):
         """
@@ -283,7 +223,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         :param connection_observer: ConnectionObserver (command or event)
         :return: None
         """
-        # Have to wait till connection_observer is done with terminaing timeout.
+        # Have to wait till connection_observer is done with terminating timeout.
         eol_remain_time = connection_observer.life_status.terminating_timeout
         start_time = time.monotonic()
         while not connection_observer.done() and eol_remain_time > 0.0:
@@ -362,22 +302,6 @@ class RunnerSingleThread(ConnectionObserverRunner):
                         connection_observer.life_status.in_terminating = True
                     else:
                         connection_observer.set_end_of_life()
-
-    def _prepare_for_time_out(self, connection_observer, timeout):
-        """
-        Prepare ConnectionObserver (command or event) for timeout.
-        :param connection_observer: ConnectionObserver.
-        :param timeout: timeout in seconds.
-        :return: None
-        """
-        passed = time.monotonic() - connection_observer.life_status.start_time
-        self._timeout_observer(
-            connection_observer=connection_observer,
-            timeout=timeout,
-            passed_time=passed,
-            runner_logger=self.logger,
-            kind="await_done",
-        )
 
     def _timeout_observer(
         self,
@@ -462,7 +386,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
 
     def _start_command(self, connection_observer):
         """
-        Srart command if connection_observer is an instance of a command. If an instance of event then do nothing.
+        Start command if connection_observer is an instance of a command. If an instance of event then do nothing.
         :param connection_observer: ConnectionObserver
         :return: None
         """

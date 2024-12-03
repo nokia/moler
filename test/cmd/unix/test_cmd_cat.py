@@ -3,7 +3,7 @@
 Testing of cat command.
 """
 __author__ = 'Sylwester Golonka, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2024, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, marcin.usielski@nokia.com'
 
 from moler.cmd.unix.cat import Cat
@@ -37,6 +37,27 @@ def test_cat_raise_timeout_exception(buffer_connection, command_output_timeout_e
     cat_cmd.terminating_timeout = 0
     with pytest.raises(CommandTimeout):
         cat_cmd(timeout=0.2)
+
+
+def test_cat_raise_minimal_timeout_timeout_exception(buffer_connection, command_output_timeout_exception):
+    command_output = command_output_timeout_exception
+    buffer_connection.remote_inject_response([command_output])
+    timeout = 0.1
+    while timeout > 0:
+        cat_cmd = Cat(connection=buffer_connection.moler_connection, path="/home/test/test")
+        cat_cmd.terminating_timeout = 0
+        cat_cmd.timeout = timeout
+        try:
+            cat_cmd()
+        except CommandTimeout:
+            pass  # we expect timeout exception
+        except Exception as ex:
+            msg = f"Unexpected exception {ex} for timeout={timeout}"
+            raise ex
+        else:
+            msg = f"No exception for {timeout}, ref = {cat_cmd.result()}"
+            raise Exception(msg)
+        timeout /= 32.
 
 
 def test_cat_prompt_in_the_same_line(buffer_connection, command_output_prompt_in_the_same_line):
