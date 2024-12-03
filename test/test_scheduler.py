@@ -85,7 +85,7 @@ def test_2_jobs_concurrently():
     job1.cancel()
     job2.cancel()
     assert (2 == values_2['number'])
-    assert (4 == values_1['number'] or 5 == values_1['number'])
+    assert (4 == values_1['number'])
 
 
 def test_thread_test_job():
