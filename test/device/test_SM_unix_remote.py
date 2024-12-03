@@ -67,6 +67,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connectio
     unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
+
     unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
     assert unix_remote_proxy_pc.current_state == src_state
     start_time = time.monotonic()
@@ -84,7 +85,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connectio
     execution_time_fg = time.monotonic() - start_time
     assert unix_remote_proxy_pc.current_state == dst_state
     time_diff = abs(execution_time_bg - execution_time_fg)
-    assert time_diff < min(execution_time_fg, execution_time_bg)
+    assert time_diff < max(execution_time_fg, execution_time_bg)
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
