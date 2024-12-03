@@ -133,7 +133,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await_exception(device_name, 
     with pytest.raises(DeviceChangeStateFailure) as de:
         unix_remote_proxy_pc.await_goto_state(timeout=0.001)
     assert 'seconds there are still states to go' in str(de.value)
-    unix_remote_proxy_pc.await_goto_state()
+    unix_remote_proxy_pc.await_goto_state(timeout=20)
     assert unix_remote_proxy_pc.current_state == dst_state
 
 
