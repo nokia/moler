@@ -508,7 +508,7 @@ class AdbRemote2(UnixRemote2):
         """
         Configure device State Machine.
         :param sm_params: dict with parameters of state machine for device.
-        :return: Nothing.
+        :return: None.
         """
         super(AdbRemote2, self)._configure_state_machine(sm_params)
         self._update_depending_on_adbshell_prompt()
