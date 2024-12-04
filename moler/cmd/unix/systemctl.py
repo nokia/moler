@@ -73,7 +73,7 @@ class Systemctl(Service):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None.
+        :return: None
         """
         try:
             self._parse_password(line)
@@ -96,7 +96,7 @@ class Systemctl(Service):
         Parses if waits for password.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(Systemctl._re_password, line):
@@ -114,7 +114,7 @@ class Systemctl(Service):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None.
+        :return: None
         :raises: ParsingDone if regex matches the line.
         """
         if is_full_line and self._regex_helper.search_compiled(
@@ -148,7 +148,7 @@ class Systemctl(Service):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None.
+        :return: None
         :raises: ParsingDone if regex matches the line.
         """
 

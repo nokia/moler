@@ -377,7 +377,7 @@ class UnixRemote2(ProxyPc2):
         """
         Execute action when connection made.
         :param connection: device connection.
-        :return: None.
+        :return: None
         """
         if self._use_local_unix_state:
             super(UnixRemote2, self).on_connection_made(connection)

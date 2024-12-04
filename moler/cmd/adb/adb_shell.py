@@ -74,7 +74,7 @@ class AdbShell(CommandChangingPrompt):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None.
+        :return: None
         """
         try:
             self._command_failure(line)

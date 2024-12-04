@@ -137,7 +137,7 @@ class DeviceFactory:
         Removes device. All commands and events are being finished when device is removed.
 
         :param name: name of device..
-        :return: None.
+        :return: None
         """
         dev = cls.get_device(name=name)
         dev.remove()

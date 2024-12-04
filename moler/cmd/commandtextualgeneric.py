@@ -172,7 +172,7 @@ class CommandTextualGeneric(Command):
         Setter for command_string.
 
         :param command_string: String with command to set.
-        :return: None.
+        :return: None
         """
         self.__command_string = command_string
         self._build_command_string_escaped()
@@ -273,7 +273,7 @@ class CommandTextualGeneric(Command):
         :param data: List of strings sent by device.
         :param recv_time: time stamp with the moment when the data was read from connection.  Time is given as
          datetime.datetime instance.
-        :return: None.
+        :return: None
         """
         if self.debug_data_received:
             msg = f"\nIncoming data: 0X{''.join([f' {ord(ch):02X}' for ch in data])}\n"
@@ -342,7 +342,7 @@ class CommandTextualGeneric(Command):
         :param current_chunk: Chunk of line sent by connection.
         :param line: Line of output (current_chunk plus previous chunks of this line - if any) without newline char(s).
         :param is_full_line: True if line had newline char(s). False otherwise.
-        :return: None.
+        :return: None
         """
         decoded_line = self._decode_line(line=line)
         if self.__class__.__name__ == "CmConnect":  # pragma: no cover
@@ -357,7 +357,7 @@ class CommandTextualGeneric(Command):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line char at the end. False otherwise.
-        :return: None.
+        :return: None
         """
         if self._concatenate_before_command_starts and not self._cmd_output_started and is_full_line:
             self._last_not_full_line = line
@@ -467,7 +467,7 @@ class CommandTextualGeneric(Command):
 
         :param line: line to check if echo of command is sent by device.
         :param is_full_line: True if line ends with new line char, False otherwise.
-        :return: None.
+        :return: None
         """
         if (
             is_full_line and self.newline_after_command_string
@@ -510,7 +510,7 @@ class CommandTextualGeneric(Command):
         Set exception object as failure for command object.
 
         :param exception: An exception object to set.
-        :return: None.
+        :return: None
         """
         if self.done() or not self.wait_for_prompt_on_exception:
             super(CommandTextualGeneric, self).set_exception(exception=exception)
@@ -554,7 +554,7 @@ class CommandTextualGeneric(Command):
         """
         Callback called by framework when timeout occurs.
 
-        :return: None.
+        :return: None
         """
         if self.break_on_timeout:
             self.break_cmd()

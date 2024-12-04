@@ -49,7 +49,7 @@ class TextualEvent(Event):
 
         :param data: List of strings sent by device.
         :param recv_time: time stamp with the moment when the data was read from connection.
-        :return: None.
+        :return: None
         """
         if not self._paused:
             self._last_recv_time_data_read_from_connection = recv_time
@@ -87,7 +87,7 @@ class TextualEvent(Event):
         :param current_chunk: Chunk of line sent by connection.
         :param line: Line of output (current_chunk plus previous chunks of this line - if any) without newline char(s).
         :param is_full_line: True if line had newline char(s). False otherwise.
-        :return: None.
+        :return: None
         """
         decoded_line = self._decode_line(line=line)
         self.on_new_line(line=decoded_line, is_full_line=is_full_line)
@@ -150,7 +150,7 @@ class TextualEvent(Event):
         """
         Pauses the event. Do not process till resume.
 
-        :return: None.
+        :return: None
         """
         self._paused = True
         self._last_not_full_line = None
@@ -159,6 +159,6 @@ class TextualEvent(Event):
         """
         Resumes processing output from connection by the event.
 
-        :return: None.
+        :return: None
         """
         self._paused = False

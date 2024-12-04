@@ -337,7 +337,7 @@ class TextualDevice(AbstractDevice):
         Load command names for state.
 
         :param state: name of state of the device.
-        :return: None.
+        :return: None
         """
         self._cmdnames_available_in_state[state] = {}
         cmds = self._collect_cmds_for_state(state)
@@ -348,7 +348,7 @@ class TextualDevice(AbstractDevice):
         Load event names for state.
 
         :param state: name of state of the device.
-        :return: None.
+        :return: None
         """
         self._eventnames_available_in_state[state] = {}
         events = self._collect_events_for_state(state)

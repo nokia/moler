@@ -74,7 +74,7 @@ class GenericUnixCommand(CommandTextualGeneric):
         """
         Callback called by framework when timeout occurs.
 
-        :return: None.
+        :return: None
         """
         if self.get_timeout_action() == 'z':
             self.connection.send("\x1A")  # ctrl+z
@@ -142,7 +142,7 @@ class GenericUnixCommand(CommandTextualGeneric):
         Parse line that is control+z.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         """
         if self._ctrl_z_sent and not self._kill_ctrl_z_job_done and self._regex_helper.search_compiled(
             GenericUnixCommand._re_ctrl_z_stopped, line

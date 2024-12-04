@@ -14,7 +14,7 @@ def test_unzip_returns_fail(buffer_connection):
     Test if proper alarm is raised when unzip tries to extract the invalid file.
 
     :param buffer_connection: Simulation of a real connection with a device.
-    :return: Nothing.
+    :return: None
     """
     command_output = """
 ute@debdev:~$ unzip test.zip
@@ -32,7 +32,7 @@ def test_unzip_forbidden_to_overwrite(buffer_connection):
     Test if proper alarm is raised when unzip is not allowed to overwrite the existing file.
 
     :param buffer_connection: Simulation of a real connection with a device.
-    :return: Nothing.
+    :return: None
     """
     command_output = """
 host:~ # unzip test.zip
@@ -50,7 +50,7 @@ def test_unzip_filename_not_matched(buffer_connection):
     Test if exception is raised when a directory cannot be created.
 
     :param buffer_connection: Simulation of a real connection with a device.
-    :return: Nothing.
+    :return: None
     """
     command_output = """
 host:~ # unzip test.zip -d test/test

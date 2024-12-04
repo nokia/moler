@@ -42,7 +42,7 @@ class MolerTest:
         :param raise_exception: If True then raise an exception (if not in try except block then test will be
          terminated), if False then only show msg and mark error in logs.
         :param dump: If defined then dump object.
-        :return: None.
+        :return: None
         """
         cls._list_of_errors.append(msg)
         cls._error(msg, raise_exception, dump)
@@ -54,7 +54,7 @@ class MolerTest:
 
         :param msg: Message to show.
         :param dump: If defined then dump object.
-        :return: None.
+        :return: None
         """
         msg = cls._get_string_message(msg, dump, None)
         cls._logger.info(msg)

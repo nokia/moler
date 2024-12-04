@@ -88,7 +88,7 @@ class Scp(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None.
+        :return: None
         """
         try:
             self._know_hosts_verification(line)
@@ -110,7 +110,7 @@ class Scp(GenericUnixCommand):
         Parses line if success.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises ParsingDone: if matches success.
         """
         if self._regex_helper.search_compiled(Scp._re_parse_success, line):
@@ -131,7 +131,7 @@ class Scp(GenericUnixCommand):
         Parses line if failed.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises ParsingDone: if matches fail.
         """
         if self._regex_helper.search_compiled(Scp._re_parse_failed, line):
@@ -149,7 +149,7 @@ class Scp(GenericUnixCommand):
         Sends password if necessary.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises  ParsingDone: if password was sent.
         """
         if (not self._sent_password) and self._is_password_requested(line):
@@ -189,7 +189,7 @@ class Scp(GenericUnixCommand):
         Sends yes to device if needed.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises ParsingDone: if line handled by this method.
         """
         if (not self._sent_continue_connecting) and self._parse_continue_connecting(
@@ -222,7 +222,7 @@ class Scp(GenericUnixCommand):
         Parses hosts file.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises ParsingDone: if line handled by this method.
 
         """
@@ -241,7 +241,7 @@ class Scp(GenericUnixCommand):
         Parses host key verification.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises ParsingDone: if line handled by this method.
         """
         if self._regex_helper.search_compiled(Scp._re_id_dsa, line):
@@ -262,7 +262,7 @@ class Scp(GenericUnixCommand):
         """
         Handles failed host key verification.
 
-        :return: None.
+        :return: None
         """
         if "rm" == self.known_hosts_on_failure:
             self.connection.sendline(f"\nrm -f {self._hosts_file}")

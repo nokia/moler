@@ -175,7 +175,7 @@ class CommandScheduler:
 
         It is safe to call this method many times for the same command object.
         :param cmd: Command object
-        :return: None.
+        :return: None
         """
         connection = cmd.connection
         lock = self._lock_for_connection(connection)
@@ -211,7 +211,7 @@ class CommandScheduler:
         Add command object to queue fot connection of command.
 
         :param cmd: Command object.
-        :return: None.
+        :return: None
         """
         connection = cmd.connection
         lock = self._lock_for_connection(connection)

@@ -16,7 +16,7 @@ def test_head_raise_exception(buffer_connection):
     Test if exception is raised when head tries to open non existing file.
 
     :param buffer_connection: Simulation of a real connection with a device.
-    :return: Nothing
+    :return: None
     """
     command_output = """
 host:~ # head test.txt

@@ -426,7 +426,7 @@ class UnixRemote(ProxyPc):
         """
         Configure device State Machine.
         :param sm_params: dict with parameters of state machine for device.
-        :return: None.
+        :return: None
         """
         super(UnixRemote, self)._configure_state_machine(sm_params)
         self._overwrite_prompts()

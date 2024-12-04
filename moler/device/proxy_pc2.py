@@ -98,7 +98,7 @@ class ProxyPc2(UnixLocal):
         """
         Set prompt detected.
         :param value: bool value.
-        :return: None.
+        :return: None
         """
         frame = inspect.currentframe().f_back
         caller = frame.f_code.co_name
@@ -198,7 +198,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_transitions(self):
         """
         Prepare transitions to change states.
-        :return: None.
+        :return: None
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_transitions()
@@ -262,7 +262,7 @@ class ProxyPc2(UnixLocal):
         """
         Execute action when connection made.
         :param connection: device connection.
-        :return: None.
+        :return: None
         """
         self.logger.info(f"Connection made: {connection}")
         if self._use_local_unix_state:
@@ -277,7 +277,7 @@ class ProxyPc2(UnixLocal):
         """
         Execute action when connection lost.
         :param connection: device connection.
-        :return: None.
+        :return: None
         """
         self.logger.info(f"Connection lost: {connection}")
         self._set_state(NOT_CONNECTED)
@@ -324,7 +324,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_state_prompts(self):
         """
         Prepare textual prompt for each state.
-        :return: None.
+        :return: None
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_state_prompts()
@@ -363,7 +363,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_newline_chars(self):
         """
         Prepare newline char for each state.
-        :return: None.
+        :return: None
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_newline_chars()
@@ -401,7 +401,7 @@ class ProxyPc2(UnixLocal):
     def _prepare_state_hops(self):
         """
         Prepare hops for non direct transitions between states.
-        :return: None.
+        :return: None
         """
         if self._use_local_unix_state:
             super(ProxyPc2, self)._prepare_state_hops()

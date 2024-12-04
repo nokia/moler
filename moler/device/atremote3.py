@@ -249,7 +249,7 @@ class AtRemote3(UnixRemote3):
         """
         Configure device State Machine.
         :param sm_params: dict with parameters of state machine for device.
-        :return: None.
+        :return: None
         """
         super(AtRemote3, self)._configure_state_machine(sm_params)
 

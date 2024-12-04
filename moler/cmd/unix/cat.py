@@ -72,7 +72,7 @@ class Cat(GenericUnixCommand):
         Set exception object as failure for command object.
 
         :param exception: An exception object to set.
-        :return: None.
+        :return: None
         """
         if self.failure_only_in_first_line and self._line_nr > 1 and not isinstance(exception, CommandTimeout):
             if self._exception_warn is False:
