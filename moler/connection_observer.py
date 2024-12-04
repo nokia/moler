@@ -348,7 +348,7 @@ class ConnectionObserver:
         :param data: List of strings sent by device.
         :param recv_time: time stamp with the moment when the data was read from connection.  Time is given as
          datetime.datetime instance.
-        :return: None.
+        :return: None
         """
 
     def set_exception(self, exception: Exception) -> None:

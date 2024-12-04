@@ -212,7 +212,7 @@ class GenericTelnetSsh(CommandChangingPrompt):
 
         :param line: Line from device.
         :param is_full_line: True if line had new line chars, False otherwise
-        :return: None.
+        :return: None
         :raises: ParsingDone if line matched failure indication.
         """
         if self.is_failure_indication(line, is_full_line):

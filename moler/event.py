@@ -120,7 +120,7 @@ class Event(ConnectionObserver):
         """
         Prepare result from occurred.
 
-        :return: None.
+        :return: None
         """
         if self._occurred is None:
             self._occurred = []
@@ -160,7 +160,7 @@ class Event(ConnectionObserver):
         Break event. Do not process anymore. Clean up all resources. Prepare result.
 
         :param force: If False then check if no of occurred is as expected Force, True to not check.
-        :return: None.
+        :return: None
         """
         if not self.done():
             self._prepare_result_from_occurred()
@@ -189,7 +189,7 @@ class Event(ConnectionObserver):
         """
         Pauses the event. Do not process till resume.
 
-        :return: None.
+        :return: None
         """
 
     @abc.abstractmethod
@@ -197,5 +197,5 @@ class Event(ConnectionObserver):
         """
         Resumes processing output from connection by the event.
 
-        :return: None.
+        :return: None
         """

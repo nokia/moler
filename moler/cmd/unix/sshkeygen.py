@@ -57,7 +57,7 @@ class Sshkeygen(GenericUnixCommand):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None.
+        :return: None
         """
         try:
             self._parse_send_file_name(line)
@@ -77,7 +77,7 @@ class Sshkeygen(GenericUnixCommand):
         Parses if waits for passphrase.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(Sshkeygen._re_passphrase, line) or re.search(Sshkeygen._re_passphrase_2, line):

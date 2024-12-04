@@ -41,7 +41,7 @@ class StateMachine(transitions.Machine):
 
         :param state: name of state to set.
         :param model: model.
-        :return: None.
+        :return: None
         """
         if self.state_change_log_callable:
             with self._set_state_lock:

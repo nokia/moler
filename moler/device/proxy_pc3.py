@@ -54,7 +54,7 @@ class ProxyPc3(UnixLocal):
     def _prepare_transitions(self):
         """
         Prepare transitions to change states.
-        :return: None.
+        :return: None
         """
 
         stored_is_proxy_pc = self._use_proxy_pc
@@ -67,7 +67,7 @@ class ProxyPc3(UnixLocal):
     def _prepare_dicts_for_sm(self, sm_params):
         """
         Prepare transitions to change states.
-        :return: None.
+        :return: None
         """
 
         self._prepare_transitions()
@@ -153,7 +153,7 @@ class ProxyPc3(UnixLocal):
     def _prepare_transitions(self):
         """
         Prepare transitions to change states.
-        :return: None.
+        :return: None
         """
 
         stored_is_proxy_pc = self._use_proxy_pc
@@ -189,7 +189,7 @@ class ProxyPc3(UnixLocal):
     def _prepare_state_prompts(self):
         """
         Prepare textual prompt for each state.
-        :return: None.
+        :return: None
         """
         super(ProxyPc3, self)._prepare_state_prompts()
 
@@ -226,7 +226,7 @@ class ProxyPc3(UnixLocal):
     def _prepare_newline_chars(self):
         """
         Prepare newline char for each state.
-        :return: None.
+        :return: None
         """
         super(ProxyPc3, self)._prepare_newline_chars()
 

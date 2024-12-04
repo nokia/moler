@@ -169,7 +169,7 @@ class Ls(GenericUnixCommand):
         Adds parsed output to command ret.
 
         :param islink: True if parsed output is link or False otherwise.
-        :return: None.
+        :return: None
         """
         filename = self._regex_helper.group(7)
         self.current_ret["files"][filename] = {}

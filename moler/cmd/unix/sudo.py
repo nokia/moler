@@ -98,7 +98,7 @@ class Sudo(CommandChangingPrompt):
 
         :param line: Line to process, can be only part of line. New line chars are removed from line.
         :param is_full_line: True if line had new line chars, False otherwise.
-        :return: None.
+        :return: None
         """
         try:
             self._parse_password(line)
@@ -125,7 +125,7 @@ class Sudo(CommandChangingPrompt):
         :param current_chunk: Chunk of line sent by connection.
         :param line: Line of output (current_chunk plus previous chunks of this line - if any) without newline char(s).
         :param is_full_line: True if line had newline char(s). False otherwise.
-        :return: None.
+        :return: None
         """
         decoded_line = self._decode_line(line=line)
         self._line_for_sudo = False
@@ -145,7 +145,7 @@ class Sudo(CommandChangingPrompt):
         Processes embedded command, passes output from device to embedded command.
 
         :param partial_data: Line from device filtered by sudo, only for embedded command.
-        :return: None.
+        :return: None
         """
         if self.cmd_object:
             if not self._sent_command_string:
@@ -178,7 +178,7 @@ class Sudo(CommandChangingPrompt):
         Parses if command not found is found in line.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(Sudo._re_sudo_command_not_found, line):
@@ -220,7 +220,7 @@ class Sudo(CommandChangingPrompt):
         Parses if command not found is found in line.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(self._get_error_regex(), line):
@@ -239,7 +239,7 @@ class Sudo(CommandChangingPrompt):
         Parses if sudo waits for password.
 
         :param line: Line from device.
-        :return: None.
+        :return: None
         :raises: ParsingDone if regex matches the line.
         """
         if re.search(self._get_password_regex(), line):
@@ -266,7 +266,7 @@ class Sudo(CommandChangingPrompt):
 
         :param args: args passed to super _validate_start
         :param kwargs: kwargs passed to super _validate_start
-        :return: None.
+        :return: None
         :raises: CommandFailure if error in command settings.
         """
         super(Sudo, self)._validate_start(*args, **kwargs)
