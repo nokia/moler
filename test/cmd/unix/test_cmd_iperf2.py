@@ -9,8 +9,12 @@ __email__ = 'grzegorz.latuszek@nokia.com'
 
 import pytest
 import mock
+import platform
 from moler.cmd.unix.iperf2 import Iperf2
 from moler.exceptions import CommandFailure,CommandTimeout
+
+
+pytestmark = pytest.mark.skipif('Linux' != platform.system(), reason="Skip for no Linux system.")
 
 
 def test_iperf_returns_proper_command_string(buffer_connection):

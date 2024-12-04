@@ -4,15 +4,23 @@ on: [push]
 
 jobs:
   test:
-    timeout-minutes: 15
+    timeout-minutes: 50
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: [3.7, 3.8, 3.9, "3.10", 3.11, 3.12, 3.13]
+        exclude:
+        - os: macos-latest
+          python-version: 3.7
+        - os: macos-latest
+          python-version: 3.8
+        - os: macos-latest
+          python-version: 3.9
+      fail-fast: false
     env:
       MOLER_DEBUG_THREADS: True
-      PYTHON_COVERAGE: '3.15'
+      PYTHON_COVERAGE: '3.13'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
@@ -21,11 +29,11 @@ jobs:
           python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
-          sudo apt-get -y install sshpass
-          python -m pip install --upgrade pip setuptools wheel
           pip install -Ur requirements/test.txt
       - name:  Create local users required by integration tests
+        if: matrix.os == 'ubuntu-latest'
         run: |
+          sudo apt-get -y install sshpass
           cat /etc/passwd | grep home
           sudo useradd molerssh -c MolerSshTest -s /bin/bash -l -m
           echo 'molerssh:moler_password' | sudo chpasswd
@@ -39,6 +47,7 @@ jobs:
           sshpass -p proxy_password ssh -oStrictHostKeyChecking=no sshproxy@localhost pwd
           sshpass -p adb_password ssh -oStrictHostKeyChecking=no adbshell@localhost pwd
       - name:  Upload adb simulator
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo cp adb_simulation.sh /usr/bin/adb
           sudo chmod +x /usr/bin/adb
@@ -47,13 +56,13 @@ jobs:
           echo ----------- test adb simulator
           adb devices
       - name: Test with pytest
-        if: ${{ matrix.python-version != env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version != env.PYTHON_COVERAGE) || (matrix.os == 'macos-latest') }}
         timeout-minutes: 14
         run: |
           python -m pytest -vvvsss test/
           # python -m pytest -c py3pytest.ini -vvvsss test/
       - name: Test with pytest and coverage
-        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version == env.PYTHON_COVERAGE) && (matrix.os == 'ubuntu-latest') }}
         timeout-minutes: 49
         run: |
           pip list
@@ -62,15 +71,15 @@ jobs:
           coverage run -m pytest -vvvsss test/
           ls -l .coverage
       - name: Validate moler overall coverage
-        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version == env.PYTHON_COVERAGE) && (matrix.os == 'ubuntu-latest') }}
         run: |
           coverage report -m --fail-under=91
       - name: Validate coverage for moler commands
-        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version == env.PYTHON_COVERAGE) && (matrix.os == 'ubuntu-latest') }}
         run: |
           coverage report -m --fail-under=100 --include="moler/cmd/**/*.py"
       - name: Validate coverage for moler events
-        if: ${{ matrix.python-version == env.PYTHON_COVERAGE }}
+        if: ${{ (matrix.python-version == env.PYTHON_COVERAGE) && (matrix.os == 'ubuntu-latest') }}
         run: |
           coverage report -m --fail-under=100 --include="moler/events/**/*.py"
       - name: Upload pytest test results
@@ -87,8 +96,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest]
-        python-version: [3.12]
+        os: [ubuntu-latest, macos-latest]
+        python-version: [3.13]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}

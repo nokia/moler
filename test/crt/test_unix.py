@@ -14,6 +14,7 @@ from moler.device.unixlocal import UnixLocal
 from moler.event_awaiter import EventAwaiter
 
 
+@pytest.mark.skipif('Darwin' == platform.system(), reason="No ip on Macos on Github")
 def test_many_commands_wait(unix_terminal):
     unix = unix_terminal
     cmd_ip_link = unix.get_cmd(cmd_name="ip_link", cmd_params={'action': 'show'})
@@ -29,6 +30,26 @@ def test_many_commands_wait(unix_terminal):
     assert "PWD" in env_ret
 
 
+def test_many_commands_wait_ping(unix_terminal):
+    unix = unix_terminal
+    count_ping_1 = 1
+    count_ping_2 = 2
+    cmd_ping_1 = unix.get_cmd(cmd_name="ping", cmd_params={'options': f"-c {count_ping_1}", 'destination': '127.0.0.1'})
+    cmd_ping_2 = unix.get_cmd(cmd_name="ping", cmd_params={'options': f"-c {count_ping_2}", 'destination': '127.0.0.1'})
+    cmd_whoami = unix.get_cmd(cmd_name="whoami")
+    cmd_ping_1.start()
+    cmd_ping_2.start()
+    cmd_whoami.start()
+    assert True is EventAwaiter.wait_for_all(timeout=10, events=[cmd_ping_1, cmd_ping_2, cmd_whoami])
+    ret_whoami = cmd_whoami.result()
+    assert getpass.getuser() == ret_whoami['USER']
+    assert cmd_ping_1.result() is not None
+    assert cmd_ping_1.result()['packets_transmitted'] == count_ping_1
+    assert cmd_ping_2.result() is not None
+    assert cmd_ping_2.result()['packets_transmitted'] == count_ping_2
+
+
+@pytest.mark.skipif('Darwin' == platform.system(), reason="No ip on Macos on Github")
 def test_ip_link(unix_terminal):
     unix = unix_terminal
     cmd_ip = unix.get_cmd(cmd_name="ip_link", cmd_params={'action': 'show'})
@@ -36,6 +57,7 @@ def test_ip_link(unix_terminal):
     assert ret is not None
 
 
+@pytest.mark.skipif('Darwin' == platform.system(), reason="No ip on Macos on Github")
 def test_ip_neigh(unix_terminal):
     unix = unix_terminal
     cmd_ip = unix.get_cmd(cmd_name="ip_neigh", cmd_params={'options': 'show'})
@@ -104,6 +126,7 @@ def test_7z(unix_terminal):
     assert cmd_7z is not None
 
 
+@pytest.mark.skipif('Darwin' == platform.system(), reason="No md5sum on Macos on Github")
 def test_cp_md5sum_cat_mv_rm_ls(unix_terminal):
     unix = unix_terminal
     f = tempfile.NamedTemporaryFile(delete=False)

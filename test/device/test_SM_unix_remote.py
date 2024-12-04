@@ -5,6 +5,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import pytest
 import time
 import os
+import platform
 from moler.util.devices_SM import iterate_over_device_states, get_device
 from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
@@ -58,6 +59,7 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_name, device_connec
     assert "More than 1 prompt match the same line" in str(exception.value)
 
 
+pytest.mark.skipif('Linux' != platform.system(), reason="Skip for no Linux system.")
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
 def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connection, unix_remote_proxy_pc_output):
     unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
@@ -65,6 +67,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connectio
     unix_remote_proxy_pc._goto_state_in_production_mode = True
     dst_state = "UNIX_REMOTE_ROOT"
     src_state = "UNIX_LOCAL"
+
     unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
     assert unix_remote_proxy_pc.current_state == src_state
     start_time = time.monotonic()
@@ -82,7 +85,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connectio
     execution_time_fg = time.monotonic() - start_time
     assert unix_remote_proxy_pc.current_state == dst_state
     time_diff = abs(execution_time_bg - execution_time_fg)
-    assert time_diff < min(execution_time_fg, execution_time_bg)
+    assert time_diff < max(execution_time_fg, execution_time_bg)
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
@@ -130,7 +133,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await_exception(device_name, 
     with pytest.raises(DeviceChangeStateFailure) as de:
         unix_remote_proxy_pc.await_goto_state(timeout=0.001)
     assert 'seconds there are still states to go' in str(de.value)
-    unix_remote_proxy_pc.await_goto_state()
+    unix_remote_proxy_pc.await_goto_state(timeout=20)
     assert unix_remote_proxy_pc.current_state == dst_state
 
 

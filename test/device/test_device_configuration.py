@@ -276,7 +276,7 @@ def test_clone_and_remove_device(moler_config, device_factory):
     assert device_by_alias == device_cloned_again
     assert device_cloned_again.name != device_cloned_name
     assert device_cloned_again.public_name == device_cloned_name
-    cmd_ping = device_cloned_again.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-w 1"})
+    cmd_ping = device_cloned_again.get_cmd(cmd_name="ping", cmd_params={"destination": 'localhost', "options": "-c 1"})
     cmd_ping()
     device_factory.remove_device(name=device_cloned_name)
     with pytest.raises(KeyError):

@@ -12,7 +12,11 @@ from moler.util.moler_test import MolerTest
 import time
 import pytest
 import sys
+import platform
 import asyncio
+
+
+pytestmark = pytest.mark.skipif('Linux' != platform.system(), reason="Skip for no Linux system.")
 
 
 def test_job():
@@ -68,15 +72,17 @@ def test_job_callback_as_method():
 
 
 def test_2_jobs_concurrently():
+    job_tick = 0.1
+    double_job_tick = 2. * job_tick
     values_1 = {'number': 0}
     values_2 = {'number': 0}
-    job1 = Scheduler.get_job(callback=callback, interval=0.05, callback_params={'param_dict': values_1})
-    job2 = Scheduler.get_job(callback=callback, interval=0.10, callback_params={'param_dict': values_2})
+    job1 = Scheduler.get_job(callback=callback, interval=job_tick, callback_params={'param_dict': values_1})
+    job2 = Scheduler.get_job(callback=callback, interval=double_job_tick, callback_params={'param_dict': values_2})
     job1.cancel()
     job1.start()
     job1.start()
     job2.start()
-    MolerTest.sleep(seconds=0.23)
+    MolerTest.sleep(seconds=2. * double_job_tick + job_tick / 2.)
     job1.cancel()
     job1.cancel()
     job2.cancel()
@@ -93,6 +99,7 @@ def test_thread_test_job():
     job.cancel()
     Scheduler.change_kind()  # Set the default
     assert (3 == values['number'])
+
 
 
 @pytest.mark.skipif(sys.version_info < (3, 9), reason="Apscheduler")

@@ -23,13 +23,13 @@ def test_calling_at_cmd_attach_timeouts_after_500ms(buffer_connection):
     import time
     at_cmd_attach = attach.Attach(connection=buffer_connection.moler_connection,
                                   **attach.COMMAND_KWARGS_ver_execute)
-    at_cmd_attach.timeout = 0.5
+    at_cmd_attach.timeout = 0.1
     buffer_connection.remote_inject_response(["AT+CGATT=1\n"])
     start_time = time.monotonic()
     with pytest.raises(CommandTimeout):
         at_cmd_attach()
     duration = time.monotonic() - start_time
-    assert duration > 0.5
+    assert duration > 0.1
     assert duration < 1.0
 
 
@@ -39,13 +39,14 @@ def test_calling_at_cmd_attach_timeouts_on_no_output(buffer_connection):
     import time
     at_cmd_attach = attach.Attach(connection=buffer_connection.moler_connection,
                                   **attach.COMMAND_KWARGS_ver_execute)
-    at_cmd_attach.timeout = 0.5
+    at_cmd_attach.timeout = 0.1
     start_time = time.monotonic()
     with pytest.raises(CommandTimeout):
         at_cmd_attach()
     duration = time.monotonic() - start_time
-    assert duration > 0.5
+    assert duration > 0.1
     assert duration < 1.0
+
 
 
 def test_calling_at_cmd_attach_returns_expected_result(buffer_connection):

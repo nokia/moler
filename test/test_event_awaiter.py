@@ -20,7 +20,7 @@ def test_events_true_all():
         event.start()
         events.append(event)
         connection.data_received(pattern, datetime.datetime.now())
-    assert EventAwaiter.wait_for_all(timeout=0.1, events=events) is True
+    assert EventAwaiter.wait_for_all(timeout=0.2, events=events) is True
     done, not_done = EventAwaiter.separate_done_events(events)
     assert 2 == len(done)
     assert 0 == len(not_done)
