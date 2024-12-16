@@ -76,7 +76,8 @@ class ProxyPc3(UnixLocal):
 
         default_sm_configurations = self._get_default_sm_configuration()
 
-        (default_sm_configurations,transitions, state_hops) = self._trim_config_dicts(default_sm_configurations, transitions, state_hops)
+        (default_sm_configurations, transitions, state_hops) = self._trim_config_dicts(
+            default_sm_configurations, transitions, state_hops)
 
         self._stored_transitions = transitions
         self._update_dict(self._state_hops, state_hops)
@@ -89,6 +90,13 @@ class ProxyPc3(UnixLocal):
         self._prepare_state_prompts()
 
     def _trim_config_dicts(self, default_sm_configurations, transitions, state_hops):
+        """
+        Remove required state (mainly PROXY_PC) from State Machine configuration if necessary.
+        :param default_sm_configurations: default State Machine configuration.
+        :param transitions: transitions between states.
+        :param state_hops: non direct transitions between states.
+        :return: trimmed State Machine configuration (tuple with new values of passed arguments).
+        """
         if not self._use_proxy_pc:
             (connection_hops, transitions) = remove_state_from_sm(
                 source_sm=default_sm_configurations[ProxyPc3.connection_hops],
