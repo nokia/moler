@@ -76,16 +76,7 @@ class ProxyPc3(UnixLocal):
 
         default_sm_configurations = self._get_default_sm_configuration()
 
-        if not self._use_proxy_pc:
-            (connection_hops, transitions) = remove_state_from_sm(
-                source_sm=default_sm_configurations[ProxyPc3.connection_hops],
-                source_transitions=transitions,
-                state_to_remove=ProxyPc3.proxy_pc,
-            )
-            state_hops = remove_state_hops_from_sm(
-                source_hops=state_hops, state_to_remove=ProxyPc3.proxy_pc
-            )
-            default_sm_configurations[ProxyPc3.connection_hops] = connection_hops
+        (default_sm_configurations,transitions, state_hops) = self._trim_config_dicts(default_sm_configurations, transitions, state_hops)
 
         self._stored_transitions = transitions
         self._update_dict(self._state_hops, state_hops)
@@ -96,6 +87,19 @@ class ProxyPc3(UnixLocal):
         self._overwrite_prompts()
         self._validate_device_configuration()
         self._prepare_state_prompts()
+
+    def _trim_config_dicts(self, default_sm_configurations, transitions, state_hops):
+        if not self._use_proxy_pc:
+            (connection_hops, transitions) = remove_state_from_sm(
+                source_sm=default_sm_configurations[ProxyPc3.connection_hops],
+                source_transitions=transitions,
+                state_to_remove=ProxyPc3.proxy_pc,
+            )
+            state_hops = remove_state_hops_from_sm(
+                source_hops=state_hops, state_to_remove=ProxyPc3.proxy_pc
+            )
+            default_sm_configurations[ProxyPc3.connection_hops] = connection_hops
+        return (default_sm_configurations, transitions, state_hops)
 
     def _overwrite_prompts(self) -> None:
         """
