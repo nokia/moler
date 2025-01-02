@@ -577,7 +577,7 @@ def regexp_without_anchors(regexp):
     return re.compile(regexp_str)
 
 
-def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str, forbidden: dict=None) -> tuple:
+def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str, forbidden: dict = None) -> tuple:
     """
     Remove a state from a state machine dict.
     :param source_sm: a dict with a state machine description
@@ -654,7 +654,7 @@ def _delete_empty_states(sm: dict) -> None:
             del sm[state]
 
 
-def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additional_hops: dict=None) -> dict:
+def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additional_hops: dict = None) -> dict:
     """
     Remove a state from a state machine dict.
     :param source_sm: a dict with state machine description
