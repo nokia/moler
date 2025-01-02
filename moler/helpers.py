@@ -4,7 +4,7 @@ Utility/common code of library.
 """
 
 __author__ = "Grzegorz Latuszek, Michal Ernst, Marcin Usielski"
-__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__copyright__ = "Copyright (C) 2018-2025, Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com"
 )
@@ -577,7 +577,7 @@ def regexp_without_anchors(regexp):
     return re.compile(regexp_str)
 
 
-def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str) -> tuple:
+def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str, forbidden: dict=None) -> tuple:
     """
     Remove a state from a state machine dict.
     :param source_sm: a dict with a state machine description
@@ -594,29 +594,31 @@ def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_rem
             if to_state == state_to_remove:
                 states_from_state_to_remove.append(from_state)
 
-    for to_state in source_sm[state_to_remove].keys():
+    for to_state in states_from_state_to_remove:
         if to_state == state_to_remove:
             continue
         for new_from in states_from_state_to_remove:
-            if new_from != to_state:
-                break
-        if new_from not in new_sm:
-            new_sm[new_from] = {}
-        if new_from not in new_transitions:
-            new_transitions[new_from] = {}
+            if new_from == to_state:
+                continue
+            if forbidden and new_from in forbidden and forbidden[new_from] == to_state:
+                continue
+            if new_from not in new_sm:
+                new_sm[new_from] = {}
+            if new_from not in new_transitions:
+                new_transitions[new_from] = {}
 
-        new_sm[new_from][to_state] = copy.deepcopy(source_sm[state_to_remove][to_state])
-        if 'execute_command' in source_sm[new_from][state_to_remove]:
-            new_sm[new_from][to_state]['execute_command'] = source_sm[new_from][state_to_remove]['execute_command']
+            new_sm[new_from][to_state] = copy.deepcopy(source_sm[state_to_remove][to_state])
+            if 'execute_command' in source_sm[new_from][state_to_remove]:
+                new_sm[new_from][to_state]['execute_command'] = source_sm[new_from][state_to_remove]['execute_command']
 
-        if state_to_remove in source_transitions and to_state in source_transitions[state_to_remove]:
-            new_transitions[new_from][to_state] = copy.deepcopy(source_transitions[state_to_remove][to_state])
-        else:
-            new_transitions[new_from][to_state] = {
-                "action": [
-                    "_execute_command_to_change_state"
-                ],
-            }
+            if state_to_remove in source_transitions and to_state in source_transitions[state_to_remove]:
+                new_transitions[new_from][to_state] = copy.deepcopy(source_transitions[state_to_remove][to_state])
+            else:
+                new_transitions[new_from][to_state] = {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
 
     _delete_state(sm=new_sm, state_to_remove=state_to_remove)
     _delete_state(sm=new_transitions, state_to_remove=state_to_remove)
@@ -652,11 +654,12 @@ def _delete_empty_states(sm: dict) -> None:
             del sm[state]
 
 
-def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
+def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additional_hops: dict=None) -> dict:
     """
     Remove a state from a state machine dict.
     :param source_sm: a dict with state machine description
     :param state_to_remove: name of state to remove
+    :param forbidden: dict with forbidden transitions after remove, key is source, value is destination
     :return: a new state machine hops dict without state_to_remove
     """
     new_hops = copy.deepcopy(source_hops)
@@ -682,4 +685,7 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str) -> dict:
         del new_hops[state_to_remove]
 
     _delete_empty_states(new_hops)
+    if additional_hops:
+        new_hops.update(additional_hops)
+
     return new_hops

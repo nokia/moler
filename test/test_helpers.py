@@ -4,7 +4,7 @@ Tests for helpers functions/classes.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import copy
@@ -631,6 +631,278 @@ def test_remove_state_from_sm_dict():
     assert expected_transitions == current_transitions
 
 
+def test_remove_state_from_sm_2_states_direct():
+    from moler.helpers import remove_state_from_sm
+    source_sm = {
+        'STE': {
+            'PROXY_PC': {
+                'command_params': {'target_newline': '\n'},
+                'execute_command': 'exit_telnet',
+                'required_command_params': ['expected_prompt']
+            }
+        },
+        'STE_UNIX': {
+            'PROXY_PC': {
+                'command_params': {},
+                'execute_command': 'exit',
+                'required_command_params': ['expected_prompt']
+            }
+        },
+        'PROXY_PC': {
+            'STE': {
+                'command_params': {
+                    'expected_prompt': 'STE>',
+                    'host': '0',
+                    'port': 999,
+                    'set_timeout': '~ statusbar=off',
+                    'target_newline': '\n'
+                },
+                'execute_command': 'telnet',
+                'required_command_params': []
+            },
+            'STE_UNIX': {
+                'command_params': {
+                    'expected_prompt': '\\w+@[\\w\\d-]+:.*$',
+                    'host': '0',
+                    'known_hosts_on_failure': 'rm',
+                    'login': 'lop',
+                    'password': 'lop',
+                    'target_newline': '\n'
+                },
+                'execute_command': 'ssh',
+                'required_command_params': []
+            },
+            'UNIX_LOCAL': {
+                'command_params': {
+                    'expected_prompt': '^moler_bash#',
+                    'target_newline': '\n'
+                },
+                'execute_command': 'exit',
+                'required_command_params': []}
+            },
+        'UNIX_LOCAL': {
+            'PROXY_PC': {
+                'command_params': {'target_newline': '\n'},
+                'execute_command': 'ssh',
+                'required_command_params': [
+                    'host',
+                    'login',
+                    'password',
+                    'expected_prompt']
+                },
+            'UNIX_LOCAL_ROOT': {
+                'command_params': {
+                    'expected_prompt': 'local_root_prompt',
+                    'password': 'root_password',
+                    'target_newline': '\n'},
+                'execute_command': 'su',
+                'required_command_params': []}
+            },
+        'UNIX_LOCAL_ROOT': {
+            'UNIX_LOCAL': {
+                'command_params': {
+                    'expected_prompt': '^moler_bash#',
+                    'target_newline': '\n'
+                },
+                'execute_command': 'exit',
+                'required_command_params': []
+            }
+        }
+    }
+    expected_sm = {
+        'STE': {
+            'UNIX_LOCAL': {
+                'command_params': {
+                    'expected_prompt': '^moler_bash#',
+                    'target_newline': '\n'
+                },
+                'execute_command': 'exit_telnet',
+                'required_command_params': []
+            }
+        },
+        'STE_UNIX': {
+            'UNIX_LOCAL': {
+                'command_params': {
+                    'expected_prompt': '^moler_bash#',
+                    'target_newline': '\n',
+                },
+                'execute_command': 'exit',
+                'required_command_params': []
+            }
+        },
+        'UNIX_LOCAL': {
+            'STE': {
+                'command_params': {
+                    'expected_prompt': 'STE>',
+                    'host': '0',
+                    'port': 999,
+                    'set_timeout': '~ statusbar=off',
+                    'target_newline': '\n'
+                },
+                'execute_command': 'ssh',
+                'required_command_params': []
+            },
+            'STE_UNIX': {
+                'command_params': {
+                    'expected_prompt': '\\w+@[\\w\\d-]+:.*$',
+                    'host': '0',
+                    'known_hosts_on_failure': 'rm',
+                    'login': 'lop',
+                    'password': 'lop',
+                    'target_newline': '\n'
+                },
+                'execute_command': 'ssh',
+                'required_command_params': []
+            },
+            'UNIX_LOCAL_ROOT': {
+                'command_params': {
+                    'expected_prompt': 'local_root_prompt',
+                    'password': 'root_password',
+                    'target_newline': '\n'
+                },
+                'execute_command': 'su',
+                'required_command_params': []
+            }
+        },
+        'UNIX_LOCAL_ROOT': {
+            'UNIX_LOCAL': {
+                'command_params': {
+                    'expected_prompt': '^moler_bash#',
+                    'target_newline': '\n'
+                },
+                'execute_command': 'exit',
+                'required_command_params': []
+            }
+        }
+    }
+    source_transitions = {
+        'STE': {
+            'PROXY_PC': {'action': ['_execute_command_to_change_state']}
+        },
+        'STE_UNIX': {
+            'PROXY_PC': {'action': ['_execute_command_to_change_state']}
+        },
+        'NOT_CONNECTED': {
+            'UNIX_LOCAL': {'action': ['_open_connection']}
+        },
+        'PROXY_PC': {
+            'STE': {'action': ['_execute_command_to_change_state']},
+            'STE_UNIX': {'action': ['_execute_command_to_change_state']},
+            'UNIX_LOCAL': {'action': ['_execute_command_to_change_state']}
+        },
+        'UNIX_LOCAL': {
+            'NOT_CONNECTED': {'action': ['_close_connection']},
+            'PROXY_PC': {'action': ['_execute_command_to_change_state']},
+            'UNIX_LOCAL_ROOT': {'action': ['_execute_command_to_change_state']}
+        },
+        'UNIX_LOCAL_ROOT': {
+            'UNIX_LOCAL': {'action': ['_execute_command_to_change_state']}
+        }
+    }
+    expected_transitions = {
+        'STE': {
+            'UNIX_LOCAL': {'action': ['_execute_command_to_change_state']}
+        },
+        'STE_UNIX': {
+            'UNIX_LOCAL': {'action': ['_execute_command_to_change_state']}
+        },
+        'NOT_CONNECTED': {
+            'UNIX_LOCAL': {'action': ['_open_connection']}
+        },
+        'UNIX_LOCAL': {
+            'STE': {'action': ['_execute_command_to_change_state']},
+            'STE_UNIX': {'action': ['_execute_command_to_change_state']},
+            'NOT_CONNECTED': {'action': ['_close_connection']},
+            'UNIX_LOCAL_ROOT': {'action': ['_execute_command_to_change_state']}
+        },
+        'UNIX_LOCAL_ROOT': {
+            'UNIX_LOCAL': {'action': ['_execute_command_to_change_state']}
+        }
+    }
+
+    forbidden = {
+        'STE': 'STE_UNIX',
+        'STE_UNIX': 'STE'
+    }
+    (current_sm, current_transitions) = remove_state_from_sm(source_sm=source_sm, source_transitions=source_transitions, state_to_remove="PROXY_PC", forbidden=forbidden)
+    assert expected_sm == current_sm
+    assert expected_transitions == current_transitions
+
+
+def test_remove_state_hops_from_sm_2_direct():
+    from moler.helpers import remove_state_hops_from_sm
+    source_hops = {
+        'STE': {
+            'STE_UNIX': 'PROXY_PC',
+            'NOT_CONNECTED': 'PROXY_PC',
+            'UNIX_LOCAL': 'PROXY_PC',
+            'UNIX_LOCAL_ROOT': 'PROXY_PC'
+        },
+        'STE_UNIX': {
+            'STE': 'PROXY_PC',
+            'NOT_CONNECTED': 'PROXY_PC',
+            'UNIX_LOCAL': 'PROXY_PC',
+            'UNIX_LOCAL_ROOT': 'PROXY_PC'
+        },
+        'NOT_CONNECTED': {
+            'STE': 'UNIX_LOCAL',
+            'STE_UNIX': 'UNIX_LOCAL',
+            'PROXY_PC': 'UNIX_LOCAL'
+        },
+        'PROXY_PC': {
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'UNIX_LOCAL_ROOT': 'UNIX_LOCAL'
+        },
+        'UNIX_LOCAL': {
+            'STE': 'PROXY_PC',
+            'STE_UNIX': 'PROXY_PC'
+        },
+        'UNIX_LOCAL_ROOT': {
+            'STE': 'UNIX_LOCAL',
+            'STE_UNIX': 'UNIX_LOCAL',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'PROXY_PC': 'UNIX_LOCAL'
+        }
+    }
+
+    expected_hops =  {
+        'STE': {
+            'STE_UNIX': 'UNIX_LOCAL',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'UNIX_LOCAL_ROOT': 'UNIX_LOCAL',
+        },
+        'STE_UNIX': {
+            'STE': 'UNIX_LOCAL',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'UNIX_LOCAL_ROOT': 'UNIX_LOCAL',
+        },
+        'NOT_CONNECTED': {
+            'STE': 'UNIX_LOCAL',
+            'STE_UNIX': 'UNIX_LOCAL',
+        },
+        'UNIX_LOCAL_ROOT': {
+            'STE': 'UNIX_LOCAL',
+            'STE_UNIX': 'UNIX_LOCAL',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+        },
+    }
+
+    additional_hops = {
+        'STE': {
+            'STE_UNIX': 'UNIX_LOCAL',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'UNIX_LOCAL_ROOT': 'UNIX_LOCAL',
+        },
+        'STE_UNIX': {
+            'STE': 'UNIX_LOCAL',
+            'NOT_CONNECTED': 'UNIX_LOCAL',
+            'UNIX_LOCAL_ROOT': 'UNIX_LOCAL',
+        },
+    }
+    current_hops = remove_state_hops_from_sm(source_hops, "PROXY_PC", additional_hops=additional_hops)
+    assert expected_hops == current_hops
+
+
 def test_remove_state_hops_from_sm():
     from moler.device.unixremote import UnixRemote
     from moler.helpers import remove_state_hops_from_sm
@@ -694,7 +966,6 @@ def test_remove_state_hops_from_sm():
 
     current_hops = remove_state_hops_from_sm(source_hops, UnixRemote.proxy_pc)
     assert expected_hops == current_hops
-
 
 def test_remove_state_hops_from_sm_adb():
     from moler.helpers import remove_state_hops_from_sm

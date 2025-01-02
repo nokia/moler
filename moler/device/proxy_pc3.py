@@ -6,7 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2024, Nokia'
+__copyright__ = 'Copyright (C) 2024-2025, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 import six
 import abc
@@ -44,6 +44,20 @@ class ProxyPc3(UnixLocal):
                                        sm_params=sm_params, initial_state=initial_state,
                                        lazy_cmds_events=lazy_cmds_events)
         self._log(level=logging.WARNING, msg="Experimental device. May be deleted at any moment. Please don't use it in your scripts.")
+
+    def _get_forbidden_states_no_proxy_pc(self) -> dict:
+        """
+        Get forbidden states when deleted states - no proxy pc.
+        :return: forbidden states.
+        """
+        return None
+
+    def _get_additional_state_hops_no_proxy_pc(self) -> dict:
+        """
+        Get additional state hops if states are removed. None if no additional states are required.
+        :return: additional states.
+        """
+        return None
 
     def _prepare_sm_data(self, sm_params):
         self._prepare_dicts_for_sm(sm_params=sm_params)
@@ -102,9 +116,11 @@ class ProxyPc3(UnixLocal):
                 source_sm=default_sm_configurations[ProxyPc3.connection_hops],
                 source_transitions=transitions,
                 state_to_remove=ProxyPc3.proxy_pc,
+                forbidden=self._get_forbidden_states_no_proxy_pc()
             )
             state_hops = remove_state_hops_from_sm(
-                source_hops=state_hops, state_to_remove=ProxyPc3.proxy_pc
+                source_hops=state_hops, state_to_remove=ProxyPc3.proxy_pc,
+                additional_hops=self._get_additional_state_hops_no_proxy_pc()
             )
             default_sm_configurations[ProxyPc3.connection_hops] = connection_hops
         return (default_sm_configurations, transitions, state_hops)
