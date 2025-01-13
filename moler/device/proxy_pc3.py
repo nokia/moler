@@ -120,7 +120,8 @@ class ProxyPc3(UnixLocal):
             )
             state_hops = remove_state_hops_from_sm(
                 source_hops=state_hops, state_to_remove=ProxyPc3.proxy_pc,
-                additional_hops=self._get_additional_state_hops_no_proxy_pc()
+                additional_hops=self._get_additional_state_hops_no_proxy_pc(),
+                forbidden=self._get_forbidden_states_no_proxy_pc()
             )
             default_sm_configurations[ProxyPc3.connection_hops] = connection_hops
         return (default_sm_configurations, transitions, state_hops)
