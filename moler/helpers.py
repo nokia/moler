@@ -565,6 +565,7 @@ def regexp_without_anchors(regexp):
     :param regexp: compiled regexp
     :return: compiled regexp without anchors
     """
+    print(f"passed regexp: '{regexp}'")
     regexp_str = regexp.pattern.strip()
     org_regexp_str = regexp_str
     if len(org_regexp_str) >= 2:
@@ -654,7 +655,7 @@ def _delete_empty_states(sm: dict) -> None:
             del sm[state]
 
 
-def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additional_hops: dict = None) -> dict:
+def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additional_hops: dict = None, forbidden: dict = None) -> dict:
     """
     Remove a state from a state machine dict.
     :param source_sm: a dict with state machine description
@@ -673,7 +674,10 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additiona
                     if source_hops[state_to_remove][dest_state] == from_state:
                         msg = f"Found cycle from '{from_state}' to '{dest_state}' via '{source_hops[state_to_remove][dest_state]}'. Please verify state hops: {source_hops}"
                         raise MolerException(msg)
-                    new_hops[from_state][dest_state] = source_hops[state_to_remove][dest_state]
+                    if not forbidden or from_state not in forbidden or forbidden[from_state] != dest_state:
+                        new_hops[from_state][dest_state] = source_hops[state_to_remove][dest_state]
+                    # if forbidden and dest_state in forbidden and forbidden[dest_state] == new_hops[from_state][dest_state]:
+                    #     del new_hops[from_state][dest_state]
                 else:
                     del new_hops[from_state][dest_state]
 
@@ -686,6 +690,6 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additiona
 
     _delete_empty_states(new_hops)
     if additional_hops:
-        new_hops.update(additional_hops)
+        update_dict(new_hops, additional_hops)
 
     return new_hops
