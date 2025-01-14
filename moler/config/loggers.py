@@ -570,13 +570,9 @@ def configure_moler_main_logger():
             log_level=logging.INFO,  # only hi-level info from library
             formatter=main_formatter,
         )
-        _add_debug_handler()
         if want_log_console("moler"):
             _add_stdout_file_handler(logger_name="moler", formatter=main_formatter, log_level=logging.INFO)
-
-            if want_log_console("moler.debug"):
-                debug_formatter = _get_debug_formatter()
-                _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
+        _add_debug_handler()
 
         logger.info(moler_logo)
         msg = f"Using specific packages version:\nPython: {platform.python_version()}\nmoler: {_get_moler_version()}"
@@ -608,6 +604,8 @@ def _add_debug_handler():
             # do we need "%(threadName)-30s" ???
             formatter=debug_formatter
         )
+        if want_log_console("moler.debug"):
+            _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
 
 
 def configure_moler_threads_logger():
