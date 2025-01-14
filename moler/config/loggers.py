@@ -575,6 +575,7 @@ def configure_moler_main_logger():
             _add_stdout_file_handler(logger_name="moler", formatter=main_formatter, log_level=logging.INFO)
 
             if want_log_console("moler.debug"):
+                debug_formatter = _get_debug_formatter()
                 _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
 
         logger.info(moler_logo)
@@ -588,11 +589,14 @@ def configure_moler_main_logger():
         global _main_logger  # pylint: disable=global-statement
         _main_logger = logger
 
+def _get_debug_formatter():
+    debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
+    debug_formatter = MultilineWithDirectionFormatter(fmt=debug_log_format, datefmt=date_format)
+    return debug_formatter
 
 def _add_debug_handler():
     if want_debug_details():
-        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
-        debug_formatter = MultilineWithDirectionFormatter(fmt=debug_log_format, datefmt=date_format)
+        debug_formatter = _get_debug_formatter()
         _add_new_file_handler(
             logger_name="moler",
             log_file="moler.debug.log",
