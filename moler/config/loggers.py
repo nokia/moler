@@ -589,10 +589,12 @@ def configure_moler_main_logger():
         global _main_logger  # pylint: disable=global-statement
         _main_logger = logger
 
+
 def _get_debug_formatter():
     debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
     debug_formatter = MultilineWithDirectionFormatter(fmt=debug_log_format, datefmt=date_format)
     return debug_formatter
+
 
 def _add_debug_handler():
     if want_debug_details():
