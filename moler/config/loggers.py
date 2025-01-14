@@ -574,7 +574,6 @@ def configure_moler_main_logger():
         if want_log_console("moler"):
             _add_stdout_file_handler(logger_name="moler", formatter=main_formatter, log_level=logging.INFO)
 
-
             if want_log_console("moler.debug"):
                 _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
 
@@ -589,6 +588,7 @@ def configure_moler_main_logger():
         global _main_logger  # pylint: disable=global-statement
         _main_logger = logger
 
+
 def _add_debug_handler():
     if want_debug_details():
         debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
@@ -602,6 +602,7 @@ def _add_debug_handler():
             # do we need "%(threadName)-30s" ???
             formatter=debug_formatter
         )
+
 
 def configure_moler_threads_logger():
     """Configure threads logger of Moler"""
@@ -629,6 +630,7 @@ def configure_moler_threads_logger():
     else:
         logging.getLogger("moler_threads").propagate = False
 
+
 def change_debug_log(disable: bool) -> None:
     """
     Change disable debug log.
@@ -645,6 +647,7 @@ def change_debug_log(disable: bool) -> None:
     else:
         if len(file_handlers) == 0:
             _add_debug_handler()
+
 
 def _list_libraries(logger):
     """
