@@ -4,7 +4,7 @@ Configure logging for Moler's needs
 """
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
-__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__copyright__ = "Copyright (C) 2018-2025, Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
 )
@@ -216,7 +216,6 @@ def configure_debug_level(level=None):
     since debug level is intended also for troubleshooting
     """
     global debug_level  # pylint: disable=global-statement
-    print (f"changed debug level {debug_level} to {level}")
     if level:
         level_name = level
     else:
@@ -227,12 +226,10 @@ def configure_debug_level(level=None):
     allowed = {"TRACE": TRACE, "DEBUG": logging.DEBUG}
 
     if level_name in allowed:
-        print(f"allowed level: {level_name}")
         debug_level = allowed[level_name]
     elif level_name:
-        print(f"not allowed level: {level_name}")
         debug_level = logging.INFO
-    print(f"configure_debug_level: {debug_level}")
+
 
 def set_error_log_stack(error_log_stack=False):
     """
@@ -255,7 +252,6 @@ def get_error_log_stack():
 
 def want_debug_details():
     """Check if we want to have debug details inside logs"""
-    print(f"want_debug_details: '{debug_level}' -> {debug_level is not None}")
     return debug_level is not None
 
 
@@ -574,21 +570,11 @@ def configure_moler_main_logger():
             log_level=logging.INFO,  # only hi-level info from library
             formatter=main_formatter,
         )
+        _add_debug_handler()
         if want_log_console("moler"):
             _add_stdout_file_handler(logger_name="moler", formatter=main_formatter, log_level=logging.INFO)
 
-        if want_debug_details():
-            debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
-            debug_formatter = MultilineWithDirectionFormatter(fmt=debug_log_format, datefmt=date_format)
-            _add_new_file_handler(
-                logger_name="moler",
-                log_file="moler.debug.log",
-                log_level=debug_level,
-                # entries from different components go to single file, so we need to
-                # differentiate them by logger name: "%(name)s"
-                # do we need "%(threadName)-30s" ???
-                formatter=debug_formatter
-            )
+
             if want_log_console("moler.debug"):
                 _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
 
@@ -603,6 +589,19 @@ def configure_moler_main_logger():
         global _main_logger  # pylint: disable=global-statement
         _main_logger = logger
 
+def _add_debug_handler():
+    if want_debug_details():
+        debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
+        debug_formatter = MultilineWithDirectionFormatter(fmt=debug_log_format, datefmt=date_format)
+        _add_new_file_handler(
+            logger_name="moler",
+            log_file="moler.debug.log",
+            log_level=debug_level,
+            # entries from different components go to single file, so we need to
+            # differentiate them by logger name: "%(name)s"
+            # do we need "%(threadName)-30s" ???
+            formatter=debug_formatter
+        )
 
 def configure_moler_threads_logger():
     """Configure threads logger of Moler"""
@@ -630,6 +629,22 @@ def configure_moler_threads_logger():
     else:
         logging.getLogger("moler_threads").propagate = False
 
+def change_debug_log(disable: bool) -> None:
+    """
+    Change disable debug log.
+
+    :param disable: True to disable debug log, False to enable.
+    :return: None
+    """
+    logger = logging.getLogger("moler")
+    file_handlers = [handler for handler in logger.handlers if isinstance(handler, logging.FileHandler) and handler.baseFilename.endswith("moler.debug.log")]
+    if disable:
+        for handler in file_handlers:
+            logger.removeHandler(handler)
+            handler.close()
+    else:
+        if len(file_handlers) == 0:
+            _add_debug_handler()
 
 def _list_libraries(logger):
     """
