@@ -565,7 +565,6 @@ def regexp_without_anchors(regexp):
     :param regexp: compiled regexp
     :return: compiled regexp without anchors
     """
-    print(f"passed regexp: '{regexp}'")
     regexp_str = regexp.pattern.strip()
     org_regexp_str = regexp_str
     if len(org_regexp_str) >= 2:
