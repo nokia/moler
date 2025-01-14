@@ -16,8 +16,11 @@ import os
 import platform
 import re
 import sys
+import traceback
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from importlib_metadata import version, PackageNotFoundError, distributions
+from pprint import pformat
+
 
 from moler.util import tracked_thread
 from moler.util.compressed_rotating_file_handler import CompressedRotatingFileHandler
@@ -84,6 +87,7 @@ moler_logo = """
     %% %%% %%% %%  %%%       %%  %%%       %%%%%%%%%  %%% %%%%%%%
     %%  %%%%%  %%  %%%       %%  %%%       %%%        %%%   %%%
     %%   %%%   %%   %%%%%%%%%%%  %%%%%%%%% %%%%%%%%%% %%%     %%%
+    disable log 1
 """
 
 
@@ -635,16 +639,19 @@ def configure_moler_threads_logger():
         logging.getLogger("moler_threads").propagate = False
 
 
-def change_debug_log(disable: bool) -> None:
+def switch_debug_log_visibility(disable: bool) -> None:
     """
     Change disable debug log.
 
     :param disable: True to disable debug log, False to enable.
     :return: None
     """
+
     logger = logging.getLogger("moler")
     file_handlers = [handler for handler in logger.handlers if isinstance(handler, logging.FileHandler) and handler.baseFilename.endswith("moler.debug.log")]
     if disable:
+        mg = pformat(traceback.format_list(traceback.extract_stack(limit=7))[::-1])
+        logger.info(msg=f"Debug log is disabled. Requested by: {mg}\n(...)")
         for handler in file_handlers:
             logger.removeHandler(handler)
             handler.close()

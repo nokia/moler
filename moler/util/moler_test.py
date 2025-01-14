@@ -4,7 +4,7 @@ Utility/common code of library.
 """
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol"
-__copyright__ = "Copyright (C) 2018-2022, Nokia"
+__copyright__ = "Copyright (C) 2018-2025, Nokia"
 __email__ = "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com"
 
 import gc
@@ -18,7 +18,7 @@ import traceback
 from functools import partial, wraps
 from types import FunctionType, MethodType
 
-from moler.config.loggers import get_error_log_stack
+from moler.config.loggers import get_error_log_stack, switch_debug_log_visibility
 from moler.connection_observer import ConnectionObserver
 from moler.exceptions import ExecutionException, MolerException
 
@@ -134,6 +134,24 @@ class MolerTest:
             return cls._decorate(decorated, check_steps_end=check_steps_end)
         else:
             return partial(cls._decorate, check_steps_end=check_steps_end)
+
+    @classmethod
+    def disable_debug_log(cls):
+        """
+        Disable debug log.
+
+        :return: None
+        """
+        switch_debug_log_visibility(disable=True)
+
+    @classmethod
+    def enable_debug_log(cls):
+        """
+        Enable debug log.
+
+        :return: None
+        """
+        switch_debug_log_visibility(disable=False)
 
     # No public methods and fields below:
 
