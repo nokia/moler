@@ -216,18 +216,23 @@ def configure_debug_level(level=None):
     since debug level is intended also for troubleshooting
     """
     global debug_level  # pylint: disable=global-statement
+    print (f"changed debug level {debug_level} to {level}")
     if level:
         level_name = level
     else:
-        level_name = os.getenv("MOLER_DEBUG_LEVEL", "not_found").upper()
+        level_name = os.getenv("MOLER_DEBUG_LEVEL", None)
+        if level_name:
+            level_name = level_name.upper()
 
     allowed = {"TRACE": TRACE, "DEBUG": logging.DEBUG}
 
     if level_name in allowed:
+        print(f"allowed level: {level_name}")
         debug_level = allowed[level_name]
-    else:
+    elif level_name:
+        print(f"not allowed level: {level_name}")
         debug_level = logging.INFO
-
+    print(f"configure_debug_level: {debug_level}")
 
 def set_error_log_stack(error_log_stack=False):
     """
@@ -250,6 +255,7 @@ def get_error_log_stack():
 
 def want_debug_details():
     """Check if we want to have debug details inside logs"""
+    print(f"want_debug_details: '{debug_level}' -> {debug_level is not None}")
     return debug_level is not None
 
 
