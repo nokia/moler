@@ -45,17 +45,24 @@ class ProxyPc3(UnixLocal):
                                        lazy_cmds_events=lazy_cmds_events)
         self._log(level=logging.WARNING, msg="Experimental device. May be deleted at any moment. Please don't use it in your scripts.")
 
-    def _get_forbidden_states_no_proxy_pc(self) -> dict:
+    def _get_forbidden_states_no_proxy_pc(self):
         """
         Get forbidden states when deleted states - no proxy pc.
-        :return: forbidden states.
+        :return: dict with forbidden states or None if no forbidden states.
         """
         return None
 
-    def _get_additional_state_hops_no_proxy_pc(self) -> dict:
+    def _get_additional_state_hops_no_proxy_pc(self):
         """
         Get additional state hops if states are removed. None if no additional states are required.
-        :return: additional states.
+        :return: dict with additional states or None if no additional states.
+        """
+        return None
+
+    def _get_forbidden_hops_no_proxy_pc(self):
+        """
+        Get forbidden state hops when deleted states - no proxy pc.
+        :return: dict with forbidden hops or None if no forbidden hops.
         """
         return None
 
@@ -121,7 +128,7 @@ class ProxyPc3(UnixLocal):
             state_hops = remove_state_hops_from_sm(
                 source_hops=state_hops, state_to_remove=ProxyPc3.proxy_pc,
                 additional_hops=self._get_additional_state_hops_no_proxy_pc(),
-                forbidden=self._get_forbidden_states_no_proxy_pc()
+                forbidden_hops=self._get_forbidden_hops_no_proxy_pc(),
             )
             default_sm_configurations[ProxyPc3.connection_hops] = connection_hops
         return (default_sm_configurations, transitions, state_hops)

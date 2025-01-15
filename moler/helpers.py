@@ -654,35 +654,37 @@ def _delete_empty_states(sm: dict) -> None:
             del sm[state]
 
 
-def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additional_hops: dict = None, forbidden: dict = None) -> dict:
+def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additional_hops: dict = None, forbidden_hops: dict = None) -> dict:
     """
     Remove a state from a state machine dict.
     :param source_sm: a dict with state machine description
     :param state_to_remove: name of state to remove
-    :param forbidden: dict with forbidden transitions after remove, key is source, value is destination
+    :param forbidden_hops: dict with forbidden transitions after remove, key is source, value is destination
     :return: a new state machine hops dict without state_to_remove
     """
     new_hops = copy.deepcopy(source_hops)
 
-    for from_state in source_hops.keys():
-        item = source_hops[from_state]
-        for dest_state in item.keys():
-            direct_state = item[dest_state]
-            if direct_state == state_to_remove:
-                if state_to_remove in source_hops and dest_state in source_hops[state_to_remove]:
-                    if source_hops[state_to_remove][dest_state] == from_state:
-                        msg = f"Found cycle from '{from_state}' to '{dest_state}' via '{source_hops[state_to_remove][dest_state]}'. Please verify state hops: {source_hops}"
+    for old_from_state in source_hops.keys():
+        item = source_hops[old_from_state]
+        for old_dest_state in item.keys():
+            old_via_state = item[old_dest_state]
+            if old_via_state == state_to_remove:
+                if state_to_remove in source_hops and old_dest_state in source_hops[state_to_remove]:
+                    if source_hops[state_to_remove][old_dest_state] == old_from_state:
+                        msg = f"Found cycle from '{old_from_state}' to '{old_dest_state}' via '{source_hops[state_to_remove][old_dest_state]}'. Please verify state hops: {source_hops}"
                         raise MolerException(msg)
-                    if not forbidden or from_state not in forbidden or forbidden[from_state] != dest_state:
-                        new_hops[from_state][dest_state] = source_hops[state_to_remove][dest_state]
-                    # if forbidden and dest_state in forbidden and forbidden[dest_state] == new_hops[from_state][dest_state]:
-                    #     del new_hops[from_state][dest_state]
+                    new_via_state = source_hops[old_via_state][old_dest_state]
+                    if forbidden_hops and old_from_state in forbidden_hops and old_dest_state in forbidden_hops[old_from_state] and  forbidden_hops[old_from_state][old_dest_state] == new_via_state:
+                        if old_from_state in new_hops and old_dest_state in new_hops[old_from_state]:
+                            del new_hops[old_from_state][old_dest_state]
+                    else:
+                        new_hops[old_from_state][old_dest_state] = new_via_state
                 else:
-                    del new_hops[from_state][dest_state]
+                    del new_hops[old_from_state][old_dest_state]
 
-    for from_state in source_hops.keys():
-        if from_state in new_hops and state_to_remove in new_hops[from_state]:
-            del new_hops[from_state][state_to_remove]
+    for old_from_state in source_hops.keys():
+        if old_from_state in new_hops and state_to_remove in new_hops[old_from_state]:
+            del new_hops[old_from_state][state_to_remove]
 
     if state_to_remove in new_hops:
         del new_hops[state_to_remove]
