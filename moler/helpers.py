@@ -674,7 +674,7 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additiona
                         msg = f"Found cycle from '{old_from_state}' to '{old_dest_state}' via '{source_hops[state_to_remove][old_dest_state]}'. Please verify state hops: {source_hops}"
                         raise MolerException(msg)
                     new_via_state = source_hops[old_via_state][old_dest_state]
-                    if forbidden_hops and old_from_state in forbidden_hops and old_dest_state in forbidden_hops[old_from_state] and  forbidden_hops[old_from_state][old_dest_state] == new_via_state:
+                    if forbidden_hops and old_from_state in forbidden_hops and old_dest_state in forbidden_hops[old_from_state] and forbidden_hops[old_from_state][old_dest_state] == new_via_state:
                         if old_from_state in new_hops and old_dest_state in new_hops[old_from_state]:
                             del new_hops[old_from_state][old_dest_state]
                     else:
