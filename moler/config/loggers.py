@@ -4,7 +4,7 @@ Configure logging for Moler's needs
 """
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
-__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__copyright__ = "Copyright (C) 2018-2025, Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
 )
@@ -16,8 +16,11 @@ import os
 import platform
 import re
 import sys
+import traceback
 from logging.handlers import RotatingFileHandler, TimedRotatingFileHandler
 from importlib_metadata import version, PackageNotFoundError, distributions
+from pprint import pformat
+
 
 from moler.util import tracked_thread
 from moler.util.compressed_rotating_file_handler import CompressedRotatingFileHandler
@@ -219,13 +222,15 @@ def configure_debug_level(level=None):
     if level:
         level_name = level
     else:
-        level_name = os.getenv("MOLER_DEBUG_LEVEL", "not_found").upper()
+        level_name = os.getenv("MOLER_DEBUG_LEVEL", None)
+        if level_name:
+            level_name = level_name.upper()
 
     allowed = {"TRACE": TRACE, "DEBUG": logging.DEBUG}
 
     if level_name in allowed:
         debug_level = allowed[level_name]
-    else:
+    elif level_name:
         debug_level = logging.INFO
 
 
@@ -570,21 +575,7 @@ def configure_moler_main_logger():
         )
         if want_log_console("moler"):
             _add_stdout_file_handler(logger_name="moler", formatter=main_formatter, log_level=logging.INFO)
-
-        if want_debug_details():
-            debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
-            debug_formatter = MultilineWithDirectionFormatter(fmt=debug_log_format, datefmt=date_format)
-            _add_new_file_handler(
-                logger_name="moler",
-                log_file="moler.debug.log",
-                log_level=debug_level,
-                # entries from different components go to single file, so we need to
-                # differentiate them by logger name: "%(name)s"
-                # do we need "%(threadName)-30s" ???
-                formatter=debug_formatter
-            )
-            if want_log_console("moler.debug"):
-                _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
+        _add_debug_handler()
 
         logger.info(moler_logo)
         msg = f"Using specific packages version:\nPython: {platform.python_version()}\nmoler: {_get_moler_version()}"
@@ -596,6 +587,28 @@ def configure_moler_main_logger():
         _list_libraries(logger=logger)
         global _main_logger  # pylint: disable=global-statement
         _main_logger = logger
+
+
+def _get_debug_formatter():
+    debug_log_format = "%(asctime)s.%(msecs)03d %(levelname)-12s %(name)-30s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() %(transfer_direction)s|%(message)s"
+    debug_formatter = MultilineWithDirectionFormatter(fmt=debug_log_format, datefmt=date_format)
+    return debug_formatter
+
+
+def _add_debug_handler():
+    if want_debug_details():
+        debug_formatter = _get_debug_formatter()
+        _add_new_file_handler(
+            logger_name="moler",
+            log_file="moler.debug.log",
+            log_level=debug_level,
+            # entries from different components go to single file, so we need to
+            # differentiate them by logger name: "%(name)s"
+            # do we need "%(threadName)-30s" ???
+            formatter=debug_formatter
+        )
+        if want_log_console("moler.debug"):
+            _add_stdout_file_handler(logger_name="moler", formatter=debug_formatter, log_level=debug_level)
 
 
 def configure_moler_threads_logger():
@@ -623,6 +636,27 @@ def configure_moler_threads_logger():
             tracked_thread.start_threads_dumper()
     else:
         logging.getLogger("moler_threads").propagate = False
+
+
+def switch_debug_log_visibility(disable: bool) -> None:
+    """
+    Change disable debug log.
+
+    :param disable: True to disable debug log, False to enable.
+    :return: None
+    """
+
+    logger = logging.getLogger("moler")
+    file_handlers = [handler for handler in logger.handlers if isinstance(handler, logging.FileHandler) and handler.baseFilename.endswith("moler.debug.log")]
+    if disable:
+        mg = pformat(traceback.format_list(traceback.extract_stack(limit=7))[::-1])
+        logger.info(msg=f"Debug log is disabled. Requested by: {mg}\n(...)")
+        for handler in file_handlers:
+            logger.removeHandler(handler)
+            handler.close()
+    else:
+        if len(file_handlers) == 0:
+            _add_debug_handler()
 
 
 def _list_libraries(logger):
