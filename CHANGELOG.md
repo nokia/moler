@@ -1,3 +1,7 @@
+## moler 3.13.0
+ * Optional disable debug log
+ * Enhancement for optional PROXY_PC state removal
+
 ## moler 3.12.0
  * Remove state from state machine dict. Devices (with suffix 3) can conditionally delete state PROXY_PC
  * Readability logs
