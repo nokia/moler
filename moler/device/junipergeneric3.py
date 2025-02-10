@@ -349,7 +349,7 @@ class JuniperGeneric3(ProxyPc3):
             elif state == JuniperGeneric3.configure:
                 available = {
                     JuniperGeneric3.cmds: ['moler.events.unix', 'moler.cmd.juniper.configure',
-                                          'moler.cmd.juniper_ex.configure'],
+                                           'moler.cmd.juniper_ex.configure'],
                     JuniperGeneric3.events: ['moler.events.unix', 'moler.events.juniper', 'moler.events.juniper_ex']}
 
             if available:
