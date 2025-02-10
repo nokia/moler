@@ -5,14 +5,15 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 
-__author__ = 'Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
-__email__ = 'michal.ernst@nokia.com'
+__author__ = 'Marcin Usielski'
+__copyright__ = 'Copyright (C) 2024-2025, Nokia'
+__email__ = 'marcin.usielski@nokia.com'
 import six
 import abc
+import logging
 
 from moler.device.unixlocal import UnixLocal
-from moler.exceptions import DeviceFailure
+from moler.helpers import remove_state_from_sm, remove_state_hops_from_sm
 
 
 @six.add_metaclass(abc.ABCMeta)
@@ -42,6 +43,101 @@ class ProxyPc(UnixLocal):
                                       io_constructor_kwargs=io_constructor_kwargs,
                                       sm_params=sm_params, initial_state=initial_state,
                                       lazy_cmds_events=lazy_cmds_events)
+        self._log(level=logging.WARNING, msg="Experimental device. May be deleted at any moment. Please don't use it in your scripts.")
+
+    def _get_forbidden_states_no_proxy_pc(self):
+        """
+        Get forbidden states when deleted states - no proxy pc.
+        :return: dict with forbidden states or None if no forbidden states.
+        """
+        return None
+
+    def _get_additional_state_hops_no_proxy_pc(self):
+        """
+        Get additional state hops if states are removed. None if no additional states are required.
+        :return: dict with additional states or None if no additional states.
+        """
+        return None
+
+    def _get_forbidden_hops_no_proxy_pc(self):
+        """
+        Get forbidden state hops when deleted states - no proxy pc.
+        :return: dict with forbidden hops or None if no forbidden hops.
+        """
+        return None
+
+    def _prepare_sm_data(self, sm_params):
+        self._prepare_dicts_for_sm(sm_params=sm_params)
+
+        self._prepare_newline_chars()
+        self._send_transitions_to_sm(self._stored_transitions)
+
+    def _prepare_transitions(self):
+        """
+        Prepare transitions to change states.
+        :return: None
+        """
+
+        stored_is_proxy_pc = self._use_proxy_pc
+        self._use_proxy_pc = True
+        super(ProxyPc, self)._prepare_transitions()
+        self._use_proxy_pc = stored_is_proxy_pc
+        transitions = self._prepare_transitions_with_proxy_pc()
+        self._add_transitions(transitions=transitions)
+
+    def _prepare_dicts_for_sm(self, sm_params):
+        """
+        Prepare transitions to change states.
+        :return: None
+        """
+
+        self._prepare_transitions()
+        transitions = self._stored_transitions
+        state_hops = self._prepare_state_hops_with_proxy_pc()
+
+        default_sm_configurations = self._get_default_sm_configuration()
+
+        (default_sm_configurations, transitions, state_hops) = self._trim_config_dicts(
+            default_sm_configurations, transitions, state_hops)
+
+        self._stored_transitions = transitions
+        self._update_dict(self._state_hops, state_hops)
+
+        self._configurations = self._prepare_sm_configuration(
+            default_sm_configurations, sm_params
+        )
+        self._overwrite_prompts()
+        self._validate_device_configuration()
+        self._prepare_state_prompts()
+
+    def _trim_config_dicts(self, default_sm_configurations, transitions, state_hops):
+        """
+        Remove required state (mainly PROXY_PC) from State Machine configuration if necessary.
+        :param default_sm_configurations: default State Machine configuration.
+        :param transitions: transitions between states.
+        :param state_hops: non direct transitions between states.
+        :return: trimmed State Machine configuration (tuple with new values of passed arguments).
+        """
+        if not self._use_proxy_pc:
+            (connection_hops, transitions) = remove_state_from_sm(
+                source_sm=default_sm_configurations[ProxyPc.connection_hops],
+                source_transitions=transitions,
+                state_to_remove=ProxyPc.proxy_pc,
+                forbidden=self._get_forbidden_states_no_proxy_pc()
+            )
+            state_hops = remove_state_hops_from_sm(
+                source_hops=state_hops, state_to_remove=ProxyPc.proxy_pc,
+                additional_hops=self._get_additional_state_hops_no_proxy_pc(),
+                forbidden_hops=self._get_forbidden_hops_no_proxy_pc(),
+            )
+            default_sm_configurations[ProxyPc.connection_hops] = connection_hops
+        return (default_sm_configurations, transitions, state_hops)
+
+    def _overwrite_prompts(self) -> None:
+        """
+        Method to overwrite prompts in commands.
+        :return: None
+        """
 
     def _get_default_sm_configuration(self):
         """
@@ -49,10 +145,8 @@ class ProxyPc(UnixLocal):
         :return: default sm configuration.
         """
         config = super(ProxyPc, self)._get_default_sm_configuration()
-        if self._use_proxy_pc:
-            default_config = self._get_default_sm_configuration_with_proxy_pc()
-        else:
-            default_config = self._get_default_sm_configuration_without_proxy_pc()
+        default_config = self._get_default_sm_configuration_with_proxy_pc()
+
         self._update_dict(config, default_config)
         return config
 
@@ -92,24 +186,17 @@ class ProxyPc(UnixLocal):
         }
         return config
 
-    def _get_default_sm_configuration_without_proxy_pc(self):
-        """
-        Return State Machine default configuration without proxy_pc state.
-        :return: default sm configuration without proxy_pc state.
-        """
-        config = {}
-        return config
-
     def _prepare_transitions(self):
         """
         Prepare transitions to change states.
         :return: None
         """
+
+        stored_is_proxy_pc = self._use_proxy_pc
+        self._use_proxy_pc = True
         super(ProxyPc, self)._prepare_transitions()
-        if self._use_proxy_pc:
-            transitions = self._prepare_transitions_with_proxy_pc()
-        else:
-            transitions = self._prepare_transitions_without_proxy_pc()
+        self._use_proxy_pc = stored_is_proxy_pc
+        transitions = self._prepare_transitions_with_proxy_pc()
         self._add_transitions(transitions=transitions)
 
     def _prepare_transitions_with_proxy_pc(self):
@@ -135,30 +222,17 @@ class ProxyPc(UnixLocal):
         }
         return transitions
 
-    def _prepare_transitions_without_proxy_pc(self):
-        """
-        Prepare transitions to change states without proxy_pc state.
-        :return: transitions without proxy_pc state.
-        """
-        transitions = {}
-        return transitions
-
     def _prepare_state_prompts(self):
         """
         Prepare textual prompt for each state.
         :return: None
         """
         super(ProxyPc, self)._prepare_state_prompts()
-        try:
-            if self._use_proxy_pc:
-                state_prompts = self._prepare_state_prompts_with_proxy_pc()
-            else:
-                state_prompts = self._prepare_state_prompts_without_proxy_pc()
-        except KeyError as ke:
-            raise DeviceFailure(
-                device=self.__class__.__name__,
-                message=f"Wrong configuration. Cannot get prompts. {ke} {repr(ke)}"
-            )
+
+        if self._use_proxy_pc:
+            state_prompts = self._prepare_state_prompts_with_proxy_pc()
+        else:
+            state_prompts = self._prepare_state_prompts_without_proxy_pc()
 
         self._update_dict(self._state_prompts, state_prompts)
 
@@ -222,20 +296,6 @@ class ProxyPc(UnixLocal):
         newline_chars = {}
         return newline_chars
 
-    def _prepare_state_hops(self):
-        """
-        Prepare hops for non direct transitions between states.
-        :return: None
-        """
-        super(ProxyPc, self)._prepare_state_hops()
-
-        if self._use_proxy_pc:
-            state_hops = self._prepare_state_hops_with_proxy_pc()
-        else:
-            state_hops = self._prepare_state_hops_without_proxy_pc()
-
-        self._update_dict(self._state_hops, state_hops)
-
     def _prepare_state_hops_with_proxy_pc(self):
         """
         Prepare non direct transitions for each state for State Machine with proxy_pc state.
@@ -254,14 +314,6 @@ class ProxyPc(UnixLocal):
                 ProxyPc.unix_local_root: ProxyPc.unix_local,
             },
         }
-        return state_hops
-
-    def _prepare_state_hops_without_proxy_pc(self):
-        """
-        Prepare non direct transitions for each state for State Machine without proxy_pc state.
-        :return: non direct transitions for each state without proxy_pc state.
-        """
-        state_hops = {}
         return state_hops
 
     def _get_packages_for_state(self, state, observer):

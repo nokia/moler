@@ -4,16 +4,18 @@ Juniper Generic module.
 """
 
 __author__ = 'Sylwester Golonka, Jakub Kupiec, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2024, Nokia'
+__copyright__ = 'Copyright (C) 2019-2025, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, jakub.kupiec@nokia.com, marcin.usielski@nokia.com'
 
 import logging
+from abc import ABCMeta
+from six import add_metaclass
 from moler.device.proxy_pc3 import ProxyPc3
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 
 
-# Do not create object directly. Use subclass instead - JuniperEX.
 @call_base_class_method_with_same_name
+@add_metaclass(ABCMeta)
 class JuniperGeneric3(ProxyPc3):
     """Junipergeneric device class."""
 
@@ -96,6 +98,57 @@ class JuniperGeneric3(ProxyPc3):
         return config
 
     @mark_to_call_base_class_method_with_same_name
+    def _get_default_sm_configuration_without_proxy_pc(self):
+        """
+        Return State Machine default configuration without proxy_pc state.
+
+        :return: default sm configuration without proxy_pc state.
+        """
+        config = {
+            JuniperGeneric3.connection_hops: {
+                JuniperGeneric3.unix_local: {  # from
+                    JuniperGeneric3.cli: {  # to
+                        "execute_command": "ssh",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": "^admin@switch>",
+                            "set_timeout": None
+                        },
+                        "required_command_params": [
+                            "host",
+                            "login",
+                            "password",
+                        ]
+                    }
+                },
+                JuniperGeneric3.cli: {  # from
+                    JuniperGeneric3.unix_local: {  # to
+                        "execute_command": "exit",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\n",
+                        },
+                        "required_command_params": [],
+                    },
+                    JuniperGeneric3.configure: {
+                        "execute_command": "configure",
+                        "command_params": {
+                            "expected_prompt": "^admin@switch#"
+                        }
+                    }
+                },
+                JuniperGeneric3.configure: {  # from
+                    JuniperGeneric3.cli: {  # to
+                        "execute_command": "exit_configure",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": "^admin@switch>"
+                        }
+                    }
+                }
+            }
+        }
+        return config
+
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_with_proxy_pc(self):
         """
         Prepare transitions to change states with proxy_pc state.
@@ -123,6 +176,44 @@ class JuniperGeneric3(ProxyPc3):
                         "_execute_command_to_change_state"
                     ],
                 },
+            },
+            JuniperGeneric3.configure: {
+                JuniperGeneric3.cli: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
+            }
+        }
+        return transitions
+
+    @mark_to_call_base_class_method_with_same_name
+    def _prepare_transitions_without_proxy_pc(self):
+        """
+        Prepare transitions to change states without proxy_pc state.
+
+        :return: transitions without proxy_pc state.
+        """
+        transitions = {
+            JuniperGeneric3.cli: {
+                JuniperGeneric3.unix_local: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+                JuniperGeneric3.configure: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+
+            },
+            JuniperGeneric3.unix_local: {
+                JuniperGeneric3.cli: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
             },
             JuniperGeneric3.configure: {
                 JuniperGeneric3.cli: {
@@ -208,6 +299,38 @@ class JuniperGeneric3(ProxyPc3):
         }
         return state_hops
 
+    @mark_to_call_base_class_method_with_same_name
+    def _prepare_state_hops_without_proxy_pc(self):
+        """
+        Prepare non direct transitions for each state for State Machine without proxy_pc state.
+
+        :return: non direct transitions for each state without proxy_pc state.
+        """
+        state_hops = {
+            JuniperGeneric3.not_connected: {
+                JuniperGeneric3.cli: JuniperGeneric3.unix_local,
+                JuniperGeneric3.configure: JuniperGeneric3.unix_local,
+            },
+            JuniperGeneric3.unix_local: {
+                JuniperGeneric3.configure: JuniperGeneric3.cli,
+            },
+            JuniperGeneric3.unix_local_root: {
+                JuniperGeneric3.not_connected: JuniperGeneric3.unix_local,
+                JuniperGeneric3.cli: JuniperGeneric3.unix_local,
+                JuniperGeneric3.configure: JuniperGeneric3.unix_local,
+            },
+            JuniperGeneric3.cli: {
+                JuniperGeneric3.not_connected: JuniperGeneric3.unix_local,
+                JuniperGeneric3.unix_local_root: JuniperGeneric3.unix_local,
+            },
+            JuniperGeneric3.configure: {
+                JuniperGeneric3.unix_local: JuniperGeneric3.cli,
+                JuniperGeneric3.not_connected: JuniperGeneric3.cli,
+                JuniperGeneric3.unix_local_root: JuniperGeneric3.cli,
+            },
+        }
+        return state_hops
+
     def _get_packages_for_state(self, state, observer):
         """
         Get available packages contain cmds and events for each state.
@@ -226,7 +349,7 @@ class JuniperGeneric3(ProxyPc3):
             elif state == JuniperGeneric3.configure:
                 available = {
                     JuniperGeneric3.cmds: ['moler.events.unix', 'moler.cmd.juniper.configure',
-                                           'moler.cmd.juniper_ex.configure'],
+                                          'moler.cmd.juniper_ex.configure'],
                     JuniperGeneric3.events: ['moler.events.unix', 'moler.events.juniper', 'moler.events.juniper_ex']}
 
             if available:

@@ -4,7 +4,7 @@ SCPI device class
 """
 
 __author__ = 'Marcin Usielski, Marcin Szlapa'
-__copyright__ = 'Copyright (C) 2019-2024, Nokia'
+__copyright__ = 'Copyright (C) 2019-2025, Nokia'
 __email__ = 'marcin.usielski@nokia.com, marcin.szlapa@nokia.com'
 
 import logging
@@ -25,39 +25,39 @@ class Scpi3(ProxyPc3):
         Example of device in yaml configuration file:
         - with PROXY_PC:
             SCPI_1:
-                DEVICE_CLASS: moler.device.scpi.Scpi
-                CONNECTION_HOPS:
-                    PROXY_PC:
-                        SCPI:
-                            execute_command: telnet # default value
-                            command_params:
-                                expected_prompt: SCPI>
-                                host: 10.0.0.1
-                                port: 99999
-                    SCPI:
-                        PROXY_PC:
-                            execute_command: exit_telnet # default value
-                            command_params:
-                                expected_prompt: proxy_pc.*>
-                    UNIX_LOCAL:
-                        PROXY_PC:
-                            execute_command: ssh # default value
-                            command_params:
-                                expected_prompt: proxy_pc.*>
-                                host: 10.0.0.2
-                                login: user
-                                password: password
+            DEVICE_CLASS: moler.device.scpi.Scpi
+            CONNECTION_HOPS:
+            PROXY_PC:
+                SCPI:
+                execute_command: telnet # default value
+                command_params:
+                    expected_prompt: SCPI>
+                    host: 10.0.0.1
+                    port: 99999
+            SCPI:
+                PROXY_PC:
+                execute_command: exit_telnet # default value
+                command_params:
+                    expected_prompt: proxy_pc.*>
+            UNIX_LOCAL:
+                PROXY_PC:
+                execute_command: ssh # default value
+                command_params:
+                    expected_prompt: proxy_pc.*>
+                    host: 10.0.0.2
+                    login: user
+                    password: password
         -without PROXY_PC:
             SCPI_1:
                 DEVICE_CLASS: moler.device.scpi.Scpi
                 CONNECTION_HOPS:
-                    UNIX_LOCAL:
-                        SCPI:
-                            execute_command: telnet # default value
-                            command_params:
-                                expected_prompt: SCPI>
-                                host: 10.0.0.1
-                                port: 99999
+                UNIX_LOCAL:
+                    SCPI:
+                    execute_command: telnet # default value
+                    command_params:
+                        expected_prompt: SCPI>
+                        host: 10.0.0.1
+                        port: 99999
     """
 
     scpi = "SCPI"
@@ -122,6 +122,43 @@ class Scpi3(ProxyPc3):
         return config
 
     @mark_to_call_base_class_method_with_same_name
+    def _get_default_sm_configuration_without_proxy_pc(self):
+        """
+        Return State Machine default configuration without proxy_pc state.
+        :return: default sm configuration without proxy_pc state.
+        """
+        config = {
+            Scpi3.connection_hops: {
+                Scpi3.unix_local: {  # from
+                    Scpi3.scpi: {  # to
+                        "execute_command": "telnet",  # using command
+                        "command_params": {  # with parameters
+                            "target_newline": "\r\n",
+                            "expected_prompt": r'\w+>',
+                            "set_timeout": None,
+                        },
+                        "required_command_params": [
+                            "host",
+                            "port",
+                        ]
+                    },
+                },
+                Scpi3.scpi: {  # from
+                    Scpi3.unix_local: {  # to
+                        "execute_command": "exit_telnet",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\n",
+                        },
+                        "required_command_params": [
+                        ]
+                    },
+                },
+            }
+        }
+        return config
+
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_with_proxy_pc(self):
         transitions = {
             Scpi3.scpi: {
@@ -137,6 +174,30 @@ class Scpi3(ProxyPc3):
                         "_execute_command_to_change_state"
                     ],
                 },
+            },
+        }
+        return transitions
+
+    @mark_to_call_base_class_method_with_same_name
+    def _prepare_transitions_without_proxy_pc(self):
+        """
+       Prepare transitions to change states without proxy_pc state.
+       :return: transitions without proxy_pc state.
+       """
+        transitions = {
+            Scpi3.scpi: {
+                Scpi3.unix_local: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+            },
+            Scpi3.unix_local: {
+                Scpi3.scpi: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
             },
         }
         return transitions
@@ -194,6 +255,28 @@ class Scpi3(ProxyPc3):
             Scpi3.proxy_pc: {
                 Scpi3.not_connected: Scpi3.unix_local,
             }
+        }
+        return state_hops
+
+    @mark_to_call_base_class_method_with_same_name
+    def _prepare_state_hops_without_proxy_pc(self):
+        """
+        Prepare non direct transitions for each state for State Machine without proxy_pc state.
+        :return: non direct transitions for each state without proxy_pc state.
+        """
+        state_hops = {
+            Scpi3.not_connected: {
+                Scpi3.scpi: Scpi3.unix_local,
+                Scpi3.unix_local_root: Scpi3.unix_local,
+            },
+            Scpi3.scpi: {
+                Scpi3.not_connected: Scpi3.unix_local,
+                Scpi3.unix_local_root: Scpi3.unix_local
+            },
+            Scpi3.unix_local_root: {
+                Scpi3.scpi: Scpi3.unix_local,
+                Scpi3.not_connected: Scpi3.unix_local,
+            },
         }
         return state_hops
 
