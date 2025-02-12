@@ -1,3 +1,6 @@
+## moler 4.0.0
+ * Exchange state machines for devices (conditionally delete state PROXY_PC as default)
+
 ## moler 3.13.0
  * Optional disable debug log
  * Enhancement for optional PROXY_PC state removal
