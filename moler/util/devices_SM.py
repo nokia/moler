@@ -4,7 +4,7 @@ Perform devices SM autotest.
 """
 
 __author__ = "Michal Ernst, Marcin Usielski"
-__copyright__ = "Copyright (C) 2019-2024, Nokia"
+__copyright__ = "Copyright (C) 2019-2025, Nokia"
 __email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com"
 
 import math
@@ -385,3 +385,38 @@ def _get_all_states_from_device(device):
         states.remove("PROXY_PC")
     assert "NOT_CONNECTED" not in states
     return states
+
+
+def moler_check_sm_identity(devices: list):
+    from moler.helpers import compare_objects
+    from pprint import pformat
+    dev0 = devices[0]
+    states = _get_all_states_from_device(device=dev0)
+    for dev1 in devices[1:]:
+        assert dev0.name != dev1.name
+        assert type(dev0).__name__ != type(dev1).__name__
+        if dev0._stored_transitions != dev1._stored_transitions:
+            print(f"dev0._stored_transitions=\n{pformat(dev0._stored_transitions)},\n dev1._stored_transitions={pformat(dev1._stored_transitions)}\n")
+            print(f"diff: {compare_objects(dev0._stored_transitions, dev1._stored_transitions)}")
+        assert dev0._stored_transitions == dev1._stored_transitions
+        if dev0._state_hops != dev1._state_hops:
+            print(f"dev0._state_hops={pformat(dev0._state_hops)}, dev1._state_hops={pformat(dev1._state_hops)}")
+            print(f"diff: {compare_objects(dev0._state_hops, dev1._state_hops)}")
+        assert dev0._state_hops == dev1._state_hops
+        if dev0._state_prompts != dev1._state_prompts:
+            print(f"dev0._state_prompts={pformat(dev0._state_prompts)}, dev1._state_prompts={pformat(dev1._state_prompts)}")
+            print(f"diff: {compare_objects(dev0._state_prompts, dev1._state_prompts)}")
+        assert dev0._state_prompts == dev1._state_prompts
+        if dev0._configurations != dev1._configurations:
+            print(f"dev0._configurations={pformat(dev0._configurations)}, dev1._configurations={pformat(dev1._configurations)}")
+            print(f"diff: {compare_objects(dev0._configurations, dev1._configurations)}")
+        assert dev0._configurations == dev1._configurations
+        assert dev0._newline_chars == dev1._newline_chars
+        for state in states:
+            for observer in ['cmd', 'event']:
+                obs0 = dev0._get_packages_for_state(state=state, observer=observer)
+                obs1 = dev1._get_packages_for_state(state=state, observer=observer)
+                if obs0 != obs1:
+                    print(f"state={state}, observer={observer}, obs0={pformat(obs0)}, obs1={pformat(obs1)}")
+                    print(f"diff: {compare_objects(obs0, obs1)}")
+                assert obs0 == obs1

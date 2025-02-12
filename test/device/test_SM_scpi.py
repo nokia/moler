@@ -1,10 +1,10 @@
 __author__ = 'Marcin Szlapa, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2024, Nokia'
+__copyright__ = 'Copyright (C) 2019-2025, Nokia'
 __email__ = 'marcin.szlapa@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 
-from moler.util.devices_SM import iterate_over_device_states, get_device
+from moler.util.devices_SM import iterate_over_device_states, get_device, moler_check_sm_identity
 
 scpis = ["SCPI", "SCPI3"]
 scpis_proxy = ["SCPI_PROXY_PC", "SCPI_PROXY_PC3"]
@@ -27,16 +27,12 @@ def test_scpi_proxy_pc_device(device_name, device_connection, scpi_proxy_pc_outp
 
 
 @pytest.mark.parametrize("devices", [scpis, scpis_proxy])
-def test_unix_sm_identity(devices):
-    from moler.device import DeviceFactory
-    dev0 = DeviceFactory.get_device(name=devices[0])
-    dev1 = DeviceFactory.get_device(name=devices[1])
-
-    assert dev0._stored_transitions == dev1._stored_transitions
-    assert dev0._state_hops == dev1._state_hops
-    assert dev0._state_prompts == dev1._state_prompts
-    assert dev0._configurations == dev1._configurations
-    assert dev0._newline_chars == dev1._newline_chars
+def test_unix_sm_identity(devices, device_connection, scpi_output):
+    dev0 = get_device(name=devices[0], connection=device_connection, device_output=scpi_output,
+                      test_file_path=__file__)
+    dev1 = get_device(name=devices[1], connection=device_connection, device_output=scpi_output,
+                      test_file_path=__file__)
+    moler_check_sm_identity([dev0, dev1])
 
 
 @pytest.fixture

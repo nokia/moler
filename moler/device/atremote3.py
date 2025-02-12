@@ -6,9 +6,10 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020-2024, Nokia'
+__copyright__ = 'Copyright (C) 2020-2025, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
+from moler.device.textualdevice import TextualDevice
 from moler.device.unixremote3 import UnixRemote3
 from moler.helpers import call_base_class_method_with_same_name, mark_to_call_base_class_method_with_same_name
 from moler.cmd.at.genericat import GenericAtCommand
@@ -26,7 +27,7 @@ class AtRemote3(UnixRemote3):
         Example of device in yaml configuration file:
         -without PROXY_PC:
         AT_1:
-        DEVICE_CLASS: moler.device.atremote3.AtRemote3
+        DEVICE_CLASS: moler.device.atremote.AtRemote
         CONNECTION_HOPS:
             UNIX_LOCAL:
                 UNIX_REMOTE:
@@ -71,13 +72,62 @@ class AtRemote3(UnixRemote3):
                                         sm_params=sm_params, initial_state=initial_state,
                                         lazy_cmds_events=lazy_cmds_events)
 
-    def _overwrite_prompts(self):
-        super()._overwrite_prompts()
-        # copy prompt for AT_REMOTE/ctrl_c from UNIX_REMOTE_ROOT/exit
-        hops_config = self._configurations[AtRemote3.connection_hops]
-        remote_ux_root_exit_params = hops_config[AtRemote3.unix_remote_root][AtRemote3.unix_remote]["command_params"]
-        remote_ux_prompt = remote_ux_root_exit_params["expected_prompt"]
-        hops_config[AtRemote3.at_remote][AtRemote3.unix_remote]["command_params"]["expected_prompt"] = remote_ux_prompt
+    @mark_to_call_base_class_method_with_same_name
+    def _get_default_sm_configuration_without_proxy_pc(self):
+        """
+        Return State Machine default configuration without proxy_pc state.
+        :return: default sm configuration without proxy_pc state.
+        """
+        config = {  # TODO: shell we use direct-string names of config dicts? change simplicity vs readability
+            TextualDevice.connection_hops: {
+                AtRemote3.unix_remote: {  # from
+                    AtRemote3.at_remote: {  # to
+                        "execute_command": "plink_serial",
+                        "command_params": {  # with parameters
+                            "target_newline": "\r\n"
+                        },
+                        "required_command_params": [
+                            "serial_devname"
+                        ]
+                    },
+                },
+                AtRemote3.at_remote: {  # from
+                    AtRemote3.unix_remote: {  # to
+                        "execute_command": "ctrl_c",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": 'remote_prompt',  # overwritten in _configure_state_machine
+                        },
+                        "required_command_params": [
+                        ]
+                    },
+                },
+            }
+        }
+        return config
+
+    @mark_to_call_base_class_method_with_same_name
+    def _prepare_transitions_without_proxy_pc(self):
+        """
+        Prepare transitions to change states without proxy_pc state.
+        :return: transitions without proxy_pc state.
+        """
+        transitions = {
+            AtRemote3.unix_remote: {
+                AtRemote3.at_remote: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
+            },
+            AtRemote3.at_remote: {
+                AtRemote3.unix_remote: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
+            },
+        }
+        return transitions
 
     @mark_to_call_base_class_method_with_same_name
     def _get_default_sm_configuration_with_proxy_pc(self):
@@ -86,7 +136,7 @@ class AtRemote3(UnixRemote3):
         :return: default sm configuration without proxy_pc state.
         """
         config = {
-            AtRemote3.connection_hops: {
+            TextualDevice.connection_hops: {
                 AtRemote3.unix_remote: {  # from
                     AtRemote3.at_remote: {  # to
                         "execute_command": "plink_serial",
@@ -142,7 +192,7 @@ class AtRemote3(UnixRemote3):
         Prepare textual prompt for each state for State Machine without proxy_pc state.
         :return: textual prompt for each state without proxy_pc state.
         """
-        hops_config = self._configurations[AtRemote3.connection_hops]
+        hops_config = self._configurations[TextualDevice.connection_hops]
         serial_devname = hops_config[AtRemote3.unix_remote][AtRemote3.at_remote]["command_params"]["serial_devname"]
         proxy_prompt = f"{serial_devname}> port READY"
         at_cmds_prompt = GenericAtCommand._re_default_at_prompt.pattern  # pylint: disable=protected-access
@@ -157,7 +207,7 @@ class AtRemote3(UnixRemote3):
         Prepare textual prompt for each state for State Machine without proxy_pc state.
         :return: textual prompt for each state without proxy_pc state.
         """
-        hops_config = self._configurations[AtRemote3.connection_hops]
+        hops_config = self._configurations[TextualDevice.connection_hops]
         serial_devname = hops_config[AtRemote3.unix_remote][AtRemote3.at_remote]["command_params"]["serial_devname"]
         proxy_prompt = f"{serial_devname}> port READY"
         at_cmds_prompt = GenericAtCommand._re_default_at_prompt.pattern  # pylint: disable=protected-access
@@ -172,7 +222,7 @@ class AtRemote3(UnixRemote3):
         Prepare newline char for each state for State Machine without proxy_pc state.
         :return: newline char for each state without proxy_pc state.
         """
-        hops_config = self._configurations[AtRemote3.connection_hops]
+        hops_config = self._configurations[TextualDevice.connection_hops]
         hops_2_at_remote_config = hops_config[AtRemote3.unix_remote][AtRemote3.at_remote]
         newline_chars = {
             AtRemote3.at_remote: hops_2_at_remote_config["command_params"]["target_newline"],
@@ -185,12 +235,54 @@ class AtRemote3(UnixRemote3):
         Prepare newline char for each state for State Machine without proxy_pc state.
         :return: newline char for each state without proxy_pc state.
         """
-        hops_config = self._configurations[AtRemote3.connection_hops]
+        hops_config = self._configurations[TextualDevice.connection_hops]
         hops_2_at_remote_config = hops_config[AtRemote3.unix_remote][AtRemote3.at_remote]
         newline_chars = {
             AtRemote3.at_remote: hops_2_at_remote_config["command_params"]["target_newline"],
         }
         return newline_chars
+
+    @mark_to_call_base_class_method_with_same_name
+    def _prepare_state_hops_without_proxy_pc(self):
+        """
+        Prepare non direct transitions for each state for State Machine without proxy_pc state.
+        :return: non direct transitions for each state without proxy_pc state.
+        """
+        state_hops = {
+            TextualDevice.not_connected: {
+                AtRemote3.unix_local_root: AtRemote3.unix_local,
+                AtRemote3.unix_remote: AtRemote3.unix_local,
+                AtRemote3.unix_remote_root: AtRemote3.unix_local,
+                AtRemote3.at_remote: AtRemote3.unix_local,
+            },
+            AtRemote3.unix_local: {
+                AtRemote3.unix_remote_root: AtRemote3.unix_remote,
+                AtRemote3.at_remote: AtRemote3.unix_remote,
+            },
+            AtRemote3.unix_local_root: {
+                TextualDevice.not_connected: AtRemote3.unix_local,
+                AtRemote3.unix_remote: AtRemote3.unix_local,
+                AtRemote3.unix_remote_root: AtRemote3.unix_local,
+                AtRemote3.at_remote: AtRemote3.unix_local,
+            },
+            AtRemote3.unix_remote: {
+                TextualDevice.not_connected: AtRemote3.unix_local,
+                AtRemote3.unix_local_root: AtRemote3.unix_local,
+            },
+            AtRemote3.unix_remote_root: {
+                TextualDevice.not_connected: AtRemote3.unix_remote,
+                AtRemote3.unix_local: AtRemote3.unix_remote,
+                AtRemote3.unix_local_root: AtRemote3.unix_remote,
+                AtRemote3.at_remote: AtRemote3.unix_remote,
+            },
+            AtRemote3.at_remote: {
+                TextualDevice.not_connected: AtRemote3.unix_remote,
+                AtRemote3.unix_local: AtRemote3.unix_remote,
+                AtRemote3.unix_local_root: AtRemote3.unix_remote,
+                AtRemote3.unix_remote_root: AtRemote3.unix_remote,
+            },
+        }
+        return state_hops
 
     @mark_to_call_base_class_method_with_same_name
     def _prepare_state_hops_with_proxy_pc(self):
@@ -199,7 +291,7 @@ class AtRemote3(UnixRemote3):
         :return: non direct transitions for each state without proxy_pc state.
         """
         state_hops = {
-            AtRemote3.not_connected: {
+            TextualDevice.not_connected: {
                 AtRemote3.unix_local_root: AtRemote3.unix_local,
                 AtRemote3.proxy_pc: AtRemote3.unix_local,
                 AtRemote3.unix_remote: AtRemote3.unix_local,
@@ -211,7 +303,7 @@ class AtRemote3(UnixRemote3):
                 AtRemote3.at_remote: AtRemote3.proxy_pc,
             },
             AtRemote3.unix_local_root: {
-                AtRemote3.not_connected: AtRemote3.unix_local,
+                TextualDevice.not_connected: AtRemote3.unix_local,
                 AtRemote3.proxy_pc: AtRemote3.unix_local,
                 AtRemote3.unix_remote: AtRemote3.unix_local,
                 AtRemote3.unix_remote_root: AtRemote3.unix_local,
@@ -219,18 +311,18 @@ class AtRemote3(UnixRemote3):
             },
             AtRemote3.unix_remote: {
                 AtRemote3.unix_local: AtRemote3.proxy_pc,
-                AtRemote3.not_connected: AtRemote3.proxy_pc,
+                TextualDevice.not_connected: AtRemote3.proxy_pc,
                 AtRemote3.unix_local_root: AtRemote3.proxy_pc,
             },
             AtRemote3.unix_remote_root: {
-                AtRemote3.not_connected: AtRemote3.unix_remote,
+                TextualDevice.not_connected: AtRemote3.unix_remote,
                 AtRemote3.proxy_pc: AtRemote3.unix_remote,
                 AtRemote3.unix_local: AtRemote3.unix_remote,
                 AtRemote3.unix_local_root: AtRemote3.unix_remote,
                 AtRemote3.at_remote: AtRemote3.unix_remote,
             },
             AtRemote3.at_remote: {
-                AtRemote3.not_connected: AtRemote3.unix_remote,
+                TextualDevice.not_connected: AtRemote3.unix_remote,
                 AtRemote3.proxy_pc: AtRemote3.unix_remote,
                 AtRemote3.unix_local: AtRemote3.unix_remote,
                 AtRemote3.unix_local_root: AtRemote3.unix_remote,
@@ -254,7 +346,7 @@ class AtRemote3(UnixRemote3):
         super(AtRemote3, self)._configure_state_machine(sm_params)
 
         # copy prompt for AT_REMOTE/ctrl_c from UNIX_REMOTE_ROOT/exit
-        hops_config = self._configurations[AtRemote3.connection_hops]
+        hops_config = self._configurations[TextualDevice.connection_hops]
         remote_ux_root_exit_params = hops_config[AtRemote3.unix_remote_root][AtRemote3.unix_remote]["command_params"]
         remote_ux_prompt = remote_ux_root_exit_params["expected_prompt"]
         hops_config[AtRemote3.at_remote][AtRemote3.unix_remote]["command_params"]["expected_prompt"] = remote_ux_prompt
@@ -270,12 +362,12 @@ class AtRemote3(UnixRemote3):
 
         if not available:
             if state == AtRemote3.at_remote:
-                available = {AtRemote3.cmds: ['moler.cmd.at', 'moler.cmd.unix.ctrl_c'],
-                             AtRemote3.events: ['moler.events.shared']}
+                available = {TextualDevice.cmds: ['moler.cmd.at', 'moler.cmd.unix.ctrl_c'],
+                             TextualDevice.events: ['moler.events.shared']}
             if available:
                 return available[observer]
         elif state == AtRemote3.unix_remote:  # this is unix extended with plink_serial command
-            if observer == AtRemote3.cmds:
+            if observer == TextualDevice.cmds:
                 available.append('moler.cmd.at.plink_serial')
                 available.append('moler.cmd.at.cu')
 

@@ -4,7 +4,7 @@ PduAten device class.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2024, Nokia'
+__copyright__ = 'Copyright (C) 2020-2025, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import logging
@@ -122,6 +122,47 @@ class PduAten3(ProxyPc3):
         return config
 
     @mark_to_call_base_class_method_with_same_name
+    def _get_default_sm_configuration_without_proxy_pc(self):
+        """
+        Return State Machine default configuration without proxy_pc state.
+        :return: default sm configuration without proxy_pc state.
+        """
+        config = {
+            PduAten3.connection_hops: {
+                PduAten3.unix_local: {  # from
+                    PduAten3.pdu: {  # to
+                        "execute_command": "telnet",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": r'^>',
+                            "set_timeout": None,
+                            "target_newline": "\r\n",
+                            "login": "teladmin",
+                            "password": "telpwd",
+                            "encrypt_password": True,
+                            "send_enter_after_connection": False,
+                            "cmds_before_establish_connection": ['unset binary'],
+                        },
+                        "required_command_params": [
+                            "host",
+                        ]
+                    },
+                },
+                PduAten3.pdu: {  # from
+                    PduAten3.unix_local: {  # to
+                        "execute_command": "exit_telnet",  # using command
+                        "command_params": {  # with parameters
+                            "expected_prompt": r'^moler_bash#',
+                            "target_newline": "\n",
+                        },
+                        "required_command_params": [
+                        ]
+                    },
+                },
+            }
+        }
+        return config
+
+    @mark_to_call_base_class_method_with_same_name
     def _prepare_transitions_with_proxy_pc(self):
         transitions = {
             PduAten3.pdu: {
@@ -137,6 +178,30 @@ class PduAten3(ProxyPc3):
                         "_execute_command_to_change_state"
                     ],
                 },
+            },
+        }
+        return transitions
+
+    @mark_to_call_base_class_method_with_same_name
+    def _prepare_transitions_without_proxy_pc(self):
+        """
+       Prepare transitions to change states without proxy_pc state.
+       :return: transitions without proxy_pc state.
+       """
+        transitions = {
+            PduAten3.pdu: {
+                PduAten3.unix_local: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                },
+            },
+            PduAten3.unix_local: {
+                PduAten3.pdu: {
+                    "action": [
+                        "_execute_command_to_change_state"
+                    ],
+                }
             },
         }
         return transitions
@@ -184,6 +249,27 @@ class PduAten3(ProxyPc3):
             },
             PduAten3.unix_local: {
                 PduAten3.pdu: PduAten3.proxy_pc,
+            },
+            PduAten3.unix_local_root: {
+                PduAten3.not_connected: PduAten3.unix_local,
+                PduAten3.pdu: PduAten3.unix_local,
+            },
+        }
+        return state_hops
+
+    @mark_to_call_base_class_method_with_same_name
+    def _prepare_state_hops_without_proxy_pc(self):
+        """
+        Prepare non direct transitions for each state for State Machine without proxy_pc state.
+        :return: non direct transitions for each state without proxy_pc state.
+        """
+        state_hops = {
+            PduAten3.not_connected: {
+                PduAten3.pdu: PduAten3.unix_local,
+            },
+            PduAten3.pdu: {
+                PduAten3.not_connected: PduAten3.unix_local,
+                PduAten3.unix_local_root: PduAten3.unix_local
             },
             PduAten3.unix_local_root: {
                 PduAten3.not_connected: PduAten3.unix_local,
