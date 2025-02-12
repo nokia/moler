@@ -10,7 +10,6 @@ __copyright__ = 'Copyright (C) 2024-2025, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 import six
 import abc
-import logging
 
 from moler.device.unixlocal import UnixLocal
 from moler.helpers import remove_state_from_sm, remove_state_hops_from_sm
@@ -43,7 +42,6 @@ class ProxyPc(UnixLocal):
                                       io_constructor_kwargs=io_constructor_kwargs,
                                       sm_params=sm_params, initial_state=initial_state,
                                       lazy_cmds_events=lazy_cmds_events)
-        self._log(level=logging.WARNING, msg="Experimental device. May be deleted at any moment. Please don't use it in your scripts.")
 
     def _get_forbidden_states_no_proxy_pc(self):
         """

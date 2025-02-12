@@ -110,7 +110,6 @@ class UnixRemote(ProxyPc):
             initial_state=initial_state,
             lazy_cmds_events=lazy_cmds_events,
         )
-        self._log(level=logging.WARNING, msg="Experimental device. May be deleted at any moment. Please don't use it in your scripts.")
 
     def _overwrite_prompts(self):
         """
