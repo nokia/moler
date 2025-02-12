@@ -394,6 +394,7 @@ def moler_check_sm_identity(devices: list):
     states = _get_all_states_from_device(device=dev0)
     for dev1 in devices[1:]:
         assert dev0.name != dev1.name
+        assert type(dev0).__name__ != type(dev1).__name__
         if dev0._stored_transitions != dev1._stored_transitions:
             print(f"dev0._stored_transitions=\n{pformat(dev0._stored_transitions)},\n dev1._stored_transitions={pformat(dev1._stored_transitions)}\n")
             print(f"diff: {compare_objects(dev0._stored_transitions, dev1._stored_transitions)}")
