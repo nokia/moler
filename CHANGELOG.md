@@ -1,3 +1,6 @@
+## moler 4.0.1
+ * UnixRemote - change the Exception when wrong configuration
+
 ## moler 4.0.0
  * Exchange state machines for devices (conditionally delete state PROXY_PC as default)
 
