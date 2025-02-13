@@ -11,7 +11,7 @@ __email__ = "marcin.usielski@nokia.com"
 
 
 from moler.device.proxy_pc import ProxyPc
-from moler.exceptions import WrongUsage
+from moler.exceptions import DeviceFailure
 from moler.helpers import (
     call_base_class_method_with_same_name,
     mark_to_call_base_class_method_with_same_name,
