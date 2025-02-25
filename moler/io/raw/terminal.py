@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = "Michal Ernst, Marcin Usielski, Tomasz Krol"
-__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__copyright__ = "Copyright (C) 2018-2025, Nokia"
 __email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com, tomasz.krol@nokia.com"
 
 import codecs
@@ -34,7 +34,7 @@ class ThreadedTerminal(IOConnection):
         cmd="/bin/bash",
         select_timeout=0.002,
         read_buffer_size=4096,
-        first_prompt=r"[%$#]+",
+        first_prompt=r"[%$#\]]+",
         target_prompt=r"moler_bash#",
         set_prompt_cmd='export PS1="moler_bash# "\n',
         dimensions=(100, 300),
@@ -185,7 +185,7 @@ class ThreadedTerminal(IOConnection):
             ):
                 self._notify_on_connect()
                 self._shell_operable.set()
-                data = re.sub(pattern=self.target_prompt, repl="", string=self.read_buffer, flags=re.MULTILINE)
+                # data = re.sub(pattern=self.target_prompt, repl="", string=self.read_buffer, flags=re.MULTILINE)
                 self.data_received(data=data, recv_time=datetime.datetime.now())
             elif not self._export_sent and re.search(
                 self.first_prompt, self.read_buffer, re.MULTILINE
