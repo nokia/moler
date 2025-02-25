@@ -1,10 +1,10 @@
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 from moler.device import DeviceFactory
-from moler.util.devices_SM import iterate_over_device_states, get_device
+from moler.util.devices_SM import iterate_over_device_states, get_device, moler_check_sm_identity
 
 
 junipers = ['JUNIPER_EX', 'JUNIPER_EX3']
@@ -25,15 +25,12 @@ def test_juniper_ex_proxy_pc_device(device_name, device_connection, juniper_ex_p
 
 
 @pytest.mark.parametrize("devices", [junipers_proxy, junipers])
-def test_unix_sm_identity(devices):
-    dev0 = DeviceFactory.get_device(name=devices[0])
-    dev1 = DeviceFactory.get_device(name=devices[1])
-
-    assert dev0._stored_transitions == dev1._stored_transitions
-    assert dev0._state_hops == dev1._state_hops
-    assert dev0._state_prompts == dev1._state_prompts
-    assert dev0._configurations == dev1._configurations
-    assert dev0._newline_chars == dev1._newline_chars
+def test_unix_sm_identity(devices, device_connection, juniper_ex_output):
+    dev0 = get_device(name=devices[0], connection=device_connection, device_output=juniper_ex_output,
+                      test_file_path=__file__)
+    dev1 = get_device(name=devices[1], connection=device_connection, device_output=juniper_ex_output,
+                      test_file_path=__file__)
+    moler_check_sm_identity([dev0, dev1])
 
 
 @pytest.fixture

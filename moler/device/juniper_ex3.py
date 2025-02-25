@@ -4,7 +4,7 @@ JuniperEX module.
 """
 
 __author__ = 'Sylwester Golonka, Jakub Kupiec, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2024, Nokia'
+__copyright__ = 'Copyright (C) 2019-2025, Nokia'
 __email__ = 'sylwester.golonka@nokia.com, jakub.kupiec@nokia.com, marcin.usielski@nokia.com'
 
 from moler.device.junipergeneric3 import JuniperGeneric3
