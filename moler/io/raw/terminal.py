@@ -180,16 +180,12 @@ class ThreadedTerminal(IOConnection):
 
         for line in lines:
             line = remove_all_known_special_chars(line)
-            print(f"Processing line: '{line}'")
             if not re.search(self._re_set_prompt_cmd, line) and re.search(
                 self.target_prompt, line
             ):
-                print(f"    Found target prompt '{self.target_prompt}' in line: '{line}'")
                 self._notify_on_connect()
                 self._shell_operable.set()
-                # data = re.sub(pattern=self.target_prompt, repl="", string=self.read_buffer, flags=re.MULTILINE)
-                data = self.read_buffer
-                self.data_received(data=data, recv_time=datetime.datetime.now())
+                self.data_received(data=self.read_buffer, recv_time=datetime.datetime.now())
             elif not self._export_sent and re.search(
                 self.first_prompt, self.read_buffer, re.MULTILINE
             ):
