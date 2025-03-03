@@ -1,3 +1,6 @@
+## moler 4.1.0
+ * Unset PROMPT_COMMAND for every new virtual terminal
+
 ## moler 4.0.1
  * UnixRemote - change the Exception when wrong configuration
 
