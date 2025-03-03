@@ -36,7 +36,7 @@ class ThreadedTerminal(IOConnection):
         read_buffer_size=4096,
         first_prompt=r"[%$#\]]+",
         target_prompt=r"moler_bash#",
-        set_prompt_cmd='export PS1="moler_bash# "\n',
+        set_prompt_cmd='unset PROMPT_COMMAND; export PS1="moler_bash# "\n',
         dimensions=(100, 300),
         terminal_delayafterclose=0.2,
     ):
@@ -180,12 +180,15 @@ class ThreadedTerminal(IOConnection):
 
         for line in lines:
             line = remove_all_known_special_chars(line)
+            print(f"Processing line: '{line}'")
             if not re.search(self._re_set_prompt_cmd, line) and re.search(
                 self.target_prompt, line
             ):
+                print(f"    Found target prompt '{self.target_prompt}' in line: '{line}'")
                 self._notify_on_connect()
                 self._shell_operable.set()
                 # data = re.sub(pattern=self.target_prompt, repl="", string=self.read_buffer, flags=re.MULTILINE)
+                data = self.read_buffer
                 self.data_received(data=data, recv_time=datetime.datetime.now())
             elif not self._export_sent and re.search(
                 self.first_prompt, self.read_buffer, re.MULTILINE
