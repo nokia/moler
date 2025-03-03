@@ -3,7 +3,7 @@
 Testing possibilities to configure devices
 """
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import os
@@ -44,6 +44,7 @@ def test_can_select_device_by_name(device_config, device_factory):
 
     assert device.__module__ == 'moler.device.unixlocal'
     assert device.__class__.__name__ == 'UnixLocal'
+    assert device._state_prompts['UNIX_LOCAL'] == '^moler_bash#'
 
 
 def test_can_select_device_by_name_with_initial_state_set(device_config, device_factory):
