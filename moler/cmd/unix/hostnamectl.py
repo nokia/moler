@@ -17,7 +17,7 @@ class Hostnamectl(GenericUnixCommand):
     def __init__(self, connection, options=None, prompt=None, newline_chars=None, runner=None):
         """
         :param connection: Moler connection to device, terminal when command is executed.
-        :param options: uptime unix command options
+        :param options: unix command options
         :param prompt: prompt (on system where command runs).
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
