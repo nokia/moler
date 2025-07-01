@@ -50,8 +50,7 @@ class Hostnamectl(GenericUnixCommand):
                 pass
         return super(Hostnamectl, self).on_new_line(line, is_full_line)
 
-
-    #Operating System: Ubuntu 22.04.5 LTS
+    # Operating System: Ubuntu 22.04.5 LTS
     _re_name_value = re.compile(r"(?P<NAME>\S.*\S|\S+)\s*:\s*(?P<VALUE>\S.*\S|\S+)")
 
     def _parse_name_value(self, line):
