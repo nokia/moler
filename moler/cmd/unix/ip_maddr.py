@@ -50,6 +50,7 @@ class IpMaddr(GenericUnixCommand):
 
     # inet  224.0.0.251
     _re_item = re.compile(r"\s+(?P<ITEM_TYPE>\S+)\s+(?P<ITEM>\S.*\S)")
+
     def _parse_item(self, line):
         """
         Parse item from device.
@@ -66,25 +67,25 @@ class IpMaddr(GenericUnixCommand):
 
 COMMAND_OUTPUT = """ip maddr show
 1:	lo
-	inet  224.0.0.251
-	inet  224.0.0.1
-	inet6 ff02::fb
-	inet6 ff02::1
-	inet6 ff01::1
+    inet  224.0.0.251
+    inet  224.0.0.1
+    inet6 ff02::fb
+    inet6 ff02::1
+    inet6 ff01::1
 2:	eth0
-	link  01:00:5e:00:00:01
-	link  33:33:00:00:00:01
-	link  33:33:ff:be:a1:3d
-	link  01:00:5e:00:00:fb
-	link  33:33:00:00:00:fb
-	link  33:33:ff:a0:c1:c8
-	inet  224.0.0.251
-	inet  224.0.0.1
-	inet6 ff02::1:ffa0:c1c8
-	inet6 ff02::fb
-	inet6 ff02::1:ffbe:a13d users 2
-	inet6 ff02::1
-	inet6 ff01::1
+    link  01:00:5e:00:00:01
+    link  33:33:00:00:00:01
+    link  33:33:ff:be:a1:3d
+    link  01:00:5e:00:00:fb
+    link  33:33:00:00:00:fb
+    link  33:33:ff:a0:c1:c8
+    inet  224.0.0.251
+    inet  224.0.0.1
+    inet6 ff02::1:ffa0:c1c8
+    inet6 ff02::fb
+    inet6 ff02::1:ffbe:a13d users 2
+    inet6 ff02::1
+    inet6 ff01::1
 host:~ # """
 
 
