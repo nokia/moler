@@ -19,6 +19,7 @@ class IpMaddr(GenericUnixCommand):
         self.options = options
         self._current_nr = None
         self._current_interface = None
+        self.add_failure_indication("is unknown, try \"ip maddr help\".")
 
     def build_command_string(self):
         cmd = f"ip maddr"
