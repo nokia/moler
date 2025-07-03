@@ -117,7 +117,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_name, device_con
     assert unix_remote_proxy_pc.current_state == src_state
     unix_remote_proxy_pc.goto_state_bg(state=dst_state)
     assert unix_remote_proxy_pc.current_state != dst_state
-    unix_remote_proxy_pc.await_goto_state()
+    unix_remote_proxy_pc.await_goto_state(timeout=20)
     assert unix_remote_proxy_pc.current_state == dst_state
     unix_remote_proxy_pc._goto_state_in_production_mode = False
 
