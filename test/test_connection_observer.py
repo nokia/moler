@@ -466,8 +466,8 @@ def test_connection_observer_one_exception():
 
 
 def test_connection_observer_exception_do_not_remove():
-    ConnectionObserver.get_unraised_exceptions(True)
     time.sleep(0.1)
+    ConnectionObserver.get_unraised_exceptions(True)
     from moler.cmd.unix.ls import Ls
     from moler.exceptions import CommandTimeout
     from moler.exceptions import WrongUsage

@@ -6,7 +6,7 @@ Event is a type of ConnectionObserver.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -123,7 +123,7 @@ def test_event_get_last_occurrence(buffer_connection):
     output = "bash\n"
     dict_output = {'line': u'bash', 'matched': u'bash', 'named_groups': {}, 'groups': (), 'time': 0}
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
-    event.start(timeout=0.1)
+    event.start(timeout=0.2)
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
     occurrence = event.get_last_occurrence()

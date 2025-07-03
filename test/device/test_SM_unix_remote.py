@@ -86,6 +86,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connectio
     assert unix_remote_proxy_pc.current_state == dst_state
     time_diff = abs(execution_time_bg - execution_time_fg)
     assert time_diff < max(execution_time_fg, execution_time_bg)
+    unix_remote_proxy_pc._goto_state_in_production_mode = False
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
@@ -102,6 +103,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_name, device_
     assert unix_remote_proxy_pc.current_state != dst_state
     unix_remote_proxy_pc.goto_state(state=dst_state, sleep_after_changed_state=0)
     assert unix_remote_proxy_pc.current_state == dst_state
+    unix_remote_proxy_pc._goto_state_in_production_mode = False
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
@@ -117,6 +119,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_name, device_con
     assert unix_remote_proxy_pc.current_state != dst_state
     unix_remote_proxy_pc.await_goto_state()
     assert unix_remote_proxy_pc.current_state == dst_state
+    unix_remote_proxy_pc._goto_state_in_production_mode = False
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
@@ -135,6 +138,7 @@ def test_unix_remote_proxy_pc_device_goto_state_bg_await_exception(device_name, 
     assert 'seconds there are still states to go' in str(de.value)
     unix_remote_proxy_pc.await_goto_state(timeout=20)
     assert unix_remote_proxy_pc.current_state == dst_state
+    unix_remote_proxy_pc._goto_state_in_production_mode = False
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_real_io)

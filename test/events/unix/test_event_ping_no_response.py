@@ -101,10 +101,11 @@ def test_break_event(buffer_connection):
     output = "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"
     event = PingNoResponse(connection=buffer_connection.moler_connection, till_occurs_times=-1)
     event.start()
+    time.sleep(0.1)  # allow event to start processing
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
-    time.sleep(0.1)
+    time.sleep(0.2)
     assert event.done() is False
     assert event.running() is True
     event.break_event()
