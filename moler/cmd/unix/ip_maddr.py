@@ -15,20 +15,37 @@ from moler.exceptions import ParsingDone
 
 class IpMaddr(GenericUnixCommand):
     def __init__(self, connection, prompt=None, newline_chars=None, options=None, runner=None):
+        """
+        :param connection: Moler connection to device, terminal when command is executed.
+        :param options: unix command options
+        :param prompt: prompt (on system where command runs).
+        :param newline_chars: Characters to split lines - list.
+        :param runner: Runner to run command.
+        """
         super(IpMaddr, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
         self.options = options
         self._current_nr = None
         self._current_interface = None
         self.add_failure_indication("is unknown, try \"ip maddr help\".")
 
-    def build_command_string(self):
+    def build_command_string(self) -> str:
+        """
+        Build command string from parameters passed to object.
+        :return: String representation of command to send over connection to device.
+        """
         cmd = f"ip maddr"
         if self.options:
             cmd = f"{cmd} {self.options}"
             self.ret_required = True if self.options == 'show' else False
         return cmd
 
-    def on_new_line(self, line, is_full_line):
+    def on_new_line(self, line: str, is_full_line: bool) -> None:
+        """
+        Put your parsing code here.
+        :param line: Line to process, can be only part of line. New line chars are removed from line.
+        :param is_full_line: True if line had new line chars, False otherwise
+        :return: None
+        """
         if is_full_line:
             try:
                 self._parse_interface(line)
@@ -40,7 +57,12 @@ class IpMaddr(GenericUnixCommand):
     # 1:	lo
     _re_int = re.compile(r"(?P<NR>\d+):\s*(?P<INTERFACE>\S+)")
 
-    def _parse_interface(self, line):
+    def _parse_interface(self, line: str) -> None:
+        """
+        Parse interface from device.
+        :param line: Line from device.
+        :return: None but raises ParsingDone if line matches regex.
+        """
         if self._regex_helper.match_compiled(IpMaddr._re_int, line):
             self._current_nr = int(self._regex_helper.group('NR'))
             self._current_interface = self._regex_helper.group('INTERFACE')
@@ -52,7 +74,7 @@ class IpMaddr(GenericUnixCommand):
     # inet  224.0.0.251
     _re_item = re.compile(r"\s+(?P<ITEM_TYPE>\S+)\s+(?P<ITEM>\S.*\S)")
 
-    def _parse_item(self, line):
+    def _parse_item(self, line: str) -> None:
         """
         Parse item from device.
         :param line: Line from device.
