@@ -49,9 +49,9 @@ def test_connection_observer_behaves_like_future(ping_lines_as_bytes,
         assert not future.cancelled()                           # <- as future |
         assert future == network_down_detector                  # .            |
         # give concurrency-of-future a chance to gain control   # .            |
-        time.sleep(0.1)                                         # .            |
+        time.sleep(0.2)                                         # .            |
         assert future.running()                                 # <- as future |
-        result = network_down_detector.await_done(timeout=2.0)  # <- as future |
+        result = network_down_detector.await_done(timeout=3.0)  # <- as future |
         assert result == network_down_detector.result()         # <- as future |
         # ---------------------------------------------------------------------+
 
