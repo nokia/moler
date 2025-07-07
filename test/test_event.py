@@ -12,6 +12,7 @@ __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 import importlib
 import datetime
 import pytest
+import time
 
 from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.events.lineevent import LineEvent
@@ -98,7 +99,8 @@ def test_event_output_in_parts(buffer_connection):
     from moler.events.unix.wait4prompt import Wait4prompt
     outputs = ["ba", "sh\n"]
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
-    event.start(timeout=0.1)
+    event.start(timeout=0.2)
+    time.sleep(0.05)
     for output in outputs:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
 
