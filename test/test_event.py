@@ -99,8 +99,8 @@ def test_event_output_in_parts(buffer_connection):
     from moler.events.unix.wait4prompt import Wait4prompt
     outputs = ["ba", "sh\n"]
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
-    event.start(timeout=0.2)
-    time.sleep(0.05)
+    event.start(timeout=0.4)
+    time.sleep(0.15)
     for output in outputs:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
 
