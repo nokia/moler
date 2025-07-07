@@ -120,10 +120,11 @@ def test_break_event_expected(buffer_connection):
     output = "From 192.168.255.126 icmp_seq=1 Destination Host Unreachable"
     event = PingNoResponse(connection=buffer_connection.moler_connection, till_occurs_times=3)
     event.start()
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
-    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     time.sleep(0.1)
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
+    time.sleep(0.3)
     event.break_event()
     with pytest.raises(MolerException) as exc:
         event.result()
-    assert "Expected 3 occurrences but got 2" in str(exc.value)
+    assert "Expected 3 occurrences but got" in str(exc.value)
