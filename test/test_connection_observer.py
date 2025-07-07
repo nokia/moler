@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
@@ -466,8 +466,8 @@ def test_connection_observer_one_exception():
 
 
 def test_connection_observer_exception_do_not_remove():
-    ConnectionObserver.get_unraised_exceptions(True)
     time.sleep(0.1)
+    ConnectionObserver.get_unraised_exceptions(True)
     from moler.cmd.unix.ls import Ls
     from moler.exceptions import CommandTimeout
     from moler.exceptions import WrongUsage

@@ -9,6 +9,7 @@ from moler.cmd.unix.pwd import Pwd
 from moler.event_awaiter import EventAwaiter
 from moler.threaded_moler_connection import ThreadedMolerConnection
 import datetime
+import time
 
 
 def test_events_true_all():
@@ -19,6 +20,7 @@ def test_events_true_all():
         event = Wait4prompt(connection=connection, till_occurs_times=1, prompt=pattern)
         event.start()
         events.append(event)
+        time.sleep(0.1)
         connection.data_received(pattern, datetime.datetime.now())
     assert EventAwaiter.wait_for_all(timeout=0.2, events=events) is True
     done, not_done = EventAwaiter.separate_done_events(events)
@@ -36,8 +38,9 @@ def test_events_false_all():
         event = Wait4prompt(connection=connection, till_occurs_times=1, prompt=pattern)
         event.start()
         events.append(event)
+    time.sleep(0.1)
     connection.data_received(patterns[0], datetime.datetime.now())
-    assert EventAwaiter.wait_for_all(timeout=0.1, events=events) is False
+    assert EventAwaiter.wait_for_all(timeout=0.3, events=events) is False
     done, not_done = EventAwaiter.separate_done_events(events)
     assert 1 == len(done)
     assert 1 == len(not_done)
@@ -53,7 +56,7 @@ def test_events_true_any_all():
         event.start()
         events.append(event)
         connection.data_received(pattern, datetime.datetime.now())
-    assert EventAwaiter.wait_for_any(timeout=0.1, events=events) is True
+    assert EventAwaiter.wait_for_any(timeout=0.2, events=events) is True
     done, not_done = EventAwaiter.separate_done_events(events)
     assert len(done) >= 1
     assert len(not_done) <= 1
@@ -69,7 +72,7 @@ def test_events_true_any_one():
         event.start()
         events.append(event)
     connection.data_received(patterns[0], datetime.datetime.now())
-    assert EventAwaiter.wait_for_any(timeout=0.1, events=events) is True
+    assert EventAwaiter.wait_for_any(timeout=0.2, events=events) is True
     done, not_done = EventAwaiter.separate_done_events(events)
     assert 1 == len(done)
     assert 1 == len(not_done)

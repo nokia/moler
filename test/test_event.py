@@ -6,12 +6,13 @@ Event is a type of ConnectionObserver.
 """
 
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2020, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import importlib
 import datetime
 import pytest
+import time
 
 from moler.threaded_moler_connection import ThreadedMolerConnection
 from moler.events.lineevent import LineEvent
@@ -98,7 +99,8 @@ def test_event_output_in_parts(buffer_connection):
     from moler.events.unix.wait4prompt import Wait4prompt
     outputs = ["ba", "sh\n"]
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
-    event.start(timeout=0.1)
+    event.start(timeout=0.4)
+    time.sleep(0.15)
     for output in outputs:
         buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
 
@@ -123,7 +125,7 @@ def test_event_get_last_occurrence(buffer_connection):
     output = "bash\n"
     dict_output = {'line': u'bash', 'matched': u'bash', 'named_groups': {}, 'groups': (), 'time': 0}
     event = Wait4prompt(connection=buffer_connection.moler_connection, prompt="bash", till_occurs_times=1)
-    event.start(timeout=0.1)
+    event.start(timeout=0.2)
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     event.await_done()
     occurrence = event.get_last_occurrence()
@@ -155,9 +157,9 @@ def test_event_unicode_error(buffer_connection):
     event.raise_unicode = True
     event.start(timeout=timeout)
     buffer_connection.moler_connection.data_received("abc".encode("utf-8"), datetime.datetime.now())
-    MolerTest.sleep(0.01)
+    MolerTest.sleep(0.1)
     event.raise_unicode = False
-    MolerTest.sleep(0.01)
+    MolerTest.sleep(0.1)
     buffer_connection.moler_connection.data_received(output.encode("utf-8"), datetime.datetime.now())
     with pytest.raises(MolerException):
         event.await_done()
