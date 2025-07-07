@@ -20,6 +20,7 @@ def test_events_true_all():
         event = Wait4prompt(connection=connection, till_occurs_times=1, prompt=pattern)
         event.start()
         events.append(event)
+        time.sleep(0.1)
         connection.data_received(pattern, datetime.datetime.now())
     assert EventAwaiter.wait_for_all(timeout=0.2, events=events) is True
     done, not_done = EventAwaiter.separate_done_events(events)
