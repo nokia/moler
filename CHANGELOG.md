@@ -1,3 +1,7 @@
+## moler 4.2.0
+ * Unix command hostanamectl
+ * Unix command ip maddr
+
 ## moler 4.1.0
  * Unset PROMPT_COMMAND for every new virtual terminal
 
