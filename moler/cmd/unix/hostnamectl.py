@@ -23,6 +23,7 @@ class Hostnamectl(GenericUnixCommand):
         :param runner: Runner to run command.
         """
         super(Hostnamectl, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        self.add_failure_indication("Unknown command verb")
         self.options = options
 
     def build_command_string(self):
