@@ -87,7 +87,7 @@ def log_into_logger(logger, level, msg, extra=None, levels_to_go_up=0):
             fn, lno, func = find_caller(levels_to_go_up)
         except ValueError:  # pragma: no cover
             fn, lno, func = "(unknown file)", 0, "(unknown function)"
-        record = logger.makeRecord(logger.name, level, fn, lno, msg, [], None, func, extra)
+        record = logger.makeRecord(logger.name, level, fn, lno, msg, (), None, func, extra)
         logger.handle(record)
 
 
