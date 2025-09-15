@@ -1,3 +1,6 @@
+## moler 4.2.1
+ * make_record - tuple instead of any
+
 ## moler 4.2.0
  * Unix command hostanamectl
  * Unix command ip maddr
