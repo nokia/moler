@@ -40,7 +40,7 @@ TRACE = 4  # may produce tons of logs, should be used for lib dev & troubleshoot
 # (above ERROR = 40, below CRITICAL = 50)
 TEST_CASE = 45
 
-debug_level = None  # means: inactive
+debug_level = logging.DEBUG  # means: inactive
 raw_logs_active = False
 write_mode = "a"
 _kind = (
@@ -619,7 +619,7 @@ def configure_moler_threads_logger():
             th_log_fmt = "%(asctime)s.%(msecs)03d %(levelname)-12s %(threadName)22s %(filename)30s:#%(lineno)3s %(funcName)25s() |%(message)s"
             logger = create_logger(
                 name="moler_threads",
-                log_level=TRACE,
+                log_level=debug_level,
                 log_file="moler.threads.log",
                 log_format=th_log_fmt,
                 datefmt=date_format,
