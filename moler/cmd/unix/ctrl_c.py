@@ -4,15 +4,15 @@ Ctrl+C command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019, Nokia'
+__copyright__ = 'Copyright (C) 2019-2025, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
-from moler.cmd.unix.genericunix import GenericUnixCommand
+from moler.cmd.commandchangingprompt import CommandChangingPrompt
 from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 
 
-class CtrlC(GenericUnixCommand):
+class CtrlC(CommandChangingPrompt):
 
     """Unix ctrl+c command"""
 
@@ -26,11 +26,11 @@ class CtrlC(GenericUnixCommand):
         :param newline_chars: Characters to split lines - list.
         :param runner: Runner to run command.
         """
-        super(CtrlC, self).__init__(connection=connection, prompt=prompt, newline_chars=newline_chars, runner=runner)
+        super(CtrlC, self).__init__(connection=connection, prompt=prompt, expected_prompt=expected_prompt,
+                                    newline_chars=newline_chars, runner=runner)
         self.ret_required = False
         self.break_on_timeout = False  # If True then Ctrl+c on timeout
         self.newline_after_command_string = False  # Do not send newline after command string
-        self._re_expected_prompt = CommandTextualGeneric._calculate_prompt(expected_prompt)  # Expected prompt on device
 
     def build_command_string(self):
         """
@@ -63,17 +63,14 @@ class CtrlC(GenericUnixCommand):
         self.__command_string = command_string
         self._cmd_escaped = re.compile(r"\^C", re.I)
 
-    def on_new_line(self, line, is_full_line):
+    def send_command(self) -> None:
         """
-        Parses the output of the command.
+        Sends command string to the device.
 
-        :param line: Line to process, can be only part of line. New line chars are removed from line.
-        :param is_full_line: True if line had new line chars, False otherwise
         :return: None
         """
-        if self._regex_helper.search_compiled(self._re_expected_prompt, line):
-            if not self.done():
-                self.set_result(self.current_ret)
+        super().send_command()
+        self._cmd_output_started = True  # Some terminals do not echo ctrl+c
 
 
 COMMAND_OUTPUT = """
