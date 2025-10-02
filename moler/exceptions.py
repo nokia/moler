@@ -70,8 +70,8 @@ class MolerTimeout(MolerException):
             timeout_str = f'{timeout:.2f} '
         else:
             timeout_str = str(timeout)
-        err_msg = f'{kind} time {passed_time}>= {timeout_str} sec'
-        super(MolerTimeout, self).__init__(f"{err_msg} timeout")
+        err_msg = f'{kind} time {passed_time}>= {timeout_str} sec timeout'
+        super(MolerTimeout, self).__init__(err_msg)
         self.timeout = timeout
 
 
