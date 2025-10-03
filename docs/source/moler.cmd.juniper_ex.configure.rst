@@ -6,5 +6,5 @@ Module contents
 
 .. automodule:: moler.cmd.juniper_ex.configure
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
