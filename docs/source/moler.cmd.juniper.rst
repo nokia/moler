@@ -18,13 +18,13 @@ moler.cmd.juniper.genericjuniper module
 
 .. automodule:: moler.cmd.juniper.genericjuniper
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: moler.cmd.juniper
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

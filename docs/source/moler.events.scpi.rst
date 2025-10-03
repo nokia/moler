@@ -9,21 +9,21 @@ moler.events.scpi.genericscpi\_lineevent module
 
 .. automodule:: moler.events.scpi.genericscpi_lineevent
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 moler.events.scpi.genericscpi\_textualevent module
 --------------------------------------------------
 
 .. automodule:: moler.events.scpi.genericscpi_textualevent
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: moler.events.scpi
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

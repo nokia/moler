@@ -23,21 +23,21 @@ moler.cmd.commandchangingprompt module
 
 .. automodule:: moler.cmd.commandchangingprompt
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 moler.cmd.commandtextualgeneric module
 --------------------------------------
 
 .. automodule:: moler.cmd.commandtextualgeneric
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: moler.cmd
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

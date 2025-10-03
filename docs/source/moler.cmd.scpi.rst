@@ -17,13 +17,13 @@ moler.cmd.scpi.genricscpi module
 
 .. automodule:: moler.cmd.scpi.genricscpi
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: moler.cmd.scpi
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

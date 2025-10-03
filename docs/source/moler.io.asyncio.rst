@@ -9,21 +9,21 @@ moler.io.asyncio.tcp module
 
 .. automodule:: moler.io.asyncio.tcp
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 moler.io.asyncio.terminal module
 --------------------------------
 
 .. automodule:: moler.io.asyncio.terminal
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: moler.io.asyncio
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

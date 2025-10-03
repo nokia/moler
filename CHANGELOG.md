@@ -1,3 +1,8 @@
+## moler 4.3.0
+ * Command Crrl+C
+ * Enhancement of MolerTimeout exception
+ * Log traceback when exception is set
+
 ## moler 4.2.1
  * make_record - tuple instead of any
 

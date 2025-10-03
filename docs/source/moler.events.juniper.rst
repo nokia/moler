@@ -9,21 +9,21 @@ moler.events.juniper.genericshared\_lineevent module
 
 .. automodule:: moler.events.juniper.genericshared_lineevent
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 moler.events.juniper.genericshared\_textualevent module
 -------------------------------------------------------
 
 .. automodule:: moler.events.juniper.genericshared_textualevent
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: moler.events.juniper
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
