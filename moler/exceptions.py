@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 
@@ -66,8 +66,12 @@ class MolerTimeout(MolerException):
         """Create instance of MolerTimeout exception"""
         if passed_time and isinstance(passed_time, (int, float)):
             passed_time = f'{passed_time:.2f} '
-        err_msg = f'{kind} time {passed_time}>= {timeout:.2f} sec'
-        super(MolerTimeout, self).__init__(f"{err_msg} timeout")
+        if timeout and isinstance(timeout, (int, float)):
+            timeout_str = f'{timeout:.2f} '
+        else:
+            timeout_str = str(timeout)
+        err_msg = f'{kind} time {passed_time}>= {timeout_str} sec timeout'
+        super(MolerTimeout, self).__init__(err_msg)
         self.timeout = timeout
 
 
