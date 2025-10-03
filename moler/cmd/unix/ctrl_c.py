@@ -16,18 +16,32 @@ class CtrlC(CommandChangingPrompt):
 
     """Unix ctrl+c command"""
 
-    def __init__(self, connection, prompt=None, expected_prompt=None, newline_chars=None, runner=None):
+    def __init__(self, connection, prompt=None, expected_prompt=None, newline_chars=None, runner=None,
+                 set_timeout=None, set_prompt=None, target_newline="\n", allowed_newline_after_prompt=True,
+                 prompt_after_login=None):
         """
         Unix ctrl+c command
 
-        :param connection: Moler connection to device, terminal when command is executed.
-        :param prompt: Prompt of the starting shell
-        :param expected_prompt: Prompt of the target shell reached after ctrl+c command
-        :param newline_chars: Characters to split lines - list.
+        :param connection: moler connection to device, terminal when command is executed.
+        :param prompt: prompt on start system (where command starts).
+        :param expected_prompt: prompt on server (where command connects).
+        :param newline_chars: characters to split lines.
         :param runner: Runner to run command.
+        :param set_timeout: Command to set timeout after telnet connects.
+        :param set_prompt: Command to set prompt after telnet connects.
+        :param target_newline: newline chars on remote system where ssh connects.
+        :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt.
+        :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
+          then leave it None.
+        :param allowed_newline_after_prompt: If True, allows newline after prompt.
         """
         super(CtrlC, self).__init__(connection=connection, prompt=prompt, expected_prompt=expected_prompt,
-                                    newline_chars=newline_chars, runner=runner)
+                                    newline_chars=newline_chars, runner=runner,
+                                    set_timeout=set_timeout, set_prompt=set_prompt,
+                                    target_newline=target_newline,
+                                    prompt_after_login=prompt_after_login,
+                                    allowed_newline_after_prompt=allowed_newline_after_prompt
+                                    )
         self.ret_required = False
         self.break_on_timeout = False  # If True then Ctrl+c on timeout
         self.newline_after_command_string = False  # Do not send newline after command string
