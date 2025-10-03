@@ -261,7 +261,7 @@ class UnixLocal(TextualDevice):
                 f"'{source_state}' to '{dest_state}' on device '{self.name}' the exception was raised: {exc} "
                 f"with params: {pformat(command_params)}. Stacktrace: ".join(traceback.format_tb(exc.__traceback__))
             )
-            self._logger.warning(msg)
+            self.logger.warning(msg)
             raise exc
         finally:
             if self._prompts_event is not None:
