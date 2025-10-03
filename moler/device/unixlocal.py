@@ -5,11 +5,13 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 
+import traceback
+from pprint import pformat
 from moler.device.textualdevice import TextualDevice
 from moler.helpers import copy_dict
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
-__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__copyright__ = "Copyright (C) 2018-2025, Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
 )
@@ -253,6 +255,14 @@ class UnixLocal(TextualDevice):
             self._prompts_event.pause()
         try:
             command(timeout=command_timeout)
+        except Exception as exc:
+            msg = (
+                f"While executing _execute_command_to_change_state '{command_name}' to change state from "
+                f"'{source_state}' to '{dest_state}' on device '{self.name}' the exception was raised: {exc} "
+                f"with params: {pformat(command_params)}. Stacktrace: ".join(traceback.format_tb(exc.__traceback__))
+            )
+            self._logger.warning(msg)
+            raise exc
         finally:
             if self._prompts_event is not None:
                 self._prompts_event.resume()

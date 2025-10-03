@@ -2,13 +2,14 @@
 """
 Utilities related to connection-observers
 """
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2019 Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2019-2025 Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import logging
 import threading
 import sys
+import traceback
 
 
 def inside_main_thread():
@@ -32,9 +33,14 @@ class exception_stored_if_not_main_thread:
             if inside_main_thread():
                 return False  # will reraise exception
             else:
-                err_msg = f"NOT MainThread: {self.connection_observer} raised {exc_val!r}"
+                mg = traceback.format_list(traceback.extract_stack())
+                stack_msg = f"{''.join(mg)}\n  {exc_val.__class__} {exc_val} traceback:".join(
+                    traceback.format_tb(exc_val.__traceback__)
+                )
+                err_msg = f"NOT MainThread: {self.connection_observer} raised {exc_val!r} {stack_msg}"
                 self.logger.debug(err_msg)
                 sys.stderr.write(f"{err_msg}\n")
                 self.connection_observer.set_exception(exc_val)
+
                 return True  # means: exception already handled
         return True
