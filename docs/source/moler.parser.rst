@@ -9,13 +9,13 @@ moler.parser.table\_text module
 
 .. automodule:: moler.parser.table_text
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: moler.parser
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

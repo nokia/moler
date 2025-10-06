@@ -22,21 +22,21 @@ moler.events.lineevent module
 
 .. automodule:: moler.events.lineevent
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 moler.events.textualevent module
 --------------------------------
 
 .. automodule:: moler.events.textualevent
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: moler.events
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
