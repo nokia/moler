@@ -4,7 +4,7 @@ Ping command module.
 """
 
 __author__ = 'Julia Patacz, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'julia.patacz@nokia.com, marcin.usielski@nokia.com'
 
 import re
