@@ -33,7 +33,6 @@ class CtrlC(CommandChangingPrompt):
         :param allowed_newline_after_prompt: If True then newline chars may occur after expected (target) prompt.
         :param prompt_after_login: prompt after login before send export PS1. If you do not change prompt exporting PS1
           then leave it None.
-        :param allowed_newline_after_prompt: If True, allows newline after prompt.
         """
         super(CtrlC, self).__init__(connection=connection, prompt=prompt, expected_prompt=expected_prompt,
                                     newline_chars=newline_chars, runner=runner,

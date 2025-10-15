@@ -4,7 +4,7 @@ Ping command module.
 """
 
 __author__ = 'Julia Patacz, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'julia.patacz@nokia.com, marcin.usielski@nokia.com'
 
 import re
@@ -106,9 +106,10 @@ class Ping(GenericUnixCommand):
             self.current_ret['time_seconds'] = None
             raise ParsingDone
 
+    # 7 packets transmitted, 7 received, +6 duplicates, 0% packet loss, time 6142ms
     # 4 packets transmitted, 3 received, +1 errors, 25% packet loss, time 3008ms
     _re_trans_recv_loss_time_plus_errors = re.compile(
-        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, \+?(?P<ERRORS>\d+) errors, (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\w+)")
+        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, \+?(?P<ERR_DUP_VAL>\d+) (?P<ERR_DUP>errors|duplicates), (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\w+)")
 
     def _parse_trans_recv_loss_time_plus_errors(self, line):
         """
@@ -121,7 +122,7 @@ class Ping(GenericUnixCommand):
                 self._regex_helper.group('PKTS_TRANS'))
             self.current_ret['packets_received'] = self._converter_helper.to_number(
                 self._regex_helper.group('PKTS_RECV'))
-            self.current_ret['errors'] = self._converter_helper.to_number(self._regex_helper.group('ERRORS'))
+            self.current_ret[self._regex_helper.group('ERR_DUP')] = self._converter_helper.to_number(self._regex_helper.group('ERR_DUP_VAL'))
             self.current_ret['packet_loss'] = self._converter_helper.to_number(self._regex_helper.group('PKT_LOSS'))
             self.current_ret['time'] = self._converter_helper.to_number(self._regex_helper.group('TIME'))
             self.current_ret['packets_time_unit'] = self._regex_helper.group('UNIT')
@@ -429,5 +430,52 @@ COMMAND_RESULT_Darwin = {
     'time_avg_seconds': 0.133 * 0.001,
     'time_max_seconds': 0.133 * 0.001,
     'time_mdev_seconds': 0.000 * 0.001,
+    'time_unit': 'ms',
+}
+
+
+COMMAND_OUTPUT_duplicates = """ping 192.168.1.2 -c 7
+PING 192.168.1.2 (192.168.1.2) 56(84) bytes of data.
+64 bytes from 192.168.1.2: icmp_seq=1 ttl=254 time=0.297 ms
+64 bytes from 192.168.1.2: icmp_seq=1 ttl=254 time=0.298 ms (DUP!)
+64 bytes from 192.168.1.2: icmp_seq=2 ttl=254 time=0.291 ms
+64 bytes from 192.168.1.2: icmp_seq=2 ttl=254 time=0.291 ms (DUP!)
+64 bytes from 192.168.1.2: icmp_seq=3 ttl=254 time=0.310 ms
+64 bytes from 192.168.1.2: icmp_seq=3 ttl=254 time=0.310 ms (DUP!)
+64 bytes from 192.168.1.2: icmp_seq=4 ttl=254 time=0.282 ms
+64 bytes from 192.168.1.2: icmp_seq=4 ttl=254 time=0.282 ms (DUP!)
+64 bytes from 192.168.1.2: icmp_seq=5 ttl=254 time=0.356 ms
+64 bytes from 192.168.1.2: icmp_seq=5 ttl=254 time=0.356 ms (DUP!)
+64 bytes from 192.168.1.2: icmp_seq=6 ttl=254 time=0.286 ms
+64 bytes from 192.168.1.2: icmp_seq=6 ttl=254 time=0.286 ms (DUP!)
+64 bytes from 192.168.1.2: icmp_seq=7 ttl=254 time=0.327 ms
+
+--- 192.168.1.2 ping statistics ---
+7 packets transmitted, 7 received, +6 duplicates, 0% packet loss, time 6142ms
+rtt min/avg/max/mdev = 0.282/0.305/0.356/0.024 ms
+moler@moler:>"""
+
+
+COMMAND_KWARGS_duplicates = {
+    'destination': '192.168.1.2',
+    'options': '-c 7'
+}
+
+COMMAND_RESULT_duplicates = {
+    'packets_transmitted': 7,
+    'packets_received': 7,
+    'packet_loss': 0,
+    'time': 6142,
+    'time_seconds': 6.142,
+    'packets_time_unit': 'ms',
+    'duplicates': 6,
+    'time_min': 0.282,
+    'time_avg': 0.305,
+    'time_max': 0.356,
+    'time_mdev': 0.024,
+    'time_min_seconds': 0.282 * 0.001,
+    'time_avg_seconds': 0.305 * 0.001,
+    'time_max_seconds': 0.356 * 0.001,
+    'time_mdev_seconds': 0.024 * 0.001,
     'time_unit': 'ms',
 }
