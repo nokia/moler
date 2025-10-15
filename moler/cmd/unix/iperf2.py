@@ -636,6 +636,7 @@ class Iperf2(GenericUnixCommand, Publisher):
         :return: True if current_ret has collected any data. Otherwise False.
         """
 
+        ret_value = False
         if not self._output_parsed:
             if '--version' in self.options:
                 was_version = any(self._regex_helper.search_compiled(Iperf2._re_version, line) for line in self.current_ret["INFO"])
@@ -644,8 +645,8 @@ class Iperf2(GenericUnixCommand, Publisher):
                 return was_version
             else:
                 self._output_parsed = True  # we don't exepect any specific data for this instance.
-            return super(Iperf2, self).has_any_result()
-        return False
+            ret_value = super(Iperf2, self).has_any_result()
+        return ret_value
 
 
 COMMAND_OUTPUT_version = """xyz@debian:~$ iperf --version

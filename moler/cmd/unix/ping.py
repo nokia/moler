@@ -109,7 +109,7 @@ class Ping(GenericUnixCommand):
     # 7 packets transmitted, 7 received, +6 duplicates, 0% packet loss, time 6142ms
     # 4 packets transmitted, 3 received, +1 errors, 25% packet loss, time 3008ms
     _re_trans_recv_loss_time_plus_errors = re.compile(
-        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, \+?(?P<ERRORS>\d+) (?P<ERR_DUP>errors|duplicates), (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\w+)")
+        r"(?P<PKTS_TRANS>\d+) packets transmitted, (?P<PKTS_RECV>\d+) received, \+?(?P<ERR_DUP_VAL>\d+) (?P<ERR_DUP>errors|duplicates), (?P<PKT_LOSS>\S+)% packet loss, time (?P<TIME>\d+)\s*(?P<UNIT>\w+)")
 
     def _parse_trans_recv_loss_time_plus_errors(self, line):
         """
@@ -122,7 +122,7 @@ class Ping(GenericUnixCommand):
                 self._regex_helper.group('PKTS_TRANS'))
             self.current_ret['packets_received'] = self._converter_helper.to_number(
                 self._regex_helper.group('PKTS_RECV'))
-            self.current_ret[self._regex_helper.group('ERR_DUP')] = self._converter_helper.to_number(self._regex_helper.group('ERRORS'))
+            self.current_ret[self._regex_helper.group('ERR_DUP')] = self._converter_helper.to_number(self._regex_helper.group('ERR_DUP_VAL'))
             self.current_ret['packet_loss'] = self._converter_helper.to_number(self._regex_helper.group('PKT_LOSS'))
             self.current_ret['time'] = self._converter_helper.to_number(self._regex_helper.group('TIME'))
             self.current_ret['packets_time_unit'] = self._regex_helper.group('UNIT')
