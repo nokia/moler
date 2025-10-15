@@ -1,3 +1,6 @@
+## moler 4.3.1
+ * duplicates in ping
+
 ## moler 4.3.0
  * Command Crrl+C
  * Enhancement of MolerTimeout exception

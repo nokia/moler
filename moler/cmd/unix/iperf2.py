@@ -645,6 +645,7 @@ class Iperf2(GenericUnixCommand, Publisher):
             else:
                 self._output_parsed = True  # we don't exepect any specific data for this instance.
             return super(Iperf2, self).has_any_result()
+        return False
 
 
 COMMAND_OUTPUT_version = """xyz@debian:~$ iperf --version
