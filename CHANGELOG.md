@@ -1,3 +1,6 @@
+## moler 4.3.2
+ * rm fails on permission denied
+
 ## moler 4.3.1
  * duplicates in ping
 
