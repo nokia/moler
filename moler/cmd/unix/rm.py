@@ -11,6 +11,7 @@ from moler.helpers import copy_list
 from moler.cmd.unix.genericunix import GenericUnixCommand, cmd_failure_causes
 import re
 
+
 class Rm(GenericUnixCommand):
     def __init__(self, connection, file, options=None, prompt=None, newline_chars=None, runner=None):
         """
@@ -30,7 +31,6 @@ class Rm(GenericUnixCommand):
         _cmd_failure_causes.append(r"cannot remove\s*'.*':\s*Permission denied")
         r_cmd_failure_cause_alternatives = "|".join(_cmd_failure_causes)
         self.re_fail = re.compile(r_cmd_failure_cause_alternatives, re.IGNORECASE)
-
 
     def build_command_string(self):
         """
