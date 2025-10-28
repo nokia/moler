@@ -4,7 +4,7 @@ Testing of sudo command.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 from moler.cmd.unix.sudo import Sudo
@@ -96,6 +96,22 @@ def test_failing_calling_twice_the_same_command_object(buffer_connection, comman
     with pytest.raises(CommandFailure):
         cmd_sudo()
 
+
+def test_failing_calling_twice_the_same_command_object_failed(buffer_connection):
+    from moler.cmd.unix.rm import Rm
+    rm_output_denied = """rm important_file.txt
+rm: cannot remove 'protected.txt': Permission denied
+moler_bash#"""
+
+    buffer_connection.remote_inject_response([rm_output_denied])
+
+    cmd_rm = Rm(connection=buffer_connection.moler_connection, file="important_file.txt")
+    with pytest.raises(CommandFailure):
+        cmd_rm()
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_rm)
+    with pytest.raises(CommandFailure) as exc:
+        cmd_sudo()
+    assert "Not allowed to run again" in str(exc.value)
 
 def test_failing_with_timeout(buffer_connection, command_output_and_expected_result_timeout):
     command_output = command_output_and_expected_result_timeout

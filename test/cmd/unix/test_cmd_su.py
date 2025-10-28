@@ -4,7 +4,7 @@ Su command module.
 """
 
 __author__ = 'Agnieszka Bylica, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'agnieszka.bylica@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
@@ -64,6 +64,28 @@ moler_bash#"""
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd_su)
     ret = cmd_sudo()
     assert ret == expected_dict
+
+
+def test_sudo_su_twice_failed_object(buffer_connection):
+    from moler.cmd.unix.sudo import Sudo
+    from moler.cmd.unix.rm import Rm
+    from moler.exceptions import CommandFailure
+    rm_output_denied = """rm important_file.txt
+rm: cannot remove 'important_file.txt': Permission denied
+moler_bash#"""
+
+    buffer_connection.remote_inject_response([rm_output_denied])
+
+    cmd_rm = Rm(connection=buffer_connection.moler_connection, file="important_file.txt")
+    with pytest.raises(CommandFailure):
+        cmd_rm()
+
+    cmd_su = Su(connection=buffer_connection.moler_connection, prompt=r"moler_bash#",
+                cmd_object=cmd_rm)
+    cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd_su)
+    with pytest.raises(CommandFailure) as exc:
+        cmd_sudo()
+    assert "Not allowed to run again" in str(exc.value)
 
 
 def test_sudo_su_object(buffer_connection, command_output_and_expected_result_ls_l):
@@ -129,7 +151,7 @@ def test_su_catches_missing_binary_failure(buffer_connection):
 @pytest.fixture
 def command_output_and_expected_result_auth():
     output = """xyz@debian:~/Moler$ su
-Password: 
+Password:
 su: Authentication failure
 xyz@debian:~/Moler$"""
     result = dict()
@@ -138,7 +160,7 @@ xyz@debian:~/Moler$"""
 
 @pytest.fixture
 def command_output_and_expected_result_command_format_failure():
-    output = """xyz@debian:~/Moler$ su -g 
+    output = """xyz@debian:~/Moler$ su -g
 su: invalid option -- 'g'
 Usage: su [options] [LOGIN]
 
@@ -201,7 +223,7 @@ moler_bash#"""
 @pytest.fixture()
 def command_output_and_expected_result_pwd():
     output = """user@client:~/moler$ su -c 'pwd'
-password: 
+password:
 /home/user/moler
 ute@debdev:~/moler$ """
     result = {
