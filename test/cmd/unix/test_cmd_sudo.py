@@ -110,7 +110,7 @@ moler_bash#"""
         cmd_rm()
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, password="pass", cmd_object=cmd_rm)
     with pytest.raises(CommandFailure) as exc:
-        cmd_sudo(timeout=0.3)
+        cmd_sudo()
     assert "Not allowed to run again" in str(exc.value)
 
 def test_failing_with_timeout(buffer_connection, command_output_and_expected_result_timeout):
