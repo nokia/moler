@@ -85,7 +85,6 @@ moler_bash#"""
     cmd_sudo = Sudo(connection=buffer_connection.moler_connection, cmd_object=cmd_su)
     with pytest.raises(CommandFailure) as exc:
         cmd_sudo()
-    print(exc.value)
     assert "Not allowed to run again" in str(exc.value)
 
 
