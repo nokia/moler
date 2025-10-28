@@ -71,7 +71,7 @@ def test_sudo_su_twice_failed_object(buffer_connection):
     from moler.cmd.unix.rm import Rm
     from moler.exceptions import CommandFailure
     rm_output_denied = """rm important_file.txt
-rm: cannot remove 'protected.txt': Permission denied
+rm: cannot remove 'important_file.txt': Permission denied
 moler_bash#"""
 
     buffer_connection.remote_inject_response([rm_output_denied])
