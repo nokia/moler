@@ -3,7 +3,7 @@
 """Scheduler for commands and events."""
 
 __author__ = "Marcin Usielski"
-__copyright__ = "Copyright (C) 2019-2023, Nokia"
+__copyright__ = "Copyright (C) 2019-2025, Nokia"
 __email__ = "marcin.usielski@nokia.com"
 
 import logging
@@ -43,6 +43,8 @@ class CommandScheduler:
         )
         t1.daemon = True
         t1.start()
+        connection_observer._log(logging.WARNING, f"Requested to execute command ({connection_observer}) but the other "
+                                 "command is running. Waiting for a free slot.")
 
     @staticmethod
     def dequeue_running_on_connection(connection_observer):

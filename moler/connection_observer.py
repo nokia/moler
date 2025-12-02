@@ -3,7 +3,7 @@
 """Base class for all events and commands that are to be observed on connection."""
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
-__copyright__ = "Copyright (C) 2018-2024 Nokia"
+__copyright__ = "Copyright (C) 2018-2025 Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
 )
@@ -546,7 +546,7 @@ class ConnectionObserver:
         """
         return f"Observer '{self.__class__.__module__}.{self}'"
 
-    def _log(self, lvl: int, msg: str, extra: dict = None, levels_to_go_up: int = 1) -> None:
+    def _log(self, lvl: int, msg: str, extra: Optional[dict] = None, levels_to_go_up: int = 1) -> None:
         """
         Log a message with the specified level.
 
