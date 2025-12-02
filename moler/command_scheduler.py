@@ -11,7 +11,6 @@ import threading
 import time
 from threading import Thread
 
-from moler.connection_observer import ConnectionObserver
 from moler.exceptions import CommandTimeout
 
 
@@ -19,7 +18,7 @@ class CommandScheduler:
     """Scheduler for commands and events."""
 
     @staticmethod
-    def enqueue_starting_on_connection(connection_observer: ConnectionObserver):
+    def enqueue_starting_on_connection(connection_observer):
         """
         Wait for free slot and runs command when no other command is in run mode.
 
