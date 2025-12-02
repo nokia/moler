@@ -43,7 +43,8 @@ class CommandScheduler:
         )
         t1.daemon = True
         t1.start()
-        connection_observer.logger.warning(f"Requested to execute command ({connection_observer}) but the other command is running. Waiting for a free slot.")
+        connection_observer._log(logging.WARNING, f"Requested to execute command ({connection_observer}) but the other "
+                                 "command is running. Waiting for a free slot.")
 
     @staticmethod
     def dequeue_running_on_connection(connection_observer):
