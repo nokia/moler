@@ -1,3 +1,6 @@
+## moler 4.4.0
+ * Warning if command goes to queue
+
 ## moler 4.3.2
  * rm fails on permission denied
 
