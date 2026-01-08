@@ -37,6 +37,7 @@ import logging
 from threading import Lock
 from moler.connection import Connection
 from typing import Callable, List
+from datetime import datetime
 
 
 class IOConnection:
@@ -69,7 +70,7 @@ class IOConnection:
         self.__name = value
         self.logger = logging.getLogger(f"moler.connection.{self.__name}.io")
 
-    def open(self):
+    def open(self) -> contextlib.closing:
         """
         Take 'how to establish connection' info from constructor
         and open that connection.
@@ -90,7 +91,7 @@ class IOConnection:
         self.close()
         return False  # reraise exceptions if any
 
-    def send(self, data: bytes) -> None:
+    def send(self, data: str) -> None:
         """
         Send data bytes over external-IO.
 
@@ -106,7 +107,7 @@ class IOConnection:
     #         self.moler_connection.data_received(data)
     #     """
 
-    def data_received(self, data: bytes, recv_time: float) -> None:
+    def data_received(self, data: str, recv_time: datetime) -> None:
         """
         Having been given data bytes from external-IO:
 

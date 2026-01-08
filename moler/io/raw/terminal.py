@@ -4,6 +4,7 @@ __copyright__ = "Copyright (C) 2018-2025, Nokia"
 __email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com, tomasz.krol@nokia.com"
 
 import codecs
+import contextlib
 import re
 import select
 import datetime
@@ -19,6 +20,8 @@ from moler.helpers import remove_all_known_special_chars
 from moler.helpers import all_chars_to_hex
 from moler.helpers import non_printable_chars_to_hex
 from moler.util import tracked_thread
+from moler.connection import Connection
+from typing import Tuple, List
 
 
 class ThreadedTerminal(IOConnection):
@@ -30,15 +33,15 @@ class ThreadedTerminal(IOConnection):
 
     def __init__(
         self,
-        moler_connection,
-        cmd="/bin/bash",
-        select_timeout=0.002,
-        read_buffer_size=4096,
-        first_prompt=r"[%$#\]]+",
-        target_prompt=r"moler_bash#",
-        set_prompt_cmd='unset PROMPT_COMMAND; export PS1="moler_bash# "\n',
-        dimensions=(100, 300),
-        terminal_delayafterclose=0.2,
+        moler_connection: Connection,
+        cmd: str = "/bin/bash",
+        select_timeout: float = 0.002,
+        read_buffer_size: int = 4096,
+        first_prompt: str = r"[%$#\]]+",
+        target_prompt: str = r"moler_bash#",
+        set_prompt_cmd: str = 'unset PROMPT_COMMAND; export PS1="moler_bash# "\n',
+        dimensions: Tuple[int, int] = (100, 300),
+        terminal_delayafterclose: float = 0.2,
     ):
         """# TODO: # 'export PS1="moler_bash\\$ "\n'  would give moler_bash# for root and moler_bash$ for user
         :param moler_connection: Moler's connection to join with
@@ -51,7 +54,7 @@ class ThreadedTerminal(IOConnection):
         :param dimensions: dimensions of the psuedoterminal
         :param terminal_delayafterclose: delay for checking if terminal was properly closed
         """
-        super(ThreadedTerminal, self).__init__(moler_connection=moler_connection)
+        super().__init__(moler_connection=moler_connection)
         self.debug_hex_on_non_printable_chars = (
             False  # Set True to log incoming non printable chars as hex.
         )
@@ -60,7 +63,7 @@ class ThreadedTerminal(IOConnection):
         self._shell_operable: threading.Event = threading.Event()
         self._export_sent = False
         self.pulling_thread = None
-        self.read_buffer = ""
+        self.read_buffer: str = ""
 
         self._select_timeout = select_timeout
         self._read_buffer_size = read_buffer_size
@@ -74,15 +77,16 @@ class ThreadedTerminal(IOConnection):
         )
         self._terminal_delayafterclose = terminal_delayafterclose
 
-    def open(self):
+    def open(self) -> contextlib.closing:
         """Open ThreadedTerminal connection & start thread pulling data from it."""
-        ret = super(ThreadedTerminal, self).open()
+        ret = super().open()
 
         if not self._terminal:
             self.moler_connection.open()
             self._terminal = PtyProcessUnicode.spawn(
                 self._cmd, dimensions=self.dimensions
             )
+            assert self._terminal is not None
             self._terminal.delayafterclose = self._terminal_delayafterclose
             # need to not replace not unicode data instead of raise exception
             self._terminal.decoder = codecs.getincrementaldecoder("utf-8")(
@@ -112,12 +116,12 @@ class ThreadedTerminal(IOConnection):
 
         return ret
 
-    def close(self):
+    def close(self) -> None:
         """Close ThreadedTerminal connection & stop pulling thread."""
         if self.pulling_thread:
             self.pulling_thread.join()
         self.moler_connection.shutdown()
-        super(ThreadedTerminal, self).close()
+        super().close()
 
         if self._terminal and self._terminal.isalive():
             self._notify_on_disconnect()
@@ -131,19 +135,20 @@ class ThreadedTerminal(IOConnection):
         self.pulling_thread = None
         self.read_buffer = ""
 
-    def send(self, data):
+    def send(self, data: str) -> None:
         """Write data into ThreadedTerminal connection."""
         if self._terminal:
             self._terminal.write(data)
 
     @tracked_thread.log_exit_exception
-    def pull_data(self, pulling_done):
+    def pull_data(self, pulling_done: threading.Event) -> None:
         """Pull data from ThreadedTerminal connection."""
         logging.getLogger("moler_threads").debug(f"ENTER {self}")
-        heartbeat = tracked_thread.report_alive()
-        reads = []
+        heartbeat: bool = tracked_thread.report_alive()
+        reads: List[int] = []
 
         while not pulling_done.is_set():
+            assert self._terminal is not None
             if next(heartbeat):
                 logging.getLogger("moler_threads").debug(f"ALIVE {self}")
             try:
@@ -174,7 +179,7 @@ class ThreadedTerminal(IOConnection):
                     pulling_done.set()
         logging.getLogger("moler_threads").debug(f"EXIT  {self}")
 
-    def _verify_shell_is_operable(self, data):
+    def _verify_shell_is_operable(self, data: str) -> None:
         self.read_buffer = self.read_buffer + data
         lines = self.read_buffer.splitlines()
 
