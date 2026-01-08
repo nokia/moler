@@ -50,9 +50,9 @@ class IOConnection:
         :param moler_connection: object of abstract class moler.connection.Connection
         """
         super(IOConnection, self).__init__()
-        self._connect_subscribers :List[Callable] = []
+        self._connect_subscribers: List[Callable] = []
         self._connect_subscribers_lock = Lock()
-        self._disconnect_subscribers :List[Callable] = []
+        self._disconnect_subscribers: List[Callable] = []
         self._disconnect_subscribers_lock = Lock()
         self.moler_connection: Connection = moler_connection
         self.__name: str = "UNNAMED_IO_CONNECTION"
@@ -180,7 +180,7 @@ class IOConnection:
         """
         self.moler_connection.enable_logging()
 
-    def _notify(self, lock: Lock, subscribers: list[Callable]) -> None:
+    def _notify(self, lock: Lock, subscribers: List[Callable]) -> None:
         with lock:
             copied_subscribers = subscribers[:]
             for subscriber in copied_subscribers:
