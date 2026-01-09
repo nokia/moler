@@ -129,7 +129,7 @@ class IOConnection:
 
     def subscribe_on_connection_made(self, subscriber: Callable) -> None:
         """
-        Adds subscriber to list of functions to call when conne`ction is open/established (also reopen after close)
+        Adds subscriber to list of functions to call when connection is open/established (also reopen after close)
         :param subscriber: reference to function to call when connection is open/established
         :return: None
         """

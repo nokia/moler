@@ -1,18 +1,20 @@
 # -*- coding: utf-8 -*-
-__author__ = "Michal Ernst, Marcin Usielski, Tomasz Krol"
-__copyright__ = "Copyright (C) 2018-2026, Nokia"
-__email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com, tomasz.krol@nokia.com"
+__author__ = "Marcin Usielski"
+__copyright__ = "Copyright (C) 2026, Nokia"
+__email__ = "marcin.usielski@nokia.com"
 
 import codecs
 import contextlib
+import os
 import re
 import select
 import datetime
 import logging
+import shlex
+import subprocess
 import threading
 import time
 
-from ptyprocess import PtyProcessUnicode  # Unix-only
 
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
@@ -21,14 +23,167 @@ from moler.helpers import all_chars_to_hex
 from moler.helpers import non_printable_chars_to_hex
 from moler.util import tracked_thread
 from moler.connection import Connection
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 
-class ThreadedTerminal(IOConnection):
+class PtyProcessUnicodeNotFork:
+    """PtyProcessUnicode without forking process."""
+    def __init__(self, cmd: str = "/bin/bash", dimensions: Tuple[int, int]=(25, 120), buffer_size: int=4096):
+        self.cmd = cmd
+        self.dimensions = dimensions
+        self.buffer_size = buffer_size
+        self.delayafterclose = 0.2
+        encoding = "utf-8"
+        self.decoder = codecs.getincrementaldecoder(encoding)(errors='strict')
+        self.fd : int = -1  # File descriptor for pty master
+        self.pid : int = -1  # Process ID of the child process
+        self.slave_fd : int = -1  # File descriptor for pty slave
+        self.process : Optional[subprocess.Popen] = None  # Subprocess.Popen object
+        self._closed : bool = True
+
+    def create_pty_process(self):
+        """Create PtyProcessUnicode without forking process."""
+        import pty
+        import fcntl
+
+        # Create a new pty pair
+        master_fd, slave_fd = pty.openpty()
+        print(f"Created pty master_fd={master_fd}, slave_fd={slave_fd}")
+
+        # Set master fd to non-blocking mode
+        flags = fcntl.fcntl(master_fd, fcntl.F_GETFL)
+        fcntl.fcntl(master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+
+        # Start the subprocess with the slave fd
+        process: subprocess.Popen = subprocess.Popen(
+            shlex.split(self.cmd),
+            stdin=slave_fd,
+            stdout=slave_fd,
+            stderr=slave_fd,
+            start_new_session=True
+        )
+        print(f"Started subprocess with cmd='{self.cmd}'")
+        print(f"Subprocess PID: {process.pid}")
+
+        # Store the process information
+        self.fd = master_fd
+        self.slave_fd = slave_fd
+        self.pid = process.pid
+        self.process = process
+        self._closed = False
+
+        # Close slave fd in parent process (child process still has it)
+        # We keep it open initially to prevent early closure
+        # os.close(slave_fd)  # Commented out to keep it open
+
+        # Give the shell time to initialize
+        time.sleep(0.1)
+
+    def write(self, data: str):
+        """Write data to pty process."""
+        if self._closed or self.fd < 0:
+            raise IOError("Cannot write to closed pty process")
+
+        try:
+            # Convert string to bytes if necessary
+            if isinstance(data, str):
+                data_bytes = data.encode('utf-8')
+            else:
+                data_bytes = data
+
+            # Write data to the pty master
+            written = os.write(self.fd, data_bytes)
+            return written
+        except OSError as e:
+            if e.errno == 5:  # Input/output error - process might be dead
+                self._closed = True
+            raise
+
+    def read(self, size: int) -> str:
+        """Read data from pty process."""
+        if self._closed or self.fd < 0:
+            raise EOFError("Cannot read from closed pty process")
+
+        try:
+            # Read raw bytes from pty master (non-blocking)
+            data_bytes = os.read(self.fd, size)
+
+            if not data_bytes:
+                raise EOFError("End of file reached")
+
+            # Decode bytes to string using the incremental decoder
+            # This handles partial UTF-8 sequences correctly
+            data_str = self.decoder.decode(data_bytes, final=False)
+            return data_str
+
+        except OSError as e:
+            if e.errno == 11:  # Resource temporarily unavailable (EAGAIN)
+                return ""  # No data available, return empty string
+            elif e.errno == 5:  # Input/output error - process might be dead
+                self._closed = True
+                raise EOFError("PTY process terminated")
+            else:
+                raise
+
+    def close(self, force: bool = False) -> None:
+        """Close pty process."""
+        if self._closed:
+            return
+
+        import signal
+        import subprocess
+
+        self._closed = True
+
+        # Try to terminate the process gracefully first
+        if self.process and self.isalive():
+            try:
+                if force:
+                    self.process.kill()  # SIGKILL
+                else:
+                    self.process.terminate()  # SIGTERM
+
+                # Wait for process to end with timeout
+                try:
+                    self.process.wait(timeout=self.delayafterclose)
+                except subprocess.TimeoutExpired:
+                    if not force:
+                        # If still alive and not forcing, try kill
+                        self.process.kill()
+                        self.process.wait(timeout=0.5)
+            except Exception as e:
+                print(f"Error terminating process: {e}")
+
+        # Close file descriptors
+        if self.fd >= 0:
+            try:
+                os.close(self.fd)
+            except OSError:
+                pass
+            self.fd = -1
+
+        if self.slave_fd >= 0:
+            try:
+                os.close(self.slave_fd)
+            except OSError:
+                pass
+            self.slave_fd = -1
+
+    def isalive(self) -> bool:
+        """Check if pty process is alive."""
+        if self._closed or not self.process:
+            return False
+
+        # Check if process is still running
+        poll_result = self.process.poll()
+        return poll_result is None  # None means process is still running
+
+
+class ThreadedTerminalNoForkPTY(IOConnection):
     """
     Works on Unix (like Linux) systems only!
 
-    ThreadedTerminal is shell working under Pty
+    ThreadedTerminalNoForkPTY is shell working under Pty
     """
 
     def __init__(
@@ -59,10 +214,10 @@ class ThreadedTerminal(IOConnection):
             False  # Set True to log incoming non printable chars as hex.
         )
         self.debug_hex_on_all_chars = False  # Set True to log incoming data as hex.
-        self._terminal = None
+        self._terminal: Optional[PtyProcessUnicodeNotFork] = None
         self._shell_operable: threading.Event = threading.Event()
         self._export_sent = False
-        self.pulling_thread = None
+        self.pulling_thread: Optional[threading.Thread] = None
         self.read_buffer: str = ""
 
         self._select_timeout = select_timeout
@@ -83,10 +238,12 @@ class ThreadedTerminal(IOConnection):
 
         if not self._terminal:
             self.moler_connection.open()
-            self._terminal = PtyProcessUnicode.spawn(
-                self._cmd, dimensions=self.dimensions
-            )
+            # self._terminal = PtyProcessUnicode.spawn(
+            #     self._cmd, dimensions=self.dimensions
+            # )
+            self._terminal = PtyProcessUnicodeNotFork()
             assert self._terminal is not None
+            self._terminal.create_pty_process()
             self._terminal.delayafterclose = self._terminal_delayafterclose
             # need to not replace not unicode data instead of raise exception
             self._terminal.decoder = codecs.getincrementaldecoder("utf-8")(
@@ -144,7 +301,7 @@ class ThreadedTerminal(IOConnection):
     def pull_data(self, pulling_done: threading.Event) -> None:
         """Pull data from ThreadedTerminal connection."""
         logging.getLogger("moler_threads").debug(f"ENTER {self}")
-        heartbeat: bool = tracked_thread.report_alive()
+        heartbeat = tracked_thread.report_alive()
         reads: List[int] = []
 
         while not pulling_done.is_set():
