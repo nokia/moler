@@ -84,15 +84,13 @@ def test_terminal_lsof(terminal_connection):
     assert ret["NUMBER"] > 1
 
 
-@pytest.fixture()
-def terminal_connection():
+@pytest.fixture(params=[ThreadedTerminal, ThreadedTerminalNoForkPTY])
+def terminal_connection(request):
     from moler.threaded_moler_connection import ThreadedMolerConnection
 
+    terminal_class = request.param
     moler_conn = ThreadedMolerConnection()
-    if sys.version_info >= (3, 11):
-        terminal = ThreadedTerminalNoForkPTY(moler_connection=moler_conn)
-    else:
-        terminal = ThreadedTerminal(moler_connection=moler_conn)
+    terminal = terminal_class(moler_connection=moler_conn)
 
     with terminal.open() as connection:
         yield connection.moler_connection
