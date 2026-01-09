@@ -28,7 +28,7 @@ from typing import Tuple, List, Optional
 
 class PtyProcessUnicodeNotFork:
     """PtyProcessUnicode without forking process."""
-    def __init__(self, cmd: str = "/bin/bash", dimensions: Tuple[int, int] =( 25, 120), buffer_size: int = 4096):
+    def __init__(self, cmd: str = "/bin/bash", dimensions: Tuple[int, int] = (25, 120), buffer_size: int = 4096):
         self.cmd = cmd
         self.dimensions = dimensions
         self.buffer_size = buffer_size
