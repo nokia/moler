@@ -228,7 +228,6 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
         io_conn = ThreadedTerminalNoForkPTY(moler_connection=mlr_conn)  # TODO: add name, logger
         return io_conn
 
-
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal",
                                              variant="threaded",
@@ -244,7 +243,6 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
                                              variant="single-threaded",
                                              constructor=terminal_thd_conn_st)
 
-
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal_no_forkpty",
                                              variant="threaded",
@@ -259,6 +257,7 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     connection_factory.register_construction(io_type="terminal_no_forkpty",
                                              variant="single-threaded",
                                              constructor=terminal_nofork_thd_conn_st)
+
 
 def _register_builtin_py3_unix_connections(connection_factory, moler_conn_class):
     from moler.io.asyncio.terminal import AsyncioTerminal, AsyncioInThreadTerminal

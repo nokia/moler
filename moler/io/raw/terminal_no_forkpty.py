@@ -28,18 +28,18 @@ from typing import Tuple, List, Optional
 
 class PtyProcessUnicodeNotFork:
     """PtyProcessUnicode without forking process."""
-    def __init__(self, cmd: str = "/bin/bash", dimensions: Tuple[int, int]=(25, 120), buffer_size: int=4096):
+    def __init__(self, cmd: str = "/bin/bash", dimensions: Tuple[int, int] =( 25, 120), buffer_size: int = 4096):
         self.cmd = cmd
         self.dimensions = dimensions
         self.buffer_size = buffer_size
         self.delayafterclose = 0.2
         encoding = "utf-8"
         self.decoder = codecs.getincrementaldecoder(encoding)(errors='strict')
-        self.fd : int = -1  # File descriptor for pty master
-        self.pid : int = -1  # Process ID of the child process
-        self.slave_fd : int = -1  # File descriptor for pty slave
-        self.process : Optional[subprocess.Popen] = None  # Subprocess.Popen object
-        self._closed : bool = True
+        self.fd: int = -1  # File descriptor for pty master
+        self.pid: int = -1  # Process ID of the child process
+        self.slave_fd: int = -1  # File descriptor for pty slave
+        self.process: Optional[subprocess.Popen] = None  # Subprocess.Popen object
+        self._closed: bool = True
 
     def create_pty_process(self):
         """Create PtyProcessUnicode without forking process."""
