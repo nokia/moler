@@ -4,6 +4,7 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
+import time
 import pytest
 import tempfile
 import os
@@ -178,22 +179,22 @@ def test_cp_md5sum_cat_mv_rm_ls(unix_terminal):
     assert dst_file not in ret['files']
 
 
-def test_ls_from_two_terminals(unix_terminal, unix_terminal2):
+def test_ping_from_two_terminals(unix_terminal, unix_terminal2):
     unix1 = unix_terminal
     unix2 = unix_terminal2
 
-    cmd_ping_1 = unix1.get_cmd(cmd_name="ping", cmd_params={'options': f"-c 2", 'destination': '127.0.0.1'})
-    cmd_ping_2 = unix2.get_cmd(cmd_name="ping", cmd_params={'options': f"-c 3", 'destination': 'localhost'})
+    cmd_ping_1 = unix1.get_cmd(cmd_name="ping", cmd_params={'options': f"-c 2 -i 0.2", 'destination': '127.0.0.1'})
+    cmd_ping_2 = unix2.get_cmd(cmd_name="ping", cmd_params={'options': f"-c 3 -i 0.1", 'destination': 'localhost'})
     cmd_ping_1.start()
     cmd_ping_2.start()
+    assert cmd_ping_1.running()
+    assert cmd_ping_2.running()
     ret1 = cmd_ping_1.await_done(timeout=10)
     ret2 =cmd_ping_2.await_done(timeout=10)
     assert 'packets_transmitted' in ret1
     assert ret1['packets_transmitted'] == 2
     assert 'packets_transmitted' in ret2
     assert ret2['packets_transmitted'] == 3
-
-
 
 
 @pytest.fixture

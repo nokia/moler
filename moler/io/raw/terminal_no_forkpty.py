@@ -5,11 +5,13 @@ __email__ = "marcin.usielski@nokia.com"
 
 import codecs
 import contextlib
+import fcntl
 import os
 import re
 import select
 import datetime
 import logging
+import pty
 import shlex
 import subprocess
 import threading
@@ -25,16 +27,17 @@ from moler.util import tracked_thread
 from moler.connection import Connection
 from typing import Tuple, List, Optional
 
+# Unix only. Does not work on Windows.
 
 class PtyProcessUnicodeNotFork:
     """PtyProcessUnicode without forking process."""
     def __init__(self, cmd: str = "/bin/bash", dimensions: Tuple[int, int] = (25, 120), buffer_size: int = 4096):
-        self.cmd = cmd
-        self.dimensions = dimensions
-        self.buffer_size = buffer_size
-        self.delayafterclose = 0.2
-        encoding = "utf-8"
-        self.decoder = codecs.getincrementaldecoder(encoding)(errors='strict')
+        self.cmd: str = cmd
+        self.dimensions: Tuple[int, int] = dimensions
+        self.buffer_size: int = buffer_size
+        self.delayafterclose: float = 0.2
+        self.encoding = "utf-8"
+        self.decoder = codecs.getincrementaldecoder(self.encoding)(errors='strict')
         self.fd: int = -1  # File descriptor for pty master
         self.pid: int = -1  # Process ID of the child process
         self.slave_fd: int = -1  # File descriptor for pty slave
@@ -43,27 +46,22 @@ class PtyProcessUnicodeNotFork:
 
     def create_pty_process(self):
         """Create PtyProcessUnicode without forking process."""
-        import pty
-        import fcntl
 
         # Create a new pty pair
         master_fd, slave_fd = pty.openpty()
-        print(f"Created pty master_fd={master_fd}, slave_fd={slave_fd}")
 
         # Set master fd to non-blocking mode
         flags = fcntl.fcntl(master_fd, fcntl.F_GETFL)
         fcntl.fcntl(master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
         # Start the subprocess with the slave fd
-        process: subprocess.Popen = subprocess.Popen(
+        process = subprocess.Popen(
             shlex.split(self.cmd),
             stdin=slave_fd,
             stdout=slave_fd,
             stderr=slave_fd,
             start_new_session=True
         )
-        print(f"Started subprocess with cmd='{self.cmd}'")
-        print(f"Subprocess PID: {process.pid}")
 
         # Store the process information
         self.fd = master_fd
@@ -72,11 +70,6 @@ class PtyProcessUnicodeNotFork:
         self.process = process
         self._closed = False
 
-        # Close slave fd in parent process (child process still has it)
-        # We keep it open initially to prevent early closure
-        # os.close(slave_fd)  # Commented out to keep it open
-
-        # Give the shell time to initialize
         time.sleep(0.1)
 
     def write(self, data: str):
@@ -87,7 +80,7 @@ class PtyProcessUnicodeNotFork:
         try:
             # Convert string to bytes if necessary
             if isinstance(data, str):
-                data_bytes = data.encode('utf-8')
+                data_bytes = data.encode(self.encoding)
             else:
                 data_bytes = data
 
@@ -129,10 +122,6 @@ class PtyProcessUnicodeNotFork:
         """Close pty process."""
         if self._closed:
             return
-
-        import signal
-        import subprocess
-
         self._closed = True
 
         # Try to terminate the process gracefully first
@@ -225,7 +214,7 @@ class ThreadedTerminalNoForkPTY(IOConnection):
         self.dimensions = dimensions
         self.first_prompt = first_prompt
         self.target_prompt = target_prompt
-        self._cmd = [cmd]
+        self._cmd = cmd
         self.set_prompt_cmd = set_prompt_cmd
         self._re_set_prompt_cmd = re.sub(
             "['\"].*['\"]", "", self.set_prompt_cmd.strip()
@@ -238,10 +227,8 @@ class ThreadedTerminalNoForkPTY(IOConnection):
 
         if not self._terminal:
             self.moler_connection.open()
-            # self._terminal = PtyProcessUnicode.spawn(
-            #     self._cmd, dimensions=self.dimensions
-            # )
-            self._terminal = PtyProcessUnicodeNotFork()
+            self._terminal = PtyProcessUnicodeNotFork(cmd=self._cmd, dimensions=self.dimensions,
+                                                      buffer_size=self._read_buffer_size)
             assert self._terminal is not None
             self._terminal.create_pty_process()
             self._terminal.delayafterclose = self._terminal_delayafterclose

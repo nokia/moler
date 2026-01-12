@@ -99,13 +99,14 @@ class IOConnection:
         by moler_connection when it needs.
         """
 
-    # def receive(self) -> bytes:
-    #     """
-    #     Pull data bytes from external-IO:
-    #         data = io_connection.receive()
-    #     and then forward it to Moler's connection:
-    #         self.moler_connection.data_received(data)
-    #     """
+    def receive(self) -> bytes:
+        """
+        Pull data bytes from external-IO:
+            data = io_connection.receive()
+        and then forward it to Moler's connection:
+            self.moler_connection.data_received(data)
+        """
+        return b""
 
     def data_received(self, data: str, recv_time: datetime) -> None:
         """
