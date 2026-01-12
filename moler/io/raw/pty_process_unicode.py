@@ -11,7 +11,7 @@ import shlex
 import subprocess
 import time
 
-from typing import Tuple, Optional
+from typing import Optional, Tuple, Union
 
 
 # Unix only. Does not work on Windows.
@@ -66,7 +66,7 @@ class PtyProcessUnicodeNotFork:
 
         time.sleep(0.1)
 
-    def write(self, data: str | bytes) -> int:
+    def write(self, data: Union[str, bytes]) -> int:
         """
         Write data to pty process.
         :param data: data to write
