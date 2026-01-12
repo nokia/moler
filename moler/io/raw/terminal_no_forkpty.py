@@ -27,7 +27,9 @@ from moler.util import tracked_thread
 from moler.connection import Connection
 from typing import Tuple, List, Optional
 
+
 # Unix only. Does not work on Windows.
+
 
 class PtyProcessUnicodeNotFork:
     """PtyProcessUnicode without forking process."""
