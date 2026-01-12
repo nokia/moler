@@ -66,7 +66,7 @@ class PtyProcessUnicodeNotFork:
 
         time.sleep(0.1)
 
-    def write(self, data: str|bytes) -> int:
+    def write(self, data: str | bytes) -> int:
         """
         Write data to pty process.
         :param data: data to write

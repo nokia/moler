@@ -24,7 +24,6 @@ from moler.util import tracked_thread
 from moler.connection import Connection
 
 
-
 class ThreadedTerminalNoForkPTY(IOConnection):
     """
     Works on Unix (like Linux) systems only!
