@@ -4,7 +4,7 @@ Connections related configuration
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import platform
@@ -231,7 +231,7 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal",
                                              variant="threaded",
-                                             constructor=terminal_thd_conn_mt)  # Moler 2.0.0 will replace this to st
+                                             constructor=terminal_thd_conn_mt)
 
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal",
@@ -246,7 +246,7 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal_no_forkpty",
                                              variant="threaded",
-                                             constructor=terminal_nofork_thd_conn_mt)  # Moler 2.0.0 will replace this to st
+                                             constructor=terminal_nofork_thd_conn_mt)
 
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal_no_forkpty",

@@ -4,7 +4,6 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-import time
 import pytest
 import tempfile
 import os
@@ -183,8 +182,13 @@ def test_ping_from_two_terminals(unix_terminal, unix_terminal2):
     unix1 = unix_terminal
     unix2 = unix_terminal2
 
-    cmd_ping_1 = unix1.get_cmd(cmd_name="ping", cmd_params={'options': f"-c 2 -i 0.2", 'destination': '127.0.0.1'})
-    cmd_ping_2 = unix2.get_cmd(cmd_name="ping", cmd_params={'options': f"-c 3 -i 0.1", 'destination': 'localhost'})
+    count1 = 2
+    count2 = 3
+    options1 = f"-c {count1} -i 0.2"
+    options2 = f"-c {count2} -i 0.1"
+
+    cmd_ping_1 = unix1.get_cmd(cmd_name="ping", cmd_params={'options': options1, 'destination': '127.0.0.1'})
+    cmd_ping_2 = unix2.get_cmd(cmd_name="ping", cmd_params={'options': options2, 'destination': 'localhost'})
     cmd_ping_1.start()
     cmd_ping_2.start()
     assert cmd_ping_1.running()
@@ -192,9 +196,9 @@ def test_ping_from_two_terminals(unix_terminal, unix_terminal2):
     ret1 = cmd_ping_1.await_done(timeout=10)
     ret2 =cmd_ping_2.await_done(timeout=10)
     assert 'packets_transmitted' in ret1
-    assert ret1['packets_transmitted'] == 2
+    assert ret1['packets_transmitted'] == count1
     assert 'packets_transmitted' in ret2
-    assert ret2['packets_transmitted'] == 3
+    assert ret2['packets_transmitted'] == count2
 
 
 @pytest.fixture
