@@ -138,7 +138,7 @@ class IOConnection:
             self._connect_subscribers_lock, self._connect_subscribers, subscriber
         )
 
-    def subscribe_on_connection_lost(self, subscriber: Callable):
+    def subscribe_on_connection_lost(self, subscriber: Callable) -> None:
         """
         Adds subscriber to list of functions to call when connection is closed/disconnected
         :param subscriber: reference to function to call when connection is closed/disconnected
