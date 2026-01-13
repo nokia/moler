@@ -194,7 +194,7 @@ def test_ping_from_two_terminals(unix_terminal, unix_terminal2):
     assert cmd_ping_1.running()
     assert cmd_ping_2.running()
     ret1 = cmd_ping_1.await_done(timeout=10)
-    ret2 =cmd_ping_2.await_done(timeout=10)
+    ret2 = cmd_ping_2.await_done(timeout=10)
     assert 'packets_transmitted' in ret1
     assert ret1['packets_transmitted'] == count1
     assert 'packets_transmitted' in ret2
