@@ -17,7 +17,7 @@ from moler.cmd.unix.whoami import Whoami
 from moler.cmd.unix.lsof import Lsof
 from moler.exceptions import CommandTimeout
 from moler.io.raw.terminal import ThreadedTerminal
-from moler.io.raw.terminal_no_forkpty import ThreadedTerminalNoForkPTY
+from moler.io.raw.terminal_no_fork import ThreadedTerminalNoFork
 
 
 def test_terminal_cmd_whoami_during_ping(terminal_connection):
@@ -84,7 +84,7 @@ def test_terminal_lsof(terminal_connection):
     assert ret["NUMBER"] > 1
 
 
-@pytest.fixture(params=[ThreadedTerminal, ThreadedTerminalNoForkPTY])
+@pytest.fixture(params=[ThreadedTerminal, ThreadedTerminalNoFork])
 def terminal_connection(request):
     from moler.threaded_moler_connection import ThreadedMolerConnection
 

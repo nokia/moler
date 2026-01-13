@@ -203,13 +203,13 @@ def test_ping_from_two_terminals(unix_terminal, unix_terminal2):
 
 @pytest.fixture
 def unix_terminal():
-    unix = UnixLocal(io_type='terminal_no_forkpty', variant='threaded')
+    unix = UnixLocal(io_type='terminal_no_fork', variant='threaded')
     unix.establish_connection()
     yield unix
 
 
 @pytest.fixture
 def unix_terminal2():
-    unix = UnixLocal(io_type='terminal_no_forkpty', variant='threaded')
+    unix = UnixLocal(io_type='terminal_no_fork', variant='threaded')
     unix.establish_connection()
     yield unix

@@ -24,11 +24,11 @@ from moler.util import tracked_thread
 from moler.connection import Connection
 
 
-class ThreadedTerminalNoForkPTY(IOConnection):
+class ThreadedTerminalNoFork(IOConnection):
     """
     Works on Unix (like Linux) systems only!
 
-    ThreadedTerminalNoForkPTY is shell working under Pty
+    ThreadedTerminalNoFork is shell working under Pty
     """
 
     def __init__(
