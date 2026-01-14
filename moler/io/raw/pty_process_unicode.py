@@ -13,6 +13,7 @@ import time
 
 from typing import Optional, Tuple, Union
 
+from moler.exceptions import MolerException
 
 # Unix only. Does not work on Windows.
 
@@ -73,12 +74,12 @@ class PtyProcessUnicodeNotFork:
         :return: number of bytes written
         """
         if self._closed or self.fd < 0:
-            raise IOError("Cannot write to closed pty process")
+            raise MolerException("Cannot write to closed pty process")
 
         try:
             # Convert string to bytes if necessary
             if isinstance(data, str):
-                data_bytes = data.encode(self.encoding)
+                data_bytes = data.encode(self.encoding, errors='ignore')
             else:
                 data_bytes = data
 
@@ -98,14 +99,14 @@ class PtyProcessUnicodeNotFork:
         :return: data read as string
         """
         if self._closed or self.fd < 0:
-            raise EOFError("Cannot read from closed pty process")
+            raise MolerException("Cannot read from closed pty process")
 
         try:
             # Read raw bytes from pty master (non-blocking)
             data_bytes = os.read(self.fd, size)
 
             if not data_bytes:
-                raise EOFError("End of file reached")
+                raise MolerException("End of file reached")
 
             # Decode bytes to string using the incremental decoder
             # This handles partial UTF-8 sequences correctly
@@ -117,7 +118,7 @@ class PtyProcessUnicodeNotFork:
                 return ""  # No data available, return empty string
             elif e.errno == 5:  # Input/output error - process might be dead
                 self.close(force=True)
-                raise EOFError("End of file reached")
+                raise MolerException("End of file reached")
             else:
                 raise
 

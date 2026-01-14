@@ -80,7 +80,7 @@ class IOConnection:
         self.moler_connection.open()
         return contextlib.closing(self)
 
-    def close(self):
+    def close(self) -> None:
         """Close established connection."""
 
     def __enter__(self):
