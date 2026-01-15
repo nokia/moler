@@ -9,16 +9,16 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [3.8, 3.9, "3.10", 3.11, 3.12, 3.13, 3.14]
+        python-version: ["3.8", "3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
         exclude:
         - os: macos-latest
-          python-version: 3.8
+          python-version: "3.8"
         - os: macos-latest
-          python-version: 3.9
+          python-version: "3.9"
       fail-fast: false
     env:
       MOLER_DEBUG_THREADS: True
-      PYTHON_COVERAGE: '3.13'
+      PYTHON_COVERAGE: '3.14'
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
@@ -55,7 +55,7 @@ jobs:
           adb devices
       - name: Test with pytest
         if: ${{ (matrix.python-version != env.PYTHON_COVERAGE) || (matrix.os == 'macos-latest') }}
-        timeout-minutes: 14
+        timeout-minutes: 20
         run: |
           python -m pytest -vvvsss test/
           # python -m pytest -c py3pytest.ini -vvvsss test/
@@ -95,7 +95,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [3.13]
+        python-version: [3.14]
     steps:
       - uses: actions/checkout@v2
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
