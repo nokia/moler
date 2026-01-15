@@ -1,3 +1,6 @@
+## moler 4.5.0
+ * Optional terminal without forkpty
+
 ## moler 4.4.0
  * Warning if command goes to queue
 
