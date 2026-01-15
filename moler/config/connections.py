@@ -4,7 +4,7 @@ Connections related configuration
 """
 
 __author__ = 'Grzegorz Latuszek, Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import platform
@@ -196,6 +196,7 @@ def _register_python3_builtin_connections(connection_factory, moler_conn_class):
 
 def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     from moler.io.raw.terminal import ThreadedTerminal
+    from moler.io.raw.terminal_no_fork import ThreadedTerminalNoFork
 
     def terminal_thd_conn_mt(name=None):
         # ThreadedTerminal works on unicode so moler_connection must do no encoding
@@ -212,10 +213,25 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
         io_conn = ThreadedTerminal(moler_connection=mlr_conn)  # TODO: add name, logger
         return io_conn
 
+    def terminal_nofork_thd_conn_mt(name=None):
+        # ThreadedTerminal works on unicode so moler_connection must do no encoding
+        # mlr_conn = mlr_conn_no_encoding(moler_conn_class, name=name)
+        mlr_conn = mlr_conn_no_encoding_partial_clean_vt100(moler_conn_class, name=name)
+        io_conn = ThreadedTerminalNoFork(moler_connection=mlr_conn)  # TODO: add name, logger
+        return io_conn
+
+    def terminal_nofork_thd_conn_st(name=None):
+        # ThreadedTerminal works on unicode so moler_connection must do no encoding
+        # mlr_conn = mlr_conn_no_encoding(moler_conn_class, name=name)
+        from moler.moler_connection_for_single_thread_runner import MolerConnectionForSingleThreadRunner
+        mlr_conn = mlr_conn_no_encoding_partial_clean_vt100(MolerConnectionForSingleThreadRunner, name=name)
+        io_conn = ThreadedTerminalNoFork(moler_connection=mlr_conn)  # TODO: add name, logger
+        return io_conn
+
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal",
                                              variant="threaded",
-                                             constructor=terminal_thd_conn_mt)  # Moler 2.0.0 will replace this to st
+                                             constructor=terminal_thd_conn_mt)
 
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal",
@@ -226,6 +242,21 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     connection_factory.register_construction(io_type="terminal",
                                              variant="single-threaded",
                                              constructor=terminal_thd_conn_st)
+
+    # TODO: unify passing logger to io_conn (logger/logger_name)
+    connection_factory.register_construction(io_type="terminal_no_fork",
+                                             variant="threaded",
+                                             constructor=terminal_nofork_thd_conn_mt)
+
+    # TODO: unify passing logger to io_conn (logger/logger_name)
+    connection_factory.register_construction(io_type="terminal_no_fork",
+                                             variant="multi-threaded",
+                                             constructor=terminal_nofork_thd_conn_mt)
+
+    # TODO: unify passing logger to io_conn (logger/logger_name)
+    connection_factory.register_construction(io_type="terminal_no_fork",
+                                             variant="single-threaded",
+                                             constructor=terminal_nofork_thd_conn_st)
 
 
 def _register_builtin_py3_unix_connections(connection_factory, moler_conn_class):

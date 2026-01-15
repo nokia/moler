@@ -29,18 +29,21 @@ rather it is generic template how to glue external-IO with Moler's connection.
 """
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski"
-__copyright__ = "Copyright (C) 2018-2022, Nokia"
+__copyright__ = "Copyright (C) 2018-2026, Nokia"
 __email__ = "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com"
 
 import contextlib
 import logging
 from threading import Lock
+from moler.connection import Connection
+from typing import Callable, List
+from datetime import datetime
 
 
 class IOConnection:
     """External-IO connection."""
 
-    def __init__(self, moler_connection):
+    def __init__(self, moler_connection: Connection):
         """
         Specific constructor of external-IO should store information
         how to establish connection (like host/port info)
@@ -48,26 +51,26 @@ class IOConnection:
         :param moler_connection: object of abstract class moler.connection.Connection
         """
         super(IOConnection, self).__init__()
-        self._connect_subscribers = []
+        self._connect_subscribers: List[Callable] = []
         self._connect_subscribers_lock = Lock()
-        self._disconnect_subscribers = []
+        self._disconnect_subscribers: List[Callable] = []
         self._disconnect_subscribers_lock = Lock()
-        self.moler_connection = moler_connection
-        self.__name = "UNNAMED_IO_CONNECTION"
+        self.moler_connection: Connection = moler_connection
+        self.__name: str = "UNNAMED_IO_CONNECTION"
         self.logger = logging.getLogger(f"moler.connection.{self.__name}.io")
         # plugin the way we output data to external world
         self.moler_connection.how2send = self.send
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.__name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str) -> None:
         self.__name = value
         self.logger = logging.getLogger(f"moler.connection.{self.__name}.io")
 
-    def open(self):
+    def open(self) -> contextlib.closing:
         """
         Take 'how to establish connection' info from constructor
         and open that connection.
@@ -77,7 +80,7 @@ class IOConnection:
         self.moler_connection.open()
         return contextlib.closing(self)
 
-    def close(self):
+    def close(self) -> None:
         """Close established connection."""
 
     def __enter__(self):
@@ -88,7 +91,7 @@ class IOConnection:
         self.close()
         return False  # reraise exceptions if any
 
-    def send(self, data):
+    def send(self, data: str) -> None:
         """
         Send data bytes over external-IO.
 
@@ -96,19 +99,16 @@ class IOConnection:
         by moler_connection when it needs.
         """
 
-    def receive(self):
+    def receive(self) -> bytes:
         """
         Pull data bytes from external-IO:
-
             data = io_connection.receive()
-
         and then forward it to Moler's connection:
-
             self.moler_connection.data_received(data)
-
         """
+        return b""
 
-    def data_received(self, data, recv_time):
+    def data_received(self, data: str, recv_time: datetime) -> None:
         """
         Having been given data bytes from external-IO:
 
@@ -116,7 +116,7 @@ class IOConnection:
         """
         self.moler_connection.data_received(data=data, recv_time=recv_time)
 
-    def notify(self, callback, when):
+    def notify(self, callback: Callable, when: str) -> None:
         """
         Adds subscriber to list of functions to call
         :param callback: reference to function to call when connection is open/established
@@ -128,7 +128,7 @@ class IOConnection:
         elif when == "connection_lost":
             self.subscribe_on_connection_lost(subscriber=callback)
 
-    def subscribe_on_connection_made(self, subscriber):
+    def subscribe_on_connection_made(self, subscriber: Callable) -> None:
         """
         Adds subscriber to list of functions to call when connection is open/established (also reopen after close)
         :param subscriber: reference to function to call when connection is open/established
@@ -138,7 +138,7 @@ class IOConnection:
             self._connect_subscribers_lock, self._connect_subscribers, subscriber
         )
 
-    def subscribe_on_connection_lost(self, subscriber):
+    def subscribe_on_connection_lost(self, subscriber: Callable) -> None:
         """
         Adds subscriber to list of functions to call when connection is closed/disconnected
         :param subscriber: reference to function to call when connection is closed/disconnected
@@ -148,7 +148,7 @@ class IOConnection:
             self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber
         )
 
-    def unsubscribe_on_connection_made(self, subscriber):
+    def unsubscribe_on_connection_made(self, subscriber: Callable) -> None:
         """
         Remove subscriber from list of functions to call when connection is open/established (also reopen after close)
         :param subscriber: reference to function registered by method subscribe_on_connection_made
@@ -158,7 +158,7 @@ class IOConnection:
             self._connect_subscribers_lock, self._connect_subscribers, subscriber
         )
 
-    def unsubscribe_on_connection_lost(self, subscriber):
+    def unsubscribe_on_connection_lost(self, subscriber: Callable) -> None:
         """
         Remove subscriber from list of functions to call when connection is closed/disconnected
         :param subscriber: reference to function registered by method subscribe_on_connection_lost
@@ -168,45 +168,45 @@ class IOConnection:
             self._disconnect_subscribers_lock, self._disconnect_subscribers, subscriber
         )
 
-    def disable_logging(self):
+    def disable_logging(self) -> None:
         """
         Disable logging incoming data.
         :return: None
         """
         self.moler_connection.disable_logging()
 
-    def enable_logging(self):
+    def enable_logging(self) -> None:
         """
         Enable logging incoming data.
         :return: None
         """
         self.moler_connection.enable_logging()
 
-    def _notify(self, lock, subscribers):
+    def _notify(self, lock: Lock, subscribers: List[Callable]) -> None:
         with lock:
             copied_subscribers = subscribers[:]
             for subscriber in copied_subscribers:
                 subscriber(self)
 
-    def _notify_on_connect(self):
+    def _notify_on_connect(self) -> None:
         self.logger.info(
             msg=f"Connection to: '{self.name}' has been opened.",
             extra={"log_name": self.name},
         )
         self._notify(self._connect_subscribers_lock, self._connect_subscribers)
 
-    def _notify_on_disconnect(self):
+    def _notify_on_disconnect(self) -> None:
         self.logger.info(
             msg=f"Connection to: '{self.name}' has been closed.",
             extra={"log_name": self.name},
         )
         self._notify(self._disconnect_subscribers_lock, self._disconnect_subscribers)
 
-    def _subscribe(self, lock, subscribers, subscriber):
+    def _subscribe(self, lock: Lock, subscribers: List[Callable], subscriber: Callable) -> None:
         with lock:
             if subscriber not in subscribers:
                 subscribers.append(subscriber)
 
-    def _unsubscribe(self, lock, subscribers, subscriber):
+    def _unsubscribe(self, lock: Lock, subscribers: List[Callable], subscriber: Callable) -> None:
         with lock:
             subscribers.remove(subscriber)

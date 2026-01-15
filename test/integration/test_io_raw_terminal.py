@@ -4,11 +4,11 @@ Tests for connection shell
 """
 
 __author__ = 'Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2019, Nokia'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import getpass
-
+import sys
 import pytest
 
 from moler.cmd.unix.ls import Ls
@@ -17,6 +17,7 @@ from moler.cmd.unix.whoami import Whoami
 from moler.cmd.unix.lsof import Lsof
 from moler.exceptions import CommandTimeout
 from moler.io.raw.terminal import ThreadedTerminal
+from moler.io.raw.terminal_no_fork import ThreadedTerminalNoFork
 
 
 def test_terminal_cmd_whoami_during_ping(terminal_connection):
@@ -83,12 +84,13 @@ def test_terminal_lsof(terminal_connection):
     assert ret["NUMBER"] > 1
 
 
-@pytest.fixture()
-def terminal_connection():
+@pytest.fixture(params=[ThreadedTerminal, ThreadedTerminalNoFork])
+def terminal_connection(request):
     from moler.threaded_moler_connection import ThreadedMolerConnection
 
+    terminal_class = request.param
     moler_conn = ThreadedMolerConnection()
-    terminal = ThreadedTerminal(moler_connection=moler_conn)
+    terminal = terminal_class(moler_connection=moler_conn)
 
     with terminal.open() as connection:
         yield connection.moler_connection
