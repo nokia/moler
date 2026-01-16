@@ -12,6 +12,14 @@ moler.io.raw.memory module
    :show-inheritance:
    :undoc-members:
 
+moler.io.raw.pty\_process\_unicode module
+-----------------------------------------
+
+.. automodule:: moler.io.raw.pty_process_unicode
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 moler.io.raw.sshshell module
 ----------------------------
 
@@ -48,6 +56,14 @@ moler.io.raw.terminal module
 ----------------------------
 
 .. automodule:: moler.io.raw.terminal
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+moler.io.raw.terminal\_no\_fork module
+--------------------------------------
+
+.. automodule:: moler.io.raw.terminal_no_fork
    :members:
    :show-inheritance:
    :undoc-members:
