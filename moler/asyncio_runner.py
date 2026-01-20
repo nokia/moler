@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
+# Copyright (C) 2018-2026 Nokia
 """
 Asyncio Runner
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 # pylint: skip-file
 
@@ -118,7 +118,6 @@ else:
     except AttributeError:
         # Fallback for older Python versions
         _BaseEventLoopPolicy = asyncio.DefaultEventLoopPolicy
-print(f"Using {_BaseEventLoopPolicy} as base for LoudEventLoopPolicy")
 
 
 class LoudEventLoopPolicy(_BaseEventLoopPolicy):
