@@ -107,7 +107,19 @@ class LoudEventLoop(asyncio.SelectorEventLoop):
 
 
 # class LoudEventLoopPolicy(asyncio.unix_events.DefaultEventLoopPolicy):
-class LoudEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
+# DefaultEventLoopPolicy is deprecated in Python 3.14 and plant to remove in 3.16+
+# Use platform-specific event loop policy as base class
+if sys.platform == 'win32':
+    _BaseEventLoopPolicy = asyncio.WindowsProactorEventLoopPolicy
+else:
+    # On Linux and other Unix-like systems
+    try:
+        _BaseEventLoopPolicy = asyncio.unix_events._UnixDefaultEventLoopPolicy
+    except AttributeError:
+        # Fallback for older Python versions
+        _BaseEventLoopPolicy = asyncio.DefaultEventLoopPolicy
+print(f"Using {_BaseEventLoopPolicy} as base for LoudEventLoopPolicy")
+class LoudEventLoopPolicy(_BaseEventLoopPolicy):
     _loop_factory = LoudEventLoop
 
 
