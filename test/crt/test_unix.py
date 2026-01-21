@@ -89,6 +89,7 @@ def test_echo(unix_terminal):
 def test_dmesg(unix_terminal):
     unix = unix_terminal
     cmd_dmesg = unix.get_cmd(cmd_name="dmesg")
+    cmd_dmesg.add_failure_exception(r"Failed to connect to system scope bus via local transport")
     ret = cmd_dmesg()
     assert 'LINES' in ret
 

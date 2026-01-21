@@ -107,7 +107,7 @@ class LoudEventLoop(asyncio.SelectorEventLoop):
 
 
 # class LoudEventLoopPolicy(asyncio.unix_events.DefaultEventLoopPolicy):
-# DefaultEventLoopPolicy is deprecated in Python 3.14 and plant to remove in 3.16+
+# DefaultEventLoopPolicy is deprecated in Python 3.14 and planed to remove in 3.16
 # Use platform-specific event loop policy as base class
 if sys.platform == 'win32':
     _BaseEventLoopPolicy = asyncio.WindowsProactorEventLoopPolicy
@@ -121,7 +121,7 @@ else:
 
 
 class LoudEventLoopPolicy(_BaseEventLoopPolicy):
-    _loop_factory = LoudEventLoop
+     _loop_factory = LoudEventLoop
 
 
 def thread_secure_get_event_loop(logger_name="moler.runner.asyncio"):
