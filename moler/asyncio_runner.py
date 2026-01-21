@@ -1,12 +1,12 @@
 # -*- coding: utf-8 -*-
-# Copyright (C) 2018 Nokia
+# Copyright (C) 2018-2026 Nokia
 """
 Asyncio Runner
 """
 
-__author__ = 'Grzegorz Latuszek'
-__copyright__ = 'Copyright (C) 2018, Nokia'
-__email__ = 'grzegorz.latuszek@nokia.com'
+__author__ = 'Grzegorz Latuszek, Marcin Usielski'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
+__email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 # pylint: skip-file
 
@@ -104,11 +104,6 @@ class LoudEventLoop(asyncio.SelectorEventLoop):
         debug_into_logger(logger, msg=msg, levels_to_go_up=2)
         debug_into_logger(logger, msg=msg, levels_to_go_up=3)
         super(LoudEventLoop, self).stop()
-
-
-# class LoudEventLoopPolicy(asyncio.unix_events.DefaultEventLoopPolicy):
-class LoudEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
-    _loop_factory = LoudEventLoop
 
 
 def thread_secure_get_event_loop(logger_name="moler.runner.asyncio"):
