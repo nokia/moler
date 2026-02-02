@@ -1,3 +1,6 @@
+## moler 4.6.0
+ * Warning when using ThreadedTerminalNoFork (Unix-only, no-fork implementation)
+
 ## moler 4.5.0
  * Optional terminal without forkpty
 
