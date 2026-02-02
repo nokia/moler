@@ -15,6 +15,8 @@ from moler.cmd.unix.ls import Ls
 from moler.cmd.unix.ping import Ping
 from moler.cmd.unix.whoami import Whoami
 from moler.cmd.unix.lsof import Lsof
+from moler.cmd.unix.touch import Touch
+from moler.cmd.unix.rm import Rm
 from moler.exceptions import CommandTimeout
 from moler.io.raw.terminal import ThreadedTerminal
 from moler.io.raw.terminal_no_fork import ThreadedTerminalNoFork
@@ -82,6 +84,28 @@ def test_terminal_lsof(terminal_connection):
     cmd = Lsof(connection=terminal, options="| grep python | wc -l")
     ret = cmd(timeout=300)
     assert ret["NUMBER"] > 1
+
+
+def test_terminal_touch(terminal_connection):
+    import os
+    import tempfile
+    terminal = terminal_connection
+    test_file = tempfile.mktemp(suffix='.txt')
+    test_file_name = os.path.basename(test_file)
+    test_file_dir = os.path.dirname(test_file) or '.'
+    try:
+        cmd = Touch(connection=terminal, path=test_file)
+        cmd()
+        assert os.path.exists(test_file)
+        cmd_ls = Ls(connection=terminal, path=test_file_dir)
+        ret = cmd_ls()
+        assert test_file_name in ret['files']
+        cmd_rm = Rm(connection=terminal, file=test_file)
+        cmd_rm()
+        assert not os.path.exists(test_file)
+    finally:
+        if os.path.exists(test_file):
+            os.remove(test_file)
 
 
 @pytest.fixture(params=[ThreadedTerminal, ThreadedTerminalNoFork])
