@@ -1,3 +1,7 @@
+## moler 4.6.0
+ * Deleted asyncio policy class
+ * Warning when using ThreadedTerminalNoFork
+
 ## moler 4.5.0
  * Optional terminal without forkpty
 
