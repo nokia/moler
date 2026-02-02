@@ -55,6 +55,7 @@ class ThreadedTerminalNoFork(IOConnection):
         :param terminal_delayafterclose: delay for checking if terminal was properly closed
         """
         super().__init__(moler_connection=moler_connection)
+        self.logger.warning("ThreadedTerminalNoFork - experimental implementation. Use at your own risk.")
         self.debug_hex_on_non_printable_chars = (
             False  # Set True to log incoming non printable chars as hex.
         )
