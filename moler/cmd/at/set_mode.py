@@ -17,13 +17,14 @@ from moler.exceptions import WrongUsage
 
 class SetMode(GenericAtCommand):
     """
-    Command to set mode (automatic, lte, gsm, wcdma).
+    Command to set mode (automatic, lte, gsm, wcdma, 5g, lte:5g).
     """
     mode2cops_value = {"automatic": '0',
                        "lte": '0,0,0,7',
                        "gsm": '0,0,0,3',
                        "wcdma": '0,0,0,6',
-                       "5g": '0,0,0,12'}
+                       "5g": '0,0,0,12',
+                       'lte:5g': '0,0,0,13'}
 
     def __init__(self, selected_mode, connection=None, prompt=None, newline_chars=None, runner=None):
         """Create instance of SetMode class"""
@@ -72,3 +73,13 @@ OK
 COMMAND_KWARGS_lte_upper = {"selected_mode": "LTE"}
 
 COMMAND_RESULT_lte_upper = {}
+
+COMMAND_OUTPUT_nsa_upper = """
+AT+COPS=0,0,0,13
+
+OK
+"""
+
+COMMAND_KWARGS_nsa_upper = {"selected_mode": "LTE:5G"}
+
+COMMAND_RESULT_nsa_upper = {}
