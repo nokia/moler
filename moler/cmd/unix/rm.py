@@ -40,7 +40,6 @@ class Rm(GenericUnixCommand):
         cmd = f"rm {self.file}"
         if self.options:
             cmd = f"rm {self.options} {self.file}"
-
         return cmd
 
 
