@@ -72,7 +72,7 @@ class DeviceFactory:
         :param clear_device_history: set True to clear the history of devices. Caution: you may overwrite your logs!
         :return: None
         """
-        devices = copy_list(list(cls._devices.keys()), deep_copy=True)
+        devices = tuple(cls._devices.keys())
         for device_name in devices:
             cls.remove_device(name=device_name)
         devices_config.clear()
