@@ -231,7 +231,6 @@ class TextualDevice(AbstractDevice):
         :param stack_limit: how many stack frames to keep. If None then all stack frames are kept.
         :return: None
         """
-        print(f"Device '{self.name}' is about to remove.")
         mg = pformat(traceback.format_list(traceback.extract_stack(limit=stack_limit))[::-1])
         self._log(level=logging.INFO, msg=f"Device '{self.name}' is about to remove. Requested by: {mg}\n(...)")
 
