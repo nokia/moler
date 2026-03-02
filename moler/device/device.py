@@ -436,12 +436,10 @@ class DeviceFactory:
         )
         already_device_desc = DeviceFactory._devices_params[already_created_device.name]
         assert type(already_device_desc) is dict
-        print(f"Comparing device '{already_device_name}'.")
         if 'constructor_parameters' in already_device_desc:
             if 'io_connection' in already_device_desc['constructor_parameters']:
                 if already_device_desc['constructor_parameters']['io_connection'] is not None:
                     already_device_desc['constructor_parameters']['io_connection'] = None
-                    print(f"Set 'io_connection' to None for device '{already_device_name}' to compare only the description of connection, not the connection itself.")
                     raise WrongUsage(
                         f"Device '{already_device_name}' already created with non None 'io_connection' parameter. To compare the description of connection, not the connection itself, set 'io_connection' to None for this device."
                     )
