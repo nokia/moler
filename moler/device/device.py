@@ -152,7 +152,6 @@ class DeviceFactory:
         dev.remove()
         cls._was_any_device_deleted = True
 
-
     @classmethod
     def get_cloned_device(
         cls,
