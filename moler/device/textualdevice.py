@@ -231,13 +231,15 @@ class TextualDevice(AbstractDevice):
         :param stack_limit: how many stack frames to keep. If None then all stack frames are kept.
         :return: None
         """
+        print(f"Device '{self.name}' is about to remove.")
         mg = pformat(traceback.format_list(traceback.extract_stack(limit=stack_limit))[::-1])
         self._log(level=logging.INFO, msg=f"Device '{self.name}' is about to remove. Requested by: {mg}\n(...)")
 
         try:
             self.goto_state(TextualDevice.not_connected, rerun=5)
         except DeviceChangeStateFailure:
-            self._close_connection(None, None, None)
+            pass
+        self._close_connection(None, None, None)
         super(TextualDevice, self).remove()
         msg = f"Device '{self.name}' is closed."
         self._log(level=logging.INFO, msg=msg)
@@ -1130,10 +1132,13 @@ class TextualDevice(AbstractDevice):
             raise exc
 
     def _stop_prompts_observers(self):
-        if self._prompts_event:
-            self._prompts_event.cancel()
-            self._prompts_event.remove_event_occurred_callback()
-            self._prompts_event = None
+        try:
+            if self._prompts_event:
+                self._prompts_event.cancel()
+                self._prompts_event.remove_event_occurred_callback()
+                self._prompts_event = None
+        except Exception as e:
+            pass
 
     def build_trigger_to_state(self, state):
         trigger = f"GOTO_{state}"

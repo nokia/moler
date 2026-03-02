@@ -169,6 +169,7 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         """
         for handler in list(self._connection_closed_handlers.values()):
             handler()
+        self._connection_closed_handlers = {}
         super(ThreadedMolerConnection, self).shutdown()
 
     def notify_observers(self, data, recv_time):
