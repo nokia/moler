@@ -15,10 +15,13 @@ import threading
 import six
 
 from moler.config import devices as devices_config
+from moler.device.abstract_device import AbstractDevice
 from moler.exceptions import WrongUsage
 from moler.helpers import compare_objects, copy_dict, copy_list
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.util.moler_test import MolerTest
+from typing import Optional
+from pprint import pformat
 
 logger = logging.getLogger("moler")
 
@@ -69,7 +72,7 @@ class DeviceFactory:
         :param clear_device_history: set True to clear the history of devices. Caution: you may overwrite your logs!
         :return: None
         """
-        devices = copy_list(cls._devices.keys(), deep_copy=False)
+        devices = tuple(cls._devices.keys())
         for device_name in devices:
             cls.remove_device(name=device_name)
         devices_config.clear()
@@ -128,18 +131,24 @@ class DeviceFactory:
                 io_connection=io_connection,
                 additional_params=additional_params,
             )
-
         return dev
 
     @classmethod
-    def remove_device(cls, name):
+    def remove_device(cls, name: Optional[str] = None, device: Optional[AbstractDevice] = None):
         """
         Removes device. All commands and events are being finished when device is removed.
 
         :param name: name of device..
+        :param device: device object.
         :return: None
         """
-        dev = cls.get_device(name=name)
+        if name is not None:
+            dev = cls.get_device(name=name)
+        elif device is not None:
+            dev = device
+            name = dev.name
+        else:
+            raise WrongUsage("Either 'name' or 'device' parameter must be provided (none given)")
         dev.remove()
         cls._was_any_device_deleted = True
 
@@ -203,9 +212,8 @@ class DeviceFactory:
                 initial_state = source_device.current_state
 
             device_class = cls._devices_params[source_name]["class_fullname"]
-            constructor_parameters = cls._devices_params[source_name][
-                "constructor_parameters"
-            ]
+            constructor_parameters = copy_dict(cls._devices_params[source_name][
+                "constructor_parameters"], deep_copy=True)
             constructor_parameters["io_connection"] = io_connection
             constructor_parameters["initial_state"] = initial_state
             if constructor_parameters["name"]:

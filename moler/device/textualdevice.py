@@ -238,6 +238,7 @@ class TextualDevice(AbstractDevice):
             self.goto_state(TextualDevice.not_connected, rerun=5)
         except DeviceChangeStateFailure:
             self._close_connection(None, None, None)
+
         super(TextualDevice, self).remove()
         msg = f"Device '{self.name}' is closed."
         self._log(level=logging.INFO, msg=msg)
@@ -1130,10 +1131,13 @@ class TextualDevice(AbstractDevice):
             raise exc
 
     def _stop_prompts_observers(self):
-        if self._prompts_event:
-            self._prompts_event.cancel()
-            self._prompts_event.remove_event_occurred_callback()
-            self._prompts_event = None
+        try:
+            if self._prompts_event:
+                self._prompts_event.cancel()
+                self._prompts_event.remove_event_occurred_callback()
+                self._prompts_event = None
+        except Exception as e:
+            pass
 
     def build_trigger_to_state(self, state):
         trigger = f"GOTO_{state}"
