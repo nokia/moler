@@ -4,7 +4,7 @@ Perform devices SM autotest.
 """
 
 __author__ = "Michal Ernst, Marcin Usielski"
-__copyright__ = "Copyright (C) 2019-2025, Nokia"
+__copyright__ = "Copyright (C) 2019-2026, Nokia"
 __email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com"
 
 import math
@@ -420,3 +420,24 @@ def moler_check_sm_identity(devices: list):
                     print(f"state={state}, observer={observer}, obs0={pformat(obs0)}, obs1={pformat(obs1)}")
                     print(f"diff: {compare_objects(obs0, obs1)}")
                 assert obs0 == obs1
+
+
+class DeviceCM:
+    def __init__(self, name, connection, device_output, test_file_path):
+        self.name = name
+        self.connection = connection
+        self.device_output = device_output
+        self.test_file_path = test_file_path
+        self._device = None
+
+    def __enter__(self):
+        if self._device is None:
+            self._device = get_device(name=self.name, connection=self.connection, device_output=self.device_output,
+                                      test_file_path=self.test_file_path)
+        return self._device
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._device is not None:
+            DeviceFactory.remove_device(device=self._device)
+            self._device = None
+        return False  # don't suppress exceptions

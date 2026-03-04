@@ -1,10 +1,10 @@
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020-2024, Nokia'
+__copyright__ = 'Copyright (C) 2020-2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import pytest
 
-from moler.util.devices_SM import iterate_over_device_states, get_device, moler_check_sm_identity
+from moler.util.devices_SM import iterate_over_device_states, moler_check_sm_identity, DeviceCM
 
 
 pdus = ["PDU", "PDU3"]
@@ -13,27 +13,26 @@ pdus_proxy = ["PDU_PROXY_PC", "PDU_PROXY_PC3"]
 
 @pytest.mark.parametrize("device_name", pdus)
 def test_pdu_device(device_name, device_connection, pdu_output):
-    pdu = get_device(name=device_name, connection=device_connection, device_output=pdu_output,
-                     test_file_path=__file__)
-
-    iterate_over_device_states(device=pdu)
+    with DeviceCM(name=device_name, connection=device_connection, device_output=pdu_output,
+                     test_file_path=__file__) as pdu:
+          iterate_over_device_states(device=pdu)
 
 
 @pytest.mark.parametrize("device_name", pdus_proxy)
 def test_pdu_proxy_pc_device(device_name, device_connection, pdu_proxy_pc_output):
-    pdu = get_device(name=device_name, connection=device_connection,
-                     device_output=pdu_proxy_pc_output, test_file_path=__file__)
-
-    iterate_over_device_states(device=pdu)
+    with DeviceCM(name=device_name, connection=device_connection, device_output=pdu_proxy_pc_output,
+                   test_file_path=__file__) as pdu:
+        iterate_over_device_states(device=pdu)
 
 
 @pytest.mark.parametrize("devices", [pdus, pdus_proxy])
 def test_unix_sm_identity(devices, device_connection, pdu_output):
-    dev0 = get_device(name=devices[0], connection=device_connection, device_output=pdu_output,
-                      test_file_path=__file__)
-    dev1 = get_device(name=devices[1], connection=device_connection, device_output=pdu_output,
-                      test_file_path=__file__)
-    moler_check_sm_identity([dev0, dev1])
+    assert len(devices) == 2
+    with DeviceCM(name=devices[0], connection=device_connection, device_output=pdu_output,
+                   test_file_path=__file__) as dev0:
+        with DeviceCM(name=devices[1], connection=device_connection, device_output=pdu_output,
+                       test_file_path=__file__) as dev1:
+            moler_check_sm_identity([dev0, dev1])
 
 
 @pytest.fixture
