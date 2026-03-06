@@ -231,6 +231,7 @@ class TextualDevice(AbstractDevice):
         :param stack_limit: how many stack frames to keep. If None then all stack frames are kept.
         :return: None
         """
+        print(f"Removing device TextualDevice- '{self.name}'")
         mg = pformat(traceback.format_list(traceback.extract_stack(limit=stack_limit))[::-1])
         self._log(level=logging.INFO, msg=f"Device '{self.name}' is about to remove. Requested by: {mg}\n(...)")
 
@@ -1131,12 +1132,18 @@ class TextualDevice(AbstractDevice):
             raise exc
 
     def _stop_prompts_observers(self):
+        print(f"stop prompts observers for {self.name} by {traceback.format_stack()}")
         try:
             if self._prompts_event:
-                self._prompts_event.cancel()
-                self._prompts_event.remove_event_occurred_callback()
+                print("prompts event exists")
+                event = self._prompts_event
                 self._prompts_event = None
+                event.cancel()
+                print(f"          prompts event cancelled for {self.name}")
+                time.sleep(self._sleep_after_state_change)
+                event.remove_event_occurred_callback()
         except Exception as e:
+            print(f"*** Cannot stop prompts observers properly: {e}")
             pass
 
     def build_trigger_to_state(self, state):
