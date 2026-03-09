@@ -5,7 +5,7 @@ Moler implementation of Runner with single thread for MolerConnection: MolerConn
 """
 
 __author__ = "Marcin Usielski"
-__copyright__ = "Copyright (C) 2021-2024, Nokia"
+__copyright__ = "Copyright (C) 2021-2026, Nokia"
 __email__ = "marcin.usielski@nokia.com"
 
 
@@ -392,3 +392,7 @@ class RunnerSingleThread(ConnectionObserverRunner):
         """
         if connection_observer.is_command():
             connection_observer.send_command()
+
+    def is_connection_observer_running(self, connection_observer):
+        with self._connection_observer_lock:
+            return connection_observer in self._connections_observers

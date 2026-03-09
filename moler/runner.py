@@ -6,7 +6,7 @@ to make it exchangeable (threads, asyncio, twisted, curio)
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski, Michal Ernst'
-__copyright__ = 'Copyright (C) 2018-2023, Nokia'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com'
 
 import atexit
@@ -88,6 +88,14 @@ class ConnectionObserverRunner:
         """
         Call this method to check if runner is in shutdown mode.
         :return: Is in shutdown
+        """
+
+    @abstractmethod
+    def is_connection_observer_running(self, connection_observer) -> bool:
+        """
+        Call this method to check if given connection_observer is currently running in this runner.
+        :param connection_observer: The one we want to check.
+        :return: True if connection_observer is currently running in this runner, False otherwise.
         """
 
     def __enter__(self):
@@ -639,6 +647,16 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
 
     def timeout_change(self, timedelta):
         pass
+
+    def is_connection_observer_running(self, connection_observer) -> bool:
+        """Check if connection_observer is running in background.
+        :param connection_observer: ConnectionObserver object.
+        :return: True if connection_observer is running in background, False otherwise.
+        """
+        future = connection_observer._future  # pylint: disable=protected-access
+        if future and future.running():
+            return True
+        return False
 
 
 # utilities to be used by runners

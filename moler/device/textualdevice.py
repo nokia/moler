@@ -1136,10 +1136,18 @@ class TextualDevice(AbstractDevice):
                 event = self._prompts_event
                 self._prompts_event = None
                 event.cancel()
-                time.sleep(self._sleep_after_state_change)
+                start_stop_event = time.monotonic()
+                while(event.is_in_runner() is True):
+                    if  time.monotonic() - start_stop_event > 10:
+                        self._log(
+                            logging.WARNING,
+                            f"Cannot stop prompts observers properly. Still in runner after {time.monotonic() - start_stop_event} seconds.",
+                        )
+                        break
+                    time.sleep(self._sleep_after_state_change)
                 event.remove_event_occurred_callback()
         except Exception as e:
-            self.logger.error(f"{self.name} Cannot stop prompts observers properly: {e}")
+            self.logger.error(f"Cannot stop prompts observers properly: {e}")
 
     def build_trigger_to_state(self, state):
         trigger = f"GOTO_{state}"
