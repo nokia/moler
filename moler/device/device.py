@@ -412,8 +412,8 @@ class DeviceFactory:
         :return: None
         """
         with cls._lock_device:
-            # if device_name in cls._devices_params:
-            #     del cls._devices_params[device_name]
+            if device_name in cls._devices_params:
+                del cls._devices_params[device_name]
             if device_name in cls._devices:
                 dev = cls._devices[device_name]
                 cls._devices[device_name] = None
