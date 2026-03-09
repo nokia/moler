@@ -154,6 +154,7 @@ class TextualDevice(AbstractDevice):
         self.last_wrong_wait4_occurrence = None  # Last occurrence from Wait4prompts if at least 2 prompts matched the
         # same line.
         self._sleep_after_state_change = 0.5
+        self._tick_to_check_runner = 0.1
 
     def _prepare_sm_data(self, sm_params):
         self._prepare_transitions()
@@ -1144,7 +1145,7 @@ class TextualDevice(AbstractDevice):
                             f"Cannot stop prompts observers properly. Still in runner after {time.monotonic() - start_stop_event} seconds.",
                         )
                         break
-                    time.sleep(self._sleep_after_state_change)
+                    time.sleep(self._tick_to_check_runner)
                 event.remove_event_occurred_callback()
         except Exception as e:
             self.logger.error(f"Cannot stop prompts observers properly: {e}")
