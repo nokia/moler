@@ -93,7 +93,7 @@ class ConnectionObserverRunner:
     @abstractmethod
     def is_connection_observer_running(self, connection_observer) -> bool:
         """
-        Call this method to check if given connection_observer is currently running in this runner.
+        Check if given connection_observer is currently running in this runner.
         :param connection_observer: The one we want to check.
         :return: True if connection_observer is currently running in this runner, False otherwise.
         """
@@ -649,9 +649,10 @@ class ThreadPoolExecutorRunner(ConnectionObserverRunner):
         pass
 
     def is_connection_observer_running(self, connection_observer) -> bool:
-        """Check if connection_observer is running in background.
-        :param connection_observer: ConnectionObserver object.
-        :return: True if connection_observer is running in background, False otherwise.
+        """
+        Check if given connection_observer is currently running in this runner.
+        :param connection_observer: The one we want to check.
+        :return: True if connection_observer is currently running in this runner, False otherwise.
         """
         future = connection_observer._future  # pylint: disable=protected-access
         if future and future.running():

@@ -1137,8 +1137,8 @@ class TextualDevice(AbstractDevice):
                 self._prompts_event = None
                 event.cancel()
                 start_stop_event = time.monotonic()
-                while(event.is_in_runner() is True):
-                    if  time.monotonic() - start_stop_event > 10:
+                while event.is_in_runner() is True:
+                    if time.monotonic() - start_stop_event > 10:
                         self._log(
                             logging.WARNING,
                             f"Cannot stop prompts observers properly. Still in runner after {time.monotonic() - start_stop_event} seconds.",

@@ -6,7 +6,7 @@ Moler implementation of MolerConnection for Runner with single thread.
 
 
 __author__ = "Marcin Usielski"
-__copyright__ = "Copyright (C) 2021-2026, Nokia"
+__copyright__ = "Copyright (C) 2021, Nokia"
 __email__ = "marcin.usielski@nokia.com"
 
 
@@ -153,15 +153,4 @@ class MolerConnectionForSingleThreadRunner(ThreadedMolerConnection):
             return False
         if isinstance(self_for_observer, moler.connection_observer.ConnectionObserver):
             return True
-        return False
-
-    def is_connection_observer_running(self, connection_observer) -> bool:
-        """
-        Check if connection_observer is currently being executed by a runner.
-        :param connection_observer: ConnectionObserver object to check.
-        :return: True if the observer is currently being executed by a runner, False otherwise.
-        """
-        with self._runner_lock:
-            if connection_observer in self._connection_observers:
-                return True
         return False
