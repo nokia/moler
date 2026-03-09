@@ -4,7 +4,7 @@ Package Open Source functionality of Moler.
 """
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol"
-__copyright__ = "Copyright (C) 2018-2021, Nokia"
+__copyright__ = "Copyright (C) 2018-2026, Nokia"
 __email__ = "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com"
 
 
@@ -21,7 +21,6 @@ from moler.helpers import compare_objects, copy_dict, copy_list
 from moler.instance_loader import create_instance_from_class_fullname
 from moler.util.moler_test import MolerTest
 from typing import Optional
-from pprint import pformat
 
 logger = logging.getLogger("moler")
 
