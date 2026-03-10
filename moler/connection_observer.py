@@ -3,7 +3,7 @@
 """Base class for all events and commands that are to be observed on connection."""
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
-__copyright__ = "Copyright (C) 2018-2025 Nokia"
+__copyright__ = "Copyright (C) 2018-2026 Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
 )
@@ -63,8 +63,8 @@ class ConnectionObserver:
         self.connection: AbstractMolerConnection = connection
         self.runner: ConnectionObserverRunner = self._get_runner(runner=runner)
         self._result = None
-        self._exception: Exception = None
-        self._exception_stack_msg: str = None
+        self._exception: Optional[Exception] = None
+        self._exception_stack_msg: Optional[str] = None
 
         self._future = None
 
@@ -571,3 +571,11 @@ class ConnectionObserver:
             extra=extra_params,
             levels_to_go_up=levels_to_go_up,
         )
+
+    def is_in_runner(self) -> bool:
+        """
+        Return True if the observer is currently being executed by a runner.
+
+        :return: True if the observer is currently being executed by a runner, False otherwise.
+        """
+        return self.runner.is_connection_observer_running(self)

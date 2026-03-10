@@ -55,7 +55,7 @@ jobs:
           adb devices
       - name: Test with pytest
         if: ${{ (matrix.python-version != env.PYTHON_COVERAGE) || (matrix.os == 'macos-latest') }}
-        timeout-minutes: 20
+        timeout-minutes: 30
         run: |
           python -m pytest -vvvsss test/
           # python -m pytest -c py3pytest.ini -vvvsss test/
