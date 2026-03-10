@@ -213,8 +213,8 @@ class ThreadedFifoBuffer(FifoBuffer):
         done = threading.Event()
         if self.pulling_thread is None:
             self.pulling_thread = TillDoneThread(target=self.pull_data,
-                                                done_event=done,
-                                                kwargs={'pulling_done': done})
+                                                 done_event=done,
+                                                 kwargs={'pulling_done': done})
             self.pulling_thread.start()
             self._log(msg=f"open {self}", level=logging.INFO)
             self._notify_on_connect()
