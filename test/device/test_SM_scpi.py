@@ -4,7 +4,7 @@ __email__ = 'marcin.szlapa@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 
-from moler.util.devices_SM import iterate_over_device_states, moler_check_sm_identity, DeviceCM
+from moler.util.devices_SM import get_memory_device_connection, iterate_over_device_states, moler_check_sm_identity, DeviceCM
 
 scpis = ["SCPI", "SCPI3"]
 scpis_proxy = ["SCPI_PROXY_PC", "SCPI_PROXY_PC3"]
@@ -29,7 +29,7 @@ def test_unix_sm_identity(devices, device_connection, scpi_output):
     assert len(devices) == 2
     with DeviceCM(name=devices[0], connection=device_connection, device_output=scpi_output,
                    test_file_path=__file__) as dev0:
-        with DeviceCM(name=devices[1], connection=device_connection, device_output=scpi_output,
+        with DeviceCM(name=devices[1], connection=get_memory_device_connection(), device_output=scpi_output,
                        test_file_path=__file__) as dev1:
             moler_check_sm_identity([dev0, dev1])
 

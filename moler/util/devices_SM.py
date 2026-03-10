@@ -176,6 +176,7 @@ def _start_device_tests(
             timeout_multiply=timeout_multiply,
             sleep_after_changed_state=sleep_after_changed_state
         )
+        device.remove()
     except Exception as ex:
         exceptions.append(ex)
         MolerTest.info(f"exception: '{ex}' -> '{repr(ex)}'")

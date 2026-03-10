@@ -6,7 +6,7 @@ import pytest
 import time
 import os
 import platform
-from moler.util.devices_SM import iterate_over_device_states, moler_check_sm_identity, DeviceCM
+from moler.util.devices_SM import get_memory_device_connection, iterate_over_device_states, moler_check_sm_identity, DeviceCM
 from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
 from moler.util.moler_test import MolerTest
@@ -171,7 +171,7 @@ def test_unix_sm_identity(devices, device_connection, unix_remote_output):
     assert len(devices) == 2
     with DeviceCM(name=devices[0], connection=device_connection, device_output=unix_remote_output,
                    test_file_path=__file__) as dev0:
-        with DeviceCM(name=devices[1], connection=device_connection, device_output=unix_remote_output,
+        with DeviceCM(name=devices[1], connection=get_memory_device_connection(), device_output=unix_remote_output,
                        test_file_path=__file__) as dev1:
             moler_check_sm_identity([dev0, dev1])
 
