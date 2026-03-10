@@ -1086,6 +1086,8 @@ class TextualDevice(AbstractDevice):
         self._prepare_reverse_state_prompts_dict()
 
         for_state = self._get_for_state_to_run_prompts_observers()
+        if self._prompts_event is not None:
+            self._stop_prompts_observers()
         self._prompts_event = self.get_event(
             event_name="wait4prompts",
             event_params={
