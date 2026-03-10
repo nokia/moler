@@ -5,7 +5,7 @@ Moler's device has 2 main responsibilities:
 - be the state machine that controls which commands may run in given state
 """
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
-__copyright__ = "Copyright (C) 2018-2024, Nokia"
+__copyright__ = "Copyright (C) 2018-2026, Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
 )
@@ -154,6 +154,7 @@ class TextualDevice(AbstractDevice):
         self.last_wrong_wait4_occurrence = None  # Last occurrence from Wait4prompts if at least 2 prompts matched the
         # same line.
         self._sleep_after_state_change = 0.5
+        self._tick_to_check_runner = 0.1
 
     def _prepare_sm_data(self, sm_params):
         self._prepare_transitions()
@@ -1133,11 +1134,21 @@ class TextualDevice(AbstractDevice):
     def _stop_prompts_observers(self):
         try:
             if self._prompts_event:
-                self._prompts_event.cancel()
-                self._prompts_event.remove_event_occurred_callback()
+                event = self._prompts_event
                 self._prompts_event = None
+                event.cancel()
+                start_stop_event = time.monotonic()
+                while event.is_in_runner() is True:
+                    if time.monotonic() - start_stop_event > 10:
+                        self._log(
+                            logging.WARNING,
+                            f"Cannot stop prompts observers properly. Still in runner after {time.monotonic() - start_stop_event} seconds.",
+                        )
+                        break
+                    time.sleep(self._tick_to_check_runner)
+                event.remove_event_occurred_callback()
         except Exception as e:
-            pass
+            self.logger.error(f"Cannot stop prompts observers properly: {e}")
 
     def build_trigger_to_state(self, state):
         trigger = f"GOTO_{state}"
