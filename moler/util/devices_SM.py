@@ -13,6 +13,7 @@ import queue
 import random
 import threading
 import time
+import traceback
 
 from moler.config import load_config
 from moler.device import DeviceFactory
@@ -108,7 +109,7 @@ def iterate_over_device_states(
     if max_time is None:
         assert 0 == states_to_test.qsize()
     for ex in exceptions:
-        print(f"ex: '{ex}' -> '{repr(ex)}'.")
+        print(f"ex: '{ex}' -> '{repr(ex)}': {traceback.format_tb(ex.__traceback__)}")
     assert 0 == len(exceptions)
 
 
@@ -255,7 +256,9 @@ def _prepare_device(device, connection, device_output):
         if device._established is True:  # pylint: disable=protected-access
             device._established = False  # pylint: disable=protected-access
         device.establish_connection()
-
+        if device.current_state == "NOT_CONNECTED":
+            device.io_connection.inject(b"moler_bash#")
+            time.sleep(0.2)
     assert device.current_state != "NOT_CONNECTED"
 
 

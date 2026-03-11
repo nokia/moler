@@ -1150,7 +1150,8 @@ class TextualDevice(AbstractDevice):
                     time.sleep(self._tick_to_check_runner)
                 event.remove_event_occurred_callback()
         except Exception as e:
-            self.logger.error(f"Cannot stop prompts observers properly: {e}")
+            pass
+            # self._log(logging.ERROR, f"Cannot stop prompts observers properly: {e}")
 
     def build_trigger_to_state(self, state):
         trigger = f"GOTO_{state}"
