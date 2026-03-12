@@ -1107,6 +1107,16 @@ class TextualDevice(AbstractDevice):
         self._prompts_event.check_against_all_prompts = self._check_all_prompts_on_line
         self._prompts_event.disable_log_occurrence()
         self._prompts_event.start()
+        start_time = time.monotonic()
+        while self._prompts_event.is_in_runner() is False:
+            if time.monotonic() - start_time > 10:
+                self._log(
+                    logging.WARNING,
+                    f"Cannot start prompts observers properly. Still not in runner after {time.monotonic() - start_time} seconds.",
+                )
+                break
+            time.sleep(self._tick_to_check_runner)
+
 
     def _prepare_reverse_state_prompts_dict(self):
         for state in self._state_prompts.keys():
