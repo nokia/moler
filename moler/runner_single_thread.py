@@ -400,4 +400,5 @@ class RunnerSingleThread(ConnectionObserverRunner):
         :return: True if connection_observer is currently running in this runner, False otherwise.
         """
         with self._connection_observer_lock:
-            return connection_observer in self._connections_observers
+            return connection_observer in self._connections_observers or \
+                   connection_observer in self._to_remove_connection_observers

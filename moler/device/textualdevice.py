@@ -1117,7 +1117,6 @@ class TextualDevice(AbstractDevice):
                 break
             time.sleep(self._tick_to_check_runner)
 
-
     def _prepare_reverse_state_prompts_dict(self):
         for state in self._state_prompts.keys():
             prompt = self._state_prompts[state]
