@@ -401,4 +401,4 @@ class RunnerSingleThread(ConnectionObserverRunner):
         """
         with self._connection_observer_lock:
             return connection_observer in self._connections_observers or \
-                   connection_observer in self._to_remove_connection_observers
+                connection_observer in self._to_remove_connection_observers
