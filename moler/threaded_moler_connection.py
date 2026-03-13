@@ -12,7 +12,7 @@ Connection responsibilities:
 """
 
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst"
-__copyright__ = "Copyright (C) 2018-2021, Nokia"
+__copyright__ = "Copyright (C) 2018-2026, Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com"
 )
@@ -105,14 +105,15 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         self.logger.debug(
             f">>> Entering {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
         )
+        observer_key, value = self._get_observer_key_value(observer)
         with self._observers_lock:
             self.logger.debug(
                 f">>> Entered  {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
             )
             self._log(level=TRACE, msg=f"subscribe({observer})")
-            observer_key, value = self._get_observer_key_value(observer)
 
             if observer_key not in self._observer_wrappers:
+                assert observer_key not in self._connection_closed_handlers
                 self_for_observer, observer_reference = value
                 self._observer_wrappers[observer_key] = self._create_observer_wrapper(
                     observer_reference=observer_reference,
@@ -142,19 +143,21 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         self.logger.debug(
             f">>> Entering {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
         )
+        observer_key, _ = self._get_observer_key_value(observer)
         with self._observers_lock:
             self.logger.debug(
                 f">>> Entered  {self._observers_lock}. conn-obs '{observer}' moler-conn '{self}'"
             )
             self._log(level=TRACE, msg=f"unsubscribe({observer})")
-            observer_key, _ = self._get_observer_key_value(observer)
             if observer_key in self._observer_wrappers and observer_key in self._connection_closed_handlers:
                 self._observer_wrappers[observer_key].request_stop()
                 del self._connection_closed_handlers[observer_key]
                 del self._observer_wrappers[observer_key]
+            elif observer_key not in self._observer_wrappers and observer_key not in self._connection_closed_handlers:
+                pass  # both not subscribed - do nothing
             else:
                 self._log(
-                    level=logging.WARNING,
+                    level=logging.ERROR,
                     msg=f"{observer} and {connection_closed_handler} were not both subscribed.",
                     levels_to_go_up=2,
                 )
@@ -167,9 +170,13 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         Closes connection with notifying all observers about closing.
         :return: None
         """
-        for handler in list(self._connection_closed_handlers.values()):
-            handler()
-        self._connection_closed_handlers = {}
+        with self._observers_lock:
+            for handler in list(self._connection_closed_handlers.values()):
+                handler()
+            for handler in list(self._observer_wrappers.values()):
+                handler.request_stop()
+            self._observer_wrappers = {}
+            self._connection_closed_handlers = {}
         super(ThreadedMolerConnection, self).shutdown()
 
     def notify_observers(self, data, recv_time):
@@ -179,7 +186,8 @@ class ThreadedMolerConnection(AbstractMolerConnection):
         :param recv_time: time of data really read form connection.
         :return None
         """
-        subscribers_wrappers = list(self._observer_wrappers.values())
+        with self._observers_lock:
+            subscribers_wrappers = list(self._observer_wrappers.values())
         for wrapper in subscribers_wrappers:
             try:
                 self.logger.debug(

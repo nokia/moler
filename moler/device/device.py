@@ -490,6 +490,7 @@ class DeviceFactory:
         cls._devices_params[name] = {}
         cls._devices_params[name]["class_fullname"] = device_class
         cls._devices_params[name]["constructor_parameters"] = constructor_parameters
+        del cls._devices_params[name]["constructor_parameters"]["io_connection"]  # do not keep connection in device params, it is not needed to create device and can cause problems with copying
         cls._devices_params[name]["cloned_from"] = None
         handler = functools.partial(cls.forget_device_handler, name)
         device.register_device_removal_callback(callback=handler)

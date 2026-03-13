@@ -1,10 +1,10 @@
 __author__ = 'Marcin Szlapa, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2025, Nokia'
+__copyright__ = 'Copyright (C) 2019-2026, Nokia'
 __email__ = 'marcin.szlapa@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 
-from moler.util.devices_SM import iterate_over_device_states, get_device, moler_check_sm_identity
+from moler.util.devices_SM import get_memory_device_connection, iterate_over_device_states, moler_check_sm_identity, DeviceCM
 
 scpis = ["SCPI", "SCPI3"]
 scpis_proxy = ["SCPI_PROXY_PC", "SCPI_PROXY_PC3"]
@@ -12,27 +12,26 @@ scpis_proxy = ["SCPI_PROXY_PC", "SCPI_PROXY_PC3"]
 
 @pytest.mark.parametrize("device_name", scpis)
 def test_scpi_device(device_name, device_connection, scpi_output):
-    scpi = get_device(name=device_name, connection=device_connection, device_output=scpi_output,
-                      test_file_path=__file__)
-
-    iterate_over_device_states(device=scpi)
+    with DeviceCM(name=device_name, connection=device_connection, device_output=scpi_output,
+                   test_file_path=__file__) as scpi:
+         iterate_over_device_states(device=scpi)
 
 
 @pytest.mark.parametrize("device_name", scpis_proxy)
 def test_scpi_proxy_pc_device(device_name, device_connection, scpi_proxy_pc_output):
-    scpi_proxy_pc = get_device(name=device_name, connection=device_connection,
-                               device_output=scpi_proxy_pc_output, test_file_path=__file__)
-
-    iterate_over_device_states(device=scpi_proxy_pc)
+    with DeviceCM(name=device_name, connection=device_connection, device_output=scpi_proxy_pc_output,
+                   test_file_path=__file__) as scpi_proxy_pc:
+        iterate_over_device_states(device=scpi_proxy_pc)
 
 
 @pytest.mark.parametrize("devices", [scpis, scpis_proxy])
 def test_unix_sm_identity(devices, device_connection, scpi_output):
-    dev0 = get_device(name=devices[0], connection=device_connection, device_output=scpi_output,
-                      test_file_path=__file__)
-    dev1 = get_device(name=devices[1], connection=device_connection, device_output=scpi_output,
-                      test_file_path=__file__)
-    moler_check_sm_identity([dev0, dev1])
+    assert len(devices) == 2
+    with DeviceCM(name=devices[0], connection=device_connection, device_output=scpi_output,
+                   test_file_path=__file__) as dev0:
+        with DeviceCM(name=devices[1], connection=get_memory_device_connection(), device_output=scpi_output,
+                       test_file_path=__file__) as dev1:
+            moler_check_sm_identity([dev0, dev1])
 
 
 @pytest.fixture
