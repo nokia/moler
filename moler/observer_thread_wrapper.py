@@ -3,7 +3,7 @@
 """Wrapper for observer registered in ThreadedMolerConnection (old name: ObservableConnection)."""
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2020-2024, Nokia'
+__copyright__ = 'Copyright (C) 2020-2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import logging
@@ -35,7 +35,8 @@ class ObserverThreadWrapper:
         self._request_end = threading.Event()
         self._timeout_for_get_from_queue = 1
         self.logger = logger
-        self._t = Thread(target=self._loop_for_observer, name=f"ObserverThreadWrapper-{ObserverThreadWrapper._th_nr}-{observer_self}")
+        self.name = f"ObserverThreadWrapper-{ObserverThreadWrapper._th_nr}-{observer_self}"
+        self._t = Thread(target=self._loop_for_observer, name=self.name)
         ObserverThreadWrapper._th_nr += 1
         self._t.daemon = True
         self._t.start()
