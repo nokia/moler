@@ -1,3 +1,7 @@
+## moler 4.8.0
+ * Delete device aftret its test
+ * Fixing threads remaining after device removal
+
 ## moler 4.7.0
  * Add support for NSA mode in the AT+COPS command
 
