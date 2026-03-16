@@ -1160,7 +1160,6 @@ class TextualDevice(AbstractDevice):
                 event.remove_event_occurred_callback()
         except Exception as e:
             pass
-            # self._log(logging.ERROR, f"Cannot stop prompts observers properly: {e}")
 
     def build_trigger_to_state(self, state):
         trigger = f"GOTO_{state}"
