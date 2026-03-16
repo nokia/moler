@@ -12,7 +12,7 @@ with io.open(join(getcwd(), 'requirements', 'base.txt'), encoding='utf-8') as f:
 
 setup(
     name='moler',
-    version='4.7.0',
+    version='4.8.0',
     description='Moler is a library for working with terminals, mainly for automated tests',  # Required
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -35,7 +35,6 @@ setup(
         'Operating System :: Unix',
 
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
@@ -51,7 +50,7 @@ setup(
     keywords='testing development',
     packages=find_packages(exclude=['docs', 'examples', 'images', 'test', 'test.*']),
     install_requires=requirements,
-    python_requires='>=3.7',
+    python_requires='>=3.8',
     project_urls={
         'Bug Reports': 'https://github.com/nokia/moler/issues',
         'Source': 'https://github.com/nokia/moler',
