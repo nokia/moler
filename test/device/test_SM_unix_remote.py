@@ -1,12 +1,12 @@
 __author__ = 'Michal Ernst, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2025, Nokia'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
 import pytest
 import time
 import os
 import platform
-from moler.util.devices_SM import iterate_over_device_states, get_device, moler_check_sm_identity
+from moler.util.devices_SM import get_memory_device_connection, iterate_over_device_states, moler_check_sm_identity, DeviceCM
 from moler.exceptions import MolerException, DeviceChangeStateFailure
 from moler.helpers import copy_dict
 from moler.util.moler_test import MolerTest
@@ -22,19 +22,18 @@ unix_remotes_real_io = ['UNIX_REMOTE_REAL_IO', 'UNIX_REMOTE3_REAL_IO']
 
 @pytest.mark.parametrize("device_name", unix_remotes)
 def test_unix_remote_device(device_name, device_connection, unix_remote_output):
-    unix_remote = get_device(name=device_name, connection=device_connection, device_output=unix_remote_output,
-                             test_file_path=__file__)
-    iterate_over_device_states(device=unix_remote)
-    assert None is not unix_remote._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
+    with DeviceCM(name=device_name, connection=device_connection, device_output=unix_remote_output,
+                   test_file_path=__file__) as unix_remote:
+        iterate_over_device_states(device=unix_remote)
+        assert None is not unix_remote._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
 def test_unix_remote_proxy_pc_device(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
-                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-
-    iterate_over_device_states(device=unix_remote_proxy_pc)
-    assert None is not unix_remote_proxy_pc._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
+    with DeviceCM(name=device_name, connection=device_connection, device_output=unix_remote_proxy_pc_output,
+                   test_file_path=__file__) as unix_remote_proxy_pc:
+        iterate_over_device_states(device=unix_remote_proxy_pc)
+        assert None is not unix_remote_proxy_pc._cmdnames_available_in_state['UNIX_LOCAL_ROOT']
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
@@ -48,97 +47,96 @@ def test_unix_remote_proxy_pc_device_multiple_prompts(device_name, device_connec
         for cmd_string in unix_remote_proxy_pc_changed_output[src_state].keys():
             unix_remote_proxy_pc_changed_output[src_state][cmd_string] = combined_line
 
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
-                                      device_output=unix_remote_proxy_pc_changed_output,
-                                      test_file_path=__file__)
-    assert unix_remote_proxy_pc._check_all_prompts_on_line is True
-    assert unix_remote_proxy_pc._prompts_event.check_against_all_prompts is True
+    with DeviceCM(name=device_name, connection=device_connection, device_output=unix_remote_proxy_pc_changed_output,
+                   test_file_path=__file__) as unix_remote_proxy_pc:
+        assert unix_remote_proxy_pc._check_all_prompts_on_line is True
+        assert unix_remote_proxy_pc._prompts_event.check_against_all_prompts is True
 
-    with pytest.raises(MolerException) as exception:
-        iterate_over_device_states(device=unix_remote_proxy_pc, max_no_of_threads=0)
-    assert "More than 1 prompt match the same line" in str(exception.value)
+        with pytest.raises(MolerException) as exception:
+            iterate_over_device_states(device=unix_remote_proxy_pc, max_no_of_threads=0)
+        assert "More than 1 prompt match the same line" in str(exception.value)
 
 
 pytest.mark.skipif('Linux' != platform.system(), reason="Skip for no Linux system.")
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
 def test_unix_remote_proxy_pc_device_goto_state_bg(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
-                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-    unix_remote_proxy_pc._goto_state_in_production_mode = True
-    dst_state = "UNIX_REMOTE_ROOT"
-    src_state = "UNIX_LOCAL"
+    with DeviceCM(name=device_name, connection=device_connection, device_output=unix_remote_proxy_pc_output,
+                   test_file_path=__file__) as unix_remote_proxy_pc:
+        unix_remote_proxy_pc._goto_state_in_production_mode = True
+        dst_state = "UNIX_REMOTE_ROOT"
+        src_state = "UNIX_LOCAL"
 
-    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
-    assert unix_remote_proxy_pc.current_state == src_state
-    start_time = time.monotonic()
-    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
-    assert unix_remote_proxy_pc.current_state != dst_state
-    while dst_state != unix_remote_proxy_pc.current_state and (time.monotonic() - start_time) < 10:
-        MolerTest.sleep(0.01)
-    execution_time_bg = time.monotonic() - start_time
-    assert unix_remote_proxy_pc.current_state == dst_state
+        unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
+        assert unix_remote_proxy_pc.current_state == src_state
+        start_time = time.monotonic()
+        unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+        assert unix_remote_proxy_pc.current_state != dst_state
+        while dst_state != unix_remote_proxy_pc.current_state and (time.monotonic() - start_time) < 10:
+            MolerTest.sleep(0.01)
+        execution_time_bg = time.monotonic() - start_time
+        assert unix_remote_proxy_pc.current_state == dst_state
 
-    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
-    assert unix_remote_proxy_pc.current_state == src_state
-    start_time = time.monotonic()
-    unix_remote_proxy_pc.goto_state(state=dst_state, sleep_after_changed_state=0)
-    execution_time_fg = time.monotonic() - start_time
-    assert unix_remote_proxy_pc.current_state == dst_state
-    time_diff = abs(execution_time_bg - execution_time_fg)
-    assert time_diff < max(execution_time_fg, execution_time_bg)
-    unix_remote_proxy_pc._goto_state_in_production_mode = False
+        unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
+        assert unix_remote_proxy_pc.current_state == src_state
+        start_time = time.monotonic()
+        unix_remote_proxy_pc.goto_state(state=dst_state, sleep_after_changed_state=0)
+        execution_time_fg = time.monotonic() - start_time
+        assert unix_remote_proxy_pc.current_state == dst_state
+        time_diff = abs(execution_time_bg - execution_time_fg)
+        assert time_diff < max(execution_time_fg, execution_time_bg)
+        unix_remote_proxy_pc._goto_state_in_production_mode = False
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
 def test_unix_remote_proxy_pc_device_goto_state_bg_and_goto(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
-                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-    unix_remote_proxy_pc._goto_state_in_production_mode = True
+    with DeviceCM(name=device_name, connection=device_connection, device_output=unix_remote_proxy_pc_output,
+                   test_file_path=__file__) as unix_remote_proxy_pc:
+        unix_remote_proxy_pc._goto_state_in_production_mode = True
 
-    dst_state = "UNIX_REMOTE_ROOT"
-    src_state = "UNIX_LOCAL"
-    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
-    assert unix_remote_proxy_pc.current_state == src_state
-    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
-    assert unix_remote_proxy_pc.current_state != dst_state
-    unix_remote_proxy_pc.goto_state(state=dst_state, sleep_after_changed_state=0)
-    assert unix_remote_proxy_pc.current_state == dst_state
-    unix_remote_proxy_pc._goto_state_in_production_mode = False
+        dst_state = "UNIX_REMOTE_ROOT"
+        src_state = "UNIX_LOCAL"
+        unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
+        assert unix_remote_proxy_pc.current_state == src_state
+        unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+        assert unix_remote_proxy_pc.current_state != dst_state
+        unix_remote_proxy_pc.goto_state(state=dst_state, sleep_after_changed_state=0)
+        assert unix_remote_proxy_pc.current_state == dst_state
+        unix_remote_proxy_pc._goto_state_in_production_mode = False
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
 def test_unix_remote_proxy_pc_device_goto_state_bg_await(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
-                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-    unix_remote_proxy_pc._goto_state_in_production_mode = True
-    dst_state = "UNIX_REMOTE_ROOT"
-    src_state = "UNIX_LOCAL"
-    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
-    assert unix_remote_proxy_pc.current_state == src_state
-    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
-    assert unix_remote_proxy_pc.current_state != dst_state
-    unix_remote_proxy_pc.await_goto_state(timeout=20)
-    assert unix_remote_proxy_pc.current_state == dst_state
-    unix_remote_proxy_pc._goto_state_in_production_mode = False
+    with DeviceCM(name=device_name, connection=device_connection, device_output=unix_remote_proxy_pc_output,
+                   test_file_path=__file__) as unix_remote_proxy_pc:
+        unix_remote_proxy_pc._goto_state_in_production_mode = True
+        dst_state = "UNIX_REMOTE_ROOT"
+        src_state = "UNIX_LOCAL"
+        unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
+        assert unix_remote_proxy_pc.current_state == src_state
+        unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+        assert unix_remote_proxy_pc.current_state != dst_state
+        unix_remote_proxy_pc.await_goto_state(timeout=20)
+        assert unix_remote_proxy_pc.current_state == dst_state
+        unix_remote_proxy_pc._goto_state_in_production_mode = False
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_proxy_pc)
 def test_unix_remote_proxy_pc_device_goto_state_bg_await_exception(device_name, device_connection, unix_remote_proxy_pc_output):
-    unix_remote_proxy_pc = get_device(name=device_name, connection=device_connection,
-                                      device_output=unix_remote_proxy_pc_output, test_file_path=__file__)
-    unix_remote_proxy_pc._goto_state_in_production_mode = True
-    dst_state = "UNIX_REMOTE_ROOT"
-    src_state = "UNIX_LOCAL"
-    unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
-    assert unix_remote_proxy_pc.current_state == src_state
-    unix_remote_proxy_pc.goto_state_bg(state=dst_state)
-    assert unix_remote_proxy_pc.current_state != dst_state
-    with pytest.raises(DeviceChangeStateFailure) as de:
-        unix_remote_proxy_pc.await_goto_state(timeout=0.001)
-    assert 'seconds there are still states to go' in str(de.value)
-    unix_remote_proxy_pc.await_goto_state(timeout=20)
-    assert unix_remote_proxy_pc.current_state == dst_state
-    unix_remote_proxy_pc._goto_state_in_production_mode = False
+    with DeviceCM(name=device_name, connection=device_connection, device_output=unix_remote_proxy_pc_output,
+                   test_file_path=__file__) as unix_remote_proxy_pc:
+        unix_remote_proxy_pc._goto_state_in_production_mode = True
+        dst_state = "UNIX_REMOTE_ROOT"
+        src_state = "UNIX_LOCAL"
+        unix_remote_proxy_pc.goto_state(state=src_state, sleep_after_changed_state=0)
+        assert unix_remote_proxy_pc.current_state == src_state
+        unix_remote_proxy_pc.goto_state_bg(state=dst_state)
+        assert unix_remote_proxy_pc.current_state != dst_state
+        with pytest.raises(DeviceChangeStateFailure) as de:
+            unix_remote_proxy_pc.await_goto_state(timeout=0.001)
+        assert 'seconds there are still states to go' in str(de.value)
+        unix_remote_proxy_pc.await_goto_state(timeout=20)
+        assert unix_remote_proxy_pc.current_state == dst_state
+        unix_remote_proxy_pc._goto_state_in_production_mode = False
 
 
 @pytest.mark.parametrize("device_name", unix_remotes_real_io)
@@ -165,15 +163,18 @@ def test_unix_remote_device_not_connected(device_name):
         ret2 = cmd_whoami()
         assert ret1 == ret2
         execution += 1
+    DeviceFactory.remove_device(device=unix_remote)
 
 
 @pytest.mark.parametrize("devices", [unix_remotes, unix_remotes_proxy_pc, unix_remotes_real_io])
 def test_unix_sm_identity(devices, device_connection, unix_remote_output):
-    dev0 = get_device(name=devices[0], connection=device_connection, device_output=unix_remote_output,
-                      test_file_path=__file__)
-    dev1 = get_device(name=devices[1], connection=device_connection, device_output=unix_remote_output,
-                      test_file_path=__file__)
-    moler_check_sm_identity([dev0, dev1])
+    assert len(devices) == 2
+    with DeviceCM(name=devices[0], connection=device_connection, device_output=unix_remote_output,
+                   test_file_path=__file__) as dev0:
+        with DeviceCM(name=devices[1], connection=get_memory_device_connection(), device_output=unix_remote_output,
+                       test_file_path=__file__) as dev1:
+            moler_check_sm_identity([dev0, dev1])
+
 
 @pytest.fixture
 def unix_remote_output():

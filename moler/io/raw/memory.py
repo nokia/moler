@@ -15,7 +15,7 @@ Data transfer aspects of connection are logged by embedded Moler's connection.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2021, Nokia'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import threading
@@ -211,13 +211,14 @@ class ThreadedFifoBuffer(FifoBuffer):
         """Start thread pulling data from FIFO buffer."""
         ret = super(ThreadedFifoBuffer, self).open()
         done = threading.Event()
-        self.pulling_thread = TillDoneThread(target=self.pull_data,
-                                             done_event=done,
-                                             kwargs={'pulling_done': done})
-        self.pulling_thread.start()
-        self._log(msg=f"open {self}", level=logging.INFO)
-        self._notify_on_connect()
-        self.moler_connection.open()
+        if self.pulling_thread is None:
+            self.pulling_thread = TillDoneThread(target=self.pull_data,
+                                                 done_event=done,
+                                                 kwargs={'pulling_done': done})
+            self.pulling_thread.start()
+            self._log(msg=f"open {self}", level=logging.INFO)
+            self._notify_on_connect()
+            self.moler_connection.open()
         return ret
 
     def close(self):

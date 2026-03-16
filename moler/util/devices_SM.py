@@ -4,7 +4,7 @@ Perform devices SM autotest.
 """
 
 __author__ = "Michal Ernst, Marcin Usielski"
-__copyright__ = "Copyright (C) 2019-2025, Nokia"
+__copyright__ = "Copyright (C) 2019-2026, Nokia"
 __email__ = "michal.ernst@nokia.com, marcin.usielski@nokia.com"
 
 import math
@@ -13,6 +13,7 @@ import queue
 import random
 import threading
 import time
+import traceback
 
 from moler.config import load_config
 from moler.device import DeviceFactory
@@ -108,7 +109,7 @@ def iterate_over_device_states(
     if max_time is None:
         assert 0 == states_to_test.qsize()
     for ex in exceptions:
-        print(f"ex: '{ex}' -> '{repr(ex)}'.")
+        print(f"ex: '{ex}' -> '{repr(ex)}': {traceback.format_tb(ex.__traceback__)}")
     assert 0 == len(exceptions)
 
 
@@ -176,6 +177,7 @@ def _start_device_tests(
             timeout_multiply=timeout_multiply,
             sleep_after_changed_state=sleep_after_changed_state
         )
+        device.remove()
     except Exception as ex:
         exceptions.append(ex)
         MolerTest.info(f"exception: '{ex}' -> '{repr(ex)}'")
@@ -254,7 +256,9 @@ def _prepare_device(device, connection, device_output):
         if device._established is True:  # pylint: disable=protected-access
             device._established = False  # pylint: disable=protected-access
         device.establish_connection()
-
+        if device.current_state == "NOT_CONNECTED":
+            device.io_connection.inject(b"moler_bash#")
+            time.sleep(0.2)
     assert device.current_state != "NOT_CONNECTED"
 
 
@@ -420,3 +424,55 @@ def moler_check_sm_identity(devices: list):
                     print(f"state={state}, observer={observer}, obs0={pformat(obs0)}, obs1={pformat(obs1)}")
                     print(f"diff: {compare_objects(obs0, obs1)}")
                 assert obs0 == obs1
+
+
+class DeviceCM:
+
+    _any_instance = False
+
+    def __init__(self, name, connection, device_output, test_file_path):
+        self.name = name
+        self.connection = connection
+        self.device_output = device_output
+        self.test_file_path = test_file_path
+        self._device = None
+        self._threading_tick = 1  # seconds to wait between checks if threads are finished after device removal
+        self._thread_timeout = 20  # seconds to wait for threads to finish after device removal
+        self._threads_nr = -1
+        self._threads_names = []
+
+    def __enter__(self):
+        if self._device is None:
+            for thread in threading.enumerate():
+                if "RunnerSingle" in thread.name:
+                    if DeviceCM._any_instance:
+                        self._threads_nr = threading.active_count()
+                        self._threads_names = [thread.name for thread in threading.enumerate()]
+                        break
+                    else:
+                        DeviceCM._any_instance = True
+            self._device = get_device(name=self.name, connection=self.connection, device_output=self.device_output,
+                                      test_file_path=self.test_file_path)
+        return self._device
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        if self._device is not None:
+            DeviceFactory.remove_device(device=self._device)
+            self._device = None
+        if self._threads_nr > 0:
+            start_time = time.monotonic()
+            current_threads_names = [thread.name for thread in threading.enumerate()]
+            unexpected_thread_names = [name for name in current_threads_names if name not in self._threads_names]
+            while threading.active_count() > self._threads_nr or len(unexpected_thread_names) > 0:
+                current_threads_names = [thread.name for thread in threading.enumerate()]
+                unexpected_thread_names = [name for name in current_threads_names if name not in self._threads_names]
+                if time.monotonic() - start_time > self._thread_timeout:
+                    break
+                time.sleep(self._threading_tick)
+            msg = (f"threads no after device removal: {threading.active_count()}, expected no more than {self._threads_nr}:"
+                   f"current threads: {current_threads_names}, expected threads: {self._threads_names}, "
+                   f"unexpected threads: {unexpected_thread_names}")
+            assert threading.active_count() <= self._threads_nr and len(unexpected_thread_names) == 0, msg  # No new thread was left after device removal.
+        else:
+            time.sleep(3 * self._threading_tick)  # just wait a bit to be sure that all threads are finished after device removal
+        return False  # don't suppress exceptions

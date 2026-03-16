@@ -309,7 +309,7 @@ def test_can_clone_device_via_yaml(moler_config, device_factory):
     conn_config = os.path.join(os.path.dirname(__file__), os.pardir, "resources", "device_config.yml")
     moler_config.load_config(config=conn_config, config_type='yaml')
 
-    device_org_name = 'UNIX_LOCAL'
+    device_org_name = 'UNIX_LOCAL_TO_CLONE'
     device_cloned_name = 'UNIX_LOCAL_CLONED_VIA_YAML'
     device_org = device_factory.get_device(name=device_org_name)
     assert device_org is not None
