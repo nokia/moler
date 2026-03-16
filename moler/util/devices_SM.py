@@ -470,8 +470,8 @@ class DeviceCM:
                     break
                 time.sleep(self._threading_tick)
             msg = (f"threads no after device removal: {threading.active_count()}, expected no more than {self._threads_nr}:"
-                    f"current threads: {current_threads_names}, expected threads: {self._threads_names}, "
-                    f"unexpected threads: {unexpected_thread_names}")
+                   f"current threads: {current_threads_names}, expected threads: {self._threads_names}, "
+                   f"unexpected threads: {unexpected_thread_names}")
             assert threading.active_count() <= self._threads_nr and len(unexpected_thread_names) == 0, msg  # No new thread was left after device removal.
         else:
             time.sleep(3 * self._threading_tick)  # just wait a bit to be sure that all threads are finished after device removal
