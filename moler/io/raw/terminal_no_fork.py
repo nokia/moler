@@ -55,7 +55,9 @@ class ThreadedTerminalNoFork(IOConnection):
         :param terminal_delayafterclose: delay for checking if terminal was properly closed
         """
         super().__init__(moler_connection=moler_connection)
-        self.logger.warning("ThreadedTerminalNoFork - experimental implementation. Use at your own risk.")
+        self.logger.warning(
+            "ThreadedTerminalNoFork - experimental implementation. Use at your own risk."
+        )
         self.debug_hex_on_non_printable_chars = (
             False  # Set True to log incoming non printable chars as hex.
         )
@@ -87,8 +89,11 @@ class ThreadedTerminalNoFork(IOConnection):
         context_manager = super().open()
 
         if not self._terminal:
-            self._terminal = PtyProcessUnicodeNotFork(cmd=self._cmd, dimensions=self.dimensions,
-                                                      buffer_size=self._read_buffer_size)
+            self._terminal = PtyProcessUnicodeNotFork(
+                cmd=self._cmd,
+                dimensions=self.dimensions,
+                buffer_size=self._read_buffer_size,
+            )
             assert self._terminal is not None
             self._terminal.create_pty_process()
             self._terminal.delayafterclose = self._terminal_delayafterclose
@@ -131,7 +136,9 @@ class ThreadedTerminalNoFork(IOConnection):
             except Exception as ex:
                 self.logger.warning(f"Exception while joining pulling thread: {ex}")
             if self.pulling_thread.is_alive():
-                self.logger.warning(f"Pulling thread did not finish after {self._join_timeout} timeout.")
+                self.logger.warning(
+                    f"Pulling thread did not finish after {self._join_timeout} timeout."
+                )
         self.moler_connection.shutdown()
         super().close()
 
@@ -210,11 +217,15 @@ class ThreadedTerminalNoFork(IOConnection):
 
         for line in lines:
             line = remove_all_known_special_chars(line)
-            if not re.search(self._re_set_prompt_cmd, line) and re.search(
-                self.target_prompt, line) and not self._shell_operable.is_set():
+            if (
+                not re.search(self._re_set_prompt_cmd, line) and re.search(
+                    self.target_prompt, line) and not self._shell_operable.is_set()
+            ):
                 self._notify_on_connect()
                 self._shell_operable.set()
-                self.data_received(data=self.read_buffer, recv_time=datetime.datetime.now())
+                self.data_received(
+                    data=self.read_buffer, recv_time=datetime.datetime.now()
+                )
             elif not self._export_sent and re.search(
                 self.first_prompt, self.read_buffer, re.MULTILINE
             ):
