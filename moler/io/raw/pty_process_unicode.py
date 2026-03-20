@@ -65,8 +65,6 @@ class PtyProcessUnicodeNotFork:
         self.process = process
         self._closed = False
 
-        time.sleep(0.1)
-
     def write(self, data: Union[str, bytes]) -> int:
         """
         Write data to pty process.

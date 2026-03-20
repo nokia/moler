@@ -122,7 +122,10 @@ class ThreadedTerminalNoFork(IOConnection):
                     )
                     self._terminal.write("\n")
                     retry += 1
-
+            if not is_operable:
+                raise TimeoutError(
+                    f"Terminal did not become operable after '{timeout}' seconds."
+                )
         return context_manager
 
     def close(self) -> None:
@@ -133,12 +136,12 @@ class ThreadedTerminalNoFork(IOConnection):
         if self.pulling_thread:
             try:
                 self.pulling_thread.join(timeout=self._join_timeout)
+                if self.pulling_thread.is_alive():
+                    self.logger.warning(
+                        f"Pulling thread did not finish after {self._join_timeout} timeout."
+                    )
             except Exception as ex:
                 self.logger.warning(f"Exception while joining pulling thread: {ex}")
-            if self.pulling_thread.is_alive():
-                self.logger.warning(
-                    f"Pulling thread did not finish after {self._join_timeout} timeout."
-                )
         self.moler_connection.shutdown()
         super().close()
 
