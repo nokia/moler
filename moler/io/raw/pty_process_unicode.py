@@ -4,12 +4,12 @@ __copyright__ = "Copyright (C) 2026, Nokia"
 __email__ = "marcin.usielski@nokia.com"
 
 import codecs
+import errno
 import fcntl
 import os
 import pty
 import shlex
 import subprocess
-import time
 
 from typing import Optional, Tuple, Union
 
@@ -58,9 +58,15 @@ class PtyProcessUnicodeNotFork:
             start_new_session=True
         )
 
+        # Parent must not keep the slave end open; the child holds its own copy.
+        try:
+            os.close(slave_fd)
+        except OSError:
+            pass
+
         # Store the process information
         self.fd = master_fd
-        self.slave_fd = slave_fd
+        self.slave_fd = -1
         self.pid = process.pid
         self.process = process
         self._closed = False
@@ -85,7 +91,7 @@ class PtyProcessUnicodeNotFork:
             written = os.write(self.fd, data_bytes)
             return written
         except OSError as e:
-            if e.errno == 5:  # Input/output error - process might be dead
+            if e.errno == errno.EIO:  # Input/output error - process might be dead
                 self.close(force=True)
                 self._closed = True
             raise
@@ -104,7 +110,7 @@ class PtyProcessUnicodeNotFork:
             data_bytes = os.read(self.fd, size)
 
             if not data_bytes:
-                raise MolerException("End of file reached")
+                raise EOFError("End of file reached")
 
             # Decode bytes to string using the incremental decoder
             # This handles partial UTF-8 sequences correctly
@@ -112,11 +118,11 @@ class PtyProcessUnicodeNotFork:
             return data_str
 
         except OSError as e:
-            if e.errno == 11:  # Resource temporarily unavailable (EAGAIN)
+            if e.errno == errno.EAGAIN:
                 return ""  # No data available, return empty string
-            elif e.errno == 5:  # Input/output error - process might be dead
+            elif e.errno == errno.EIO:
                 self.close(force=True)
-                raise MolerException("End of file reached")
+                raise EOFError("End of file reached")
             else:
                 raise
 
