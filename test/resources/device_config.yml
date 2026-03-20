@@ -11,7 +11,7 @@ DEVICES:
   DEFAULT_CONNECTION:
     CONNECTION_DESC:
       io_type: terminal
-      variant: threaded
+      variant: single-threaded
 
   LOGICAL_TOPOLOGY:
     UNIX_LOCAL:
