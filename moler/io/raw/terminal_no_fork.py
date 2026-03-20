@@ -12,7 +12,7 @@ import logging
 
 import threading
 import time
-from typing import Tuple, List, Optional
+from typing import List, Optional, Tuple
 
 from moler.io.io_connection import IOConnection
 from moler.io.raw import TillDoneThread
@@ -51,7 +51,7 @@ class ThreadedTerminalNoFork(IOConnection):
         :param first_prompt: default terminal prompt on host where Moler is starting
         :param target_prompt: new prompt which will be set on terminal
         :param set_prompt_cmd: command to change prompt with new line char on the end of string
-        :param dimensions: dimensions of the psuedoterminal
+        :param dimensions: dimensions of the pseudoterminal
         :param terminal_delayafterclose: delay for checking if terminal was properly closed
         """
         super().__init__(moler_connection=moler_connection)
@@ -77,6 +77,7 @@ class ThreadedTerminalNoFork(IOConnection):
             "['\"].*['\"]", "", self.set_prompt_cmd.strip()
         )
         self._terminal_delayafterclose = terminal_delayafterclose
+        self._join_timeout = 10
 
     def open(self) -> contextlib.closing:
         """
@@ -86,13 +87,12 @@ class ThreadedTerminalNoFork(IOConnection):
         context_manager = super().open()
 
         if not self._terminal:
-            self.moler_connection.open()
             self._terminal = PtyProcessUnicodeNotFork(cmd=self._cmd, dimensions=self.dimensions,
                                                       buffer_size=self._read_buffer_size)
             assert self._terminal is not None
             self._terminal.create_pty_process()
             self._terminal.delayafterclose = self._terminal_delayafterclose
-            # need to not replace not unicode data instead of raise exception
+            # replace invalid sequences instead of throwing exception
             self._terminal.decoder = codecs.getincrementaldecoder("utf-8")(
                 errors="replace"
             )
@@ -113,7 +113,7 @@ class ThreadedTerminalNoFork(IOConnection):
                 if not is_operable:
                     buff = self.read_buffer.encode("UTF-8", "replace")
                     self.logger.warning(
-                        f"Terminal open but not fully operable yet. Try {retry} after {time.monotonic() - start_time:.2f} s\nREAD_BUFFER: '{buff}'"
+                        f"Terminal open but not fully operable yet. Attempt {retry} after {time.monotonic() - start_time:.2f} s\nREAD_BUFFER: '{buff!r}'"
                     )
                     self._terminal.write("\n")
                     retry += 1
@@ -126,7 +126,12 @@ class ThreadedTerminalNoFork(IOConnection):
         :return: None
         """
         if self.pulling_thread:
-            self.pulling_thread.join()
+            try:
+                self.pulling_thread.join(timeout=self._join_timeout)
+            except Exception as ex:
+                self.logger.warning(f"Exception while joining pulling thread: {ex}")
+            if self.pulling_thread.is_alive():
+                self.logger.warning(f"Pulling thread did not finish after {self._join_timeout} timeout.")
         self.moler_connection.shutdown()
         super().close()
 
@@ -206,8 +211,7 @@ class ThreadedTerminalNoFork(IOConnection):
         for line in lines:
             line = remove_all_known_special_chars(line)
             if not re.search(self._re_set_prompt_cmd, line) and re.search(
-                self.target_prompt, line
-            ):
+                self.target_prompt, line) and not self._shell_operable.is_set():
                 self._notify_on_connect()
                 self._shell_operable.set()
                 self.data_received(data=self.read_buffer, recv_time=datetime.datetime.now())
