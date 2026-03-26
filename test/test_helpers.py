@@ -8,7 +8,6 @@ __copyright__ = 'Copyright (C) 2018-2025, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import copy
-import sys
 
 import mock
 import pytest
@@ -378,12 +377,7 @@ def test_diff_different_types():
     b = copy.deepcopy(a)
     b[3] = 4
     msg = diff_data(first_object=a, second_object=b)
-    if sys.version_info < (3, 0):
-        assert "root -> [3] True is type of <type 'bool'> but 4 is type of <type 'int'>" \
-               == msg
-    else:
-        assert "root -> [3] True is type of <class 'bool'> but 4 is type of <class 'int'>"\
-               == msg
+    assert "root -> [3] True is type of <class 'bool'> but 4 is type of <class 'int'>" == msg
 
 
 def test_diff_different_values():
