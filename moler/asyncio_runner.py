@@ -801,7 +801,7 @@ def cleanup_remaining_tasks(loop, logger):
     # https://stackoverflow.com/questions/30765606/whats-the-correct-way-to-clean-up-after-an-interrupted-event-loop
     # https://medium.com/python-pandemonium/asyncio-coroutine-patterns-beyond-await-a6121486656f
     # Handle shutdown gracefully by waiting for all tasks to be cancelled
-    all_tasks = [task for task in asyncio.Task.all_tasks(loop=loop)]
+
     not_done_tasks = [task for task in asyncio.Task.all_tasks(loop=loop) if not task.done()]
     if not_done_tasks:
         logger.info("cancelling all remaining tasks")

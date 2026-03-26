@@ -6,7 +6,7 @@ Moler's device has 2 main responsibilities:
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2024-2025, Nokia'
+__copyright__ = 'Copyright (C) 2024-2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 import six
 import abc
