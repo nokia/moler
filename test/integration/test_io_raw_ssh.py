@@ -16,11 +16,13 @@ import importlib
 import pytest
 import mock
 import threading
-import sys
 import platform
 
 
-pytestmark = pytest.mark.skipif(sys.version_info < (3, 4) or 'Linux' != platform.system(), reason="requires python3.4 or higher and skip for no Linux system.")
+pytestmark = pytest.mark.skipif(
+    "Linux" != platform.system(),
+    reason="Linux-only SSH PTY integration tests.",
+)
 
 
 def test_can_create_passive_sshshell_connection_using_same_api(passive_sshshell_connection_class):
