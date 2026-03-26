@@ -4,7 +4,6 @@ __author__ = 'Michal Ernst, Marcin Usielski'
 __copyright__ = 'Copyright (C) 2018-2023, Nokia'
 __email__ = 'michal.ernst@nokia.com, marcin.usielski@nokia.com'
 
-import sys
 import pytest
 
 from moler.connection_observer import ConnectionObserver
@@ -13,10 +12,7 @@ from moler.util.moler_test import MolerTest
 
 
 def __check_connection_observer_exception(err):
-    if sys.version_info >= (3, 0):
-        assert "some error inside observer" in str(err)
-    else:
-        assert "There were unhandled exceptions from test caught by Moler" in str(err)
+    assert "some error inside observer" in str(err)
 
 
 def test_moler_test_warn():
