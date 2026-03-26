@@ -70,19 +70,6 @@ class ProxyPc(UnixLocal):
         self._prepare_newline_chars()
         self._send_transitions_to_sm(self._stored_transitions)
 
-    def _prepare_transitions(self):
-        """
-        Prepare transitions to change states.
-        :return: None
-        """
-
-        stored_is_proxy_pc = self._use_proxy_pc
-        self._use_proxy_pc = True
-        super(ProxyPc, self)._prepare_transitions()
-        self._use_proxy_pc = stored_is_proxy_pc
-        transitions = self._prepare_transitions_with_proxy_pc()
-        self._add_transitions(transitions=transitions)
-
     def _prepare_dicts_for_sm(self, sm_params):
         """
         Prepare transitions to change states.
