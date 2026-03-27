@@ -286,6 +286,7 @@ def _update_config_log_rotation(config: dict) -> None:
                 log_rotation["COMPRESSED_FILE_EXTENSION"]
             )
 
+
 def _config_rotating(config):
     if "KIND" in config["LOGGER"]:
         print(

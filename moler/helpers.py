@@ -19,7 +19,7 @@ from math import isclose
 from types import FunctionType, MethodType
 
 from six import string_types, integer_types
-from typing import Optional, Tuple
+from typing import List, Optional, Tuple
 from moler.exceptions import MolerException
 
 
@@ -600,6 +600,14 @@ def regexp_without_anchors(regexp):
     return re.compile(regexp_str)
 
 
+def _get_states_to_remove_from_sm(source_sm: dict, state_to_remove: str) -> List[str]:
+    states_from_state_to_remove = []
+    for from_state in source_sm.keys():
+        for to_state in source_sm[from_state].keys():
+            if to_state == state_to_remove:
+                states_from_state_to_remove.append(from_state)
+    return states_from_state_to_remove
+
 def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str,
                          forbidden: Optional[dict] = None) -> Tuple[dict, dict]:
     """
@@ -612,11 +620,7 @@ def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_rem
     new_sm = copy.deepcopy(source_sm)
     new_transitions = copy.deepcopy(source_transitions)
 
-    states_from_state_to_remove = []
-    for from_state in source_sm.keys():
-        for to_state in source_sm[from_state].keys():
-            if to_state == state_to_remove:
-                states_from_state_to_remove.append(from_state)
+    states_from_state_to_remove = _get_states_to_remove_from_sm(source_sm=source_sm, state_to_remove=state_to_remove)
 
     for to_state in states_from_state_to_remove:
         if to_state == state_to_remove:
@@ -711,6 +715,13 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additiona
                 else:
                     del new_hops[old_from_state][old_dest_state]
 
+    _del_state_hops_after_hops_processing(source_hops, state_to_remove, new_hops, additional_hops)
+
+    return new_hops
+
+
+def _del_state_hops_after_hops_processing(source_hops: dict, state_to_remove: str, new_hops: dict,
+                                          additional_hops: Optional[dict]) -> None:
     for old_from_state in source_hops.keys():
         if old_from_state in new_hops and state_to_remove in new_hops[old_from_state]:
             del new_hops[old_from_state][state_to_remove]
@@ -721,5 +732,3 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additiona
     _delete_empty_states(new_hops)
     if additional_hops:
         update_dict(new_hops, additional_hops)
-
-    return new_hops
