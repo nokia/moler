@@ -4,7 +4,7 @@ Ip maddr command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2025, Nokia'
+__copyright__ = 'Copyright (C) 2025-2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
@@ -33,7 +33,7 @@ class IpMaddr(GenericUnixCommand):
         Build command string from parameters passed to object.
         :return: String representation of command to send over connection to device.
         """
-        cmd = f"ip maddr"
+        cmd = "ip maddr"
         if self.options:
             cmd = f"{cmd} {self.options}"
             self.ret_required = True if self.options == 'show' else False

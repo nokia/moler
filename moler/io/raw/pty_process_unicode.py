@@ -4,12 +4,12 @@ __copyright__ = "Copyright (C) 2026, Nokia"
 __email__ = "marcin.usielski@nokia.com"
 
 import codecs
+import errno
 import fcntl
 import os
 import pty
 import shlex
 import subprocess
-import time
 
 from typing import Optional, Tuple, Union
 
@@ -58,14 +58,18 @@ class PtyProcessUnicodeNotFork:
             start_new_session=True
         )
 
+        # Parent must not keep the slave end open; the child holds its own copy.
+        try:
+            os.close(slave_fd)
+        except OSError:
+            pass
+
         # Store the process information
         self.fd = master_fd
-        self.slave_fd = slave_fd
+        self.slave_fd = -1
         self.pid = process.pid
         self.process = process
         self._closed = False
-
-        time.sleep(0.1)
 
     def write(self, data: Union[str, bytes]) -> int:
         """
@@ -87,7 +91,7 @@ class PtyProcessUnicodeNotFork:
             written = os.write(self.fd, data_bytes)
             return written
         except OSError as e:
-            if e.errno == 5:  # Input/output error - process might be dead
+            if e.errno == errno.EIO:  # Input/output error - process might be dead
                 self.close(force=True)
                 self._closed = True
             raise
@@ -106,7 +110,7 @@ class PtyProcessUnicodeNotFork:
             data_bytes = os.read(self.fd, size)
 
             if not data_bytes:
-                raise MolerException("End of file reached")
+                raise EOFError("End of file reached")
 
             # Decode bytes to string using the incremental decoder
             # This handles partial UTF-8 sequences correctly
@@ -114,24 +118,32 @@ class PtyProcessUnicodeNotFork:
             return data_str
 
         except OSError as e:
-            if e.errno == 11:  # Resource temporarily unavailable (EAGAIN)
+            if e.errno == errno.EAGAIN:  # Resource temporarily unavailable
                 return ""  # No data available, return empty string
-            elif e.errno == 5:  # Input/output error - process might be dead
+            elif e.errno == errno.EIO:  # Input/output error - process might be dead
                 self.close(force=True)
-                raise MolerException("End of file reached")
+                raise EOFError("End of file reached")
             else:
                 raise
 
-    def close(self, force: bool = False) -> None:
-        """
-        Close pty process.
-        :param force: if True, forcefully kill the process
-        :return: None
-        """
-        if self._closed:
-            return
-        self._closed = True
+    def _close_fds(self) -> None:
+        """Close file descriptors."""
+        if self.fd >= 0:
+            try:
+                os.close(self.fd)
+            except OSError:
+                pass
+            self.fd = -1
 
+        if self.slave_fd >= 0:
+            try:
+                os.close(self.slave_fd)
+            except OSError:
+                pass
+            self.slave_fd = -1
+
+    def _terminate_process(self, force: bool) -> None:
+        """Terminate the child process."""
         # Try to terminate the process gracefully first
         if self.process and self.isalive():
             try:
@@ -151,20 +163,21 @@ class PtyProcessUnicodeNotFork:
             except Exception as e:
                 print(f"Error terminating process: {e}")
 
-        # Close file descriptors
-        if self.fd >= 0:
-            try:
-                os.close(self.fd)
-            except OSError:
-                pass
-            self.fd = -1
+    def close(self, force: bool = False) -> None:
+        """
+        Close pty process.
+        :param force: if True, forcefully kill the process
+        :return: None
+        """
+        if self._closed:
+            return
+        self._closed = True
 
-        if self.slave_fd >= 0:
-            try:
-                os.close(self.slave_fd)
-            except OSError:
-                pass
-            self.slave_fd = -1
+        # Terminate the child process
+        self._terminate_process(force=force)
+
+        # Close file descriptors
+        self._close_fds()
 
     def isalive(self) -> bool:
         """

@@ -1158,7 +1158,7 @@ class TextualDevice(AbstractDevice):
                         break
                     time.sleep(self._tick_to_check_runner)
                 event.remove_event_occurred_callback()
-        except Exception as e:
+        except Exception:
             pass
 
     def build_trigger_to_state(self, state):

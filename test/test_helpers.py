@@ -4,7 +4,7 @@ Tests for helpers functions/classes.
 """
 
 __author__ = 'Grzegorz Latuszek, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2025, Nokia'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com'
 
 import copy
@@ -387,8 +387,8 @@ def test_diff_different_values():
     b = copy.deepcopy(a)
     b[-1] = {'a': 3, 'b': {'c': 5, 'd': 6.2}}
     msg = diff_data(first_object=a, second_object=b)
-    assert "root -> [8] -> [b] -> [d] the first value 6.3 is different from the" \
-           " second value 6.2." == msg
+    assert "root -> [8] -> [b] -> [d] the first value '6.3' is different from the" \
+           " second value '6.2'." == msg
 
 
 def test_date_parser_cest():

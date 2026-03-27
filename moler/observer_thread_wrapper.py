@@ -62,6 +62,26 @@ class ObserverThreadWrapper:
         if self._t:
             self._t = None
 
+    def _process_data_from_queue(self) -> None:
+        """Process data from queue."""
+        try:
+            data, timestamp = self._queue.get(True, self._timeout_for_get_from_queue)
+            try:
+                self.logger.log(level=TRACE, msg=f'notifying {self._observer}({repr(data)})')
+            except ReferenceError:
+                self._request_end.set()  # self._observer is no more valid.
+            try:
+                if self._observer_self:
+                    self._observer(self._observer_self, data, timestamp)
+                else:
+                    self._observer(data, timestamp)
+            except ReferenceError:
+                self._request_end.set()  # self._observer is no more valid.
+            except Exception as ex:
+                self._handle_unexpected_error_from_observer(exception=ex, data=data, timestamp=timestamp)
+        except queue.Empty:
+            pass  # No incoming data within self._timeout_for_get_from_queue
+
     @tracked_thread.log_exit_exception
     def _loop_for_observer(self):
         """
@@ -74,23 +94,7 @@ class ObserverThreadWrapper:
         while not self._request_end.is_set():
             if next(heartbeat):
                 logging.getLogger("moler_threads").debug("ALIVE")
-            try:
-                data, timestamp = self._queue.get(True, self._timeout_for_get_from_queue)
-                try:
-                    self.logger.log(level=TRACE, msg=f'notifying {self._observer}({repr(data)})')
-                except ReferenceError:
-                    self._request_end.set()  # self._observer is no more valid.
-                try:
-                    if self._observer_self:
-                        self._observer(self._observer_self, data, timestamp)
-                    else:
-                        self._observer(data, timestamp)
-                except ReferenceError:
-                    self._request_end.set()  # self._observer is no more valid.
-                except Exception as ex:
-                    self._handle_unexpected_error_from_observer(exception=ex, data=data, timestamp=timestamp)
-            except queue.Empty:
-                pass  # No incoming data within self._timeout_for_get_from_queue
+            self._process_data_from_queue()
         self._observer = None
         self._observer_self = None
         logging.getLogger("moler_threads").debug("EXIT")

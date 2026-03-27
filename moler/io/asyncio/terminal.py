@@ -172,7 +172,7 @@ class AsyncioInThreadTerminal(IOConnection):
         if self._async_terminal._transport:  # change it to coro is_open() checked inside async-thread
             # self._debug('closing {}'.format(self))
             thread4async = get_asyncio_loop_thread()
-            ret = thread4async.run_async_coroutine(self._async_terminal.close(), timeout=0.5)
+            thread4async.run_async_coroutine(self._async_terminal.close(), timeout=0.5)
         # self._debug('connection {} is closed'.format(self))
 
     def notify(self, callback, when):
