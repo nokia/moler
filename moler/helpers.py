@@ -4,7 +4,7 @@ Utility/common code of library.
 """
 
 __author__ = "Grzegorz Latuszek, Michal Ernst, Marcin Usielski"
-__copyright__ = "Copyright (C) 2018-2025, Nokia"
+__copyright__ = "Copyright (C) 2018-2026, Nokia"
 __email__ = (
     "grzegorz.latuszek@nokia.com, michal.ernst@nokia.com, marcin.usielski@nokia.com"
 )
@@ -19,6 +19,7 @@ from math import isclose
 from types import FunctionType, MethodType
 
 from six import string_types, integer_types
+from typing import Optional
 from moler.exceptions import MolerException
 
 
@@ -245,7 +246,7 @@ def compare_objects(
 
 def diff_data(
     first_object, second_object, significant_digits=None, exclude_types=None, msg=None
-):
+) -> str:
     """
     Compare two objects recursively and return a message indicating any differences.
 
@@ -289,15 +290,35 @@ def diff_data(
             first_object=first_object, second_object=second_object, msg=msg
         )
     elif isinstance(first_object, float):
-        abs_tol = 0.0001
-        if significant_digits:
-            abs_tol = 1.0 / 10**significant_digits
-        if not isclose(first_object, second_object, abs_tol=abs_tol):
-            return f"{msg} the first value {first_object} is different from the second value {second_object}."
+        return _compare_floats(
+            first_object=first_object,
+            second_object=second_object,
+            msg=msg,
+            significant_digits=significant_digits
+        )
     else:
         if first_object != second_object:
             return f"{msg} First value {first_object} is different from the second {second_object}."
 
+    return ""
+
+
+def _compare_floats(first_object: float, second_object: float, msg: str,
+                    significant_digits: Optional[int] = None) -> str:
+    """
+    Compare two floats and return a message indicating any differences.
+    :param first_object: The first float for comparison.
+    :param second_object: The second float for comparison.
+    :param msg: A message to prepend to any difference messages.
+    :param significant_digits: The number of significant digits to consider for float
+                               comparison.
+    :return: A message indicating the differences, or an empty string if objects are equal.
+    """
+    abs_tol = 0.0001
+    if significant_digits:
+        abs_tol = 1.0 / 10**significant_digits
+    if not isclose(first_object, second_object, abs_tol=abs_tol):
+        return f"{msg} the first value {first_object} is different from the second value {second_object}."
     return ""
 
 
@@ -357,10 +378,12 @@ def _compare_sets(first_object, second_object, msg):
     if diff:
         for item in first_object:
             if item not in second_object:
-                return f"{msg} item {item} is in the first set {first_object} but not in the second set {second_object}."
+                return (f"{msg} item {item} is in the first set {first_object}"
+                        f" but not in the second set {second_object}.")
         for item in second_object:
             if item not in first_object:
-                return f"{msg} item {item} is in the second set {second_object} but not in the first set {first_object}."
+                return (f"{msg} item {item} is in the second set {second_object}"
+                        f" but not in the first set {first_object}.")
     return ""
 
 
@@ -577,7 +600,8 @@ def regexp_without_anchors(regexp):
     return re.compile(regexp_str)
 
 
-def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str, forbidden: dict = None) -> tuple:
+def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str,
+                         forbidden: Optional[dict] = None) -> tuple[dict, dict]:
     """
     Remove a state from a state machine dict.
     :param source_sm: a dict with a state machine description
@@ -654,7 +678,8 @@ def _delete_empty_states(sm: dict) -> None:
             del sm[state]
 
 
-def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additional_hops: dict = None, forbidden_hops: dict = None) -> dict:
+def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additional_hops: Optional[dict] = None,
+                              forbidden_hops: Optional[dict] = None) -> dict:
     """
     Remove a state from a state machine dict.
     :param source_sm: a dict with state machine description
@@ -671,10 +696,14 @@ def remove_state_hops_from_sm(source_hops: dict, state_to_remove: str, additiona
             if old_via_state == state_to_remove:
                 if state_to_remove in source_hops and old_dest_state in source_hops[state_to_remove]:
                     if source_hops[state_to_remove][old_dest_state] == old_from_state:
-                        msg = f"Found cycle from '{old_from_state}' to '{old_dest_state}' via '{source_hops[state_to_remove][old_dest_state]}'. Please verify state hops: {source_hops}"
+                        msg = (f"Found cycle from '{old_from_state}' to '{old_dest_state}' via "
+                               f"'{source_hops[state_to_remove][old_dest_state]}'. "
+                               f"Please verify state hops: {source_hops}")
                         raise MolerException(msg)
                     new_via_state = source_hops[old_via_state][old_dest_state]
-                    if forbidden_hops and old_from_state in forbidden_hops and old_dest_state in forbidden_hops[old_from_state] and forbidden_hops[old_from_state][old_dest_state] == new_via_state:
+                    if (forbidden_hops and old_from_state in forbidden_hops and
+                            old_dest_state in forbidden_hops[old_from_state] and
+                            forbidden_hops[old_from_state][old_dest_state] == new_via_state):
                         if old_from_state in new_hops and old_dest_state in new_hops[old_from_state]:
                             del new_hops[old_from_state][old_dest_state]
                     else:
