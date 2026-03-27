@@ -115,7 +115,8 @@ class ThreadedTerminalNoFork(IOConnection):
                 if not is_operable:
                     buff = self.read_buffer.encode("UTF-8", "replace")
                     self.logger.warning(
-                        f"Terminal open but not fully operable yet. Attempt {retry} after {time.monotonic() - start_time:.2f} s\nREAD_BUFFER: '{buff!r}'"
+                        f"Terminal open but not fully operable yet. Attempt {retry} after "
+                        f"{time.monotonic() - start_time:.2f} s\nREAD_BUFFER: '{buff!r}'"
                     )
                     self._terminal.write("\n")
                     retry += 1
@@ -163,6 +164,17 @@ class ThreadedTerminalNoFork(IOConnection):
         if self._terminal:
             self._terminal.write(data)
 
+    def _log_debug_incoming_data(self, data: str) -> None:
+        """
+        Debug incoming data.
+        :param data: incoming data to debug
+        :return: None
+        """
+        if self.debug_hex_on_all_chars:
+            self.logger.debug(f"incoming data: '{all_chars_to_hex(data)}'.")
+        if self.debug_hex_on_non_printable_chars:
+            self.logger.debug(f"incoming data: '{non_printable_chars_to_hex(data)}'.")
+
     @tracked_thread.log_exit_exception
     def pull_data(self, pulling_done: threading.Event) -> None:
         """
@@ -190,13 +202,7 @@ class ThreadedTerminalNoFork(IOConnection):
             if self._terminal.fd in reads:
                 try:
                     data = self._terminal.read(self._read_buffer_size)
-                    if self.debug_hex_on_all_chars:
-                        self.logger.debug(f"incoming data: '{all_chars_to_hex(data)}'.")
-                    if self.debug_hex_on_non_printable_chars:
-                        self.logger.debug(
-                            f"incoming data: '{non_printable_chars_to_hex(data)}'."
-                        )
-
+                    self._log_debug_incoming_data(data)
                     if self._shell_operable.is_set():
                         self.data_received(data=data, recv_time=datetime.datetime.now())
                     else:
