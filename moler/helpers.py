@@ -608,6 +608,7 @@ def _get_states_to_remove_from_sm(source_sm: dict, state_to_remove: str) -> List
                 states_from_state_to_remove.append(from_state)
     return states_from_state_to_remove
 
+
 def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str,
                          forbidden: Optional[dict] = None) -> Tuple[dict, dict]:
     """
