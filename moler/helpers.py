@@ -298,7 +298,7 @@ def diff_data(
         )
     else:
         if first_object != second_object:
-            return f"{msg} First value {first_object} is different from the second {second_object}."
+            return f"{msg} First value '{first_object}' is different from the second '{second_object}."
 
     return ""
 
@@ -318,7 +318,7 @@ def _compare_floats(first_object: float, second_object: float, msg: str,
     if significant_digits:
         abs_tol = 1.0 / 10**significant_digits
     if not isclose(first_object, second_object, abs_tol=abs_tol):
-        return f"{msg} the first value {first_object} is different from the second value {second_object}."
+        return f"{msg} the first value '{first_object}' is different from the second value '{second_object}'."
     return ""
 
 
@@ -345,10 +345,10 @@ def _compare_dicts(
     if diff:
         for key in keys_first:
             if key not in keys_second:
-                return f"{msg} key {key} is in the first {first_object} but not in the second dict {second_object}."
+                return f"{msg} key '{key}' is in the first {first_object} but not in the second dict {second_object}."
         for key in keys_second:
             if key not in keys_first:
-                return f"{msg} key {key} is in the second {first_object} but not in the first dict {second_object}."
+                return f"{msg} key '{key}' is in the second {second_object} but not in the first dict {first_object}."
     else:
         for key in keys_first:
             res = diff_data(
@@ -378,12 +378,12 @@ def _compare_sets(first_object, second_object, msg):
     if diff:
         for item in first_object:
             if item not in second_object:
-                return (f"{msg} item {item} is in the first set {first_object}"
-                        f" but not in the second set {second_object}.")
+                return (f"{msg} item '{item}' is in the first set '{first_object}'"
+                        f" but not in the second set '{second_object}'.")
         for item in second_object:
             if item not in first_object:
-                return (f"{msg} item {item} is in the second set {second_object}"
-                        f" but not in the first set {first_object}.")
+                return (f"{msg} item '{item}' is in the second set '{second_object}'"
+                        f" but not in the first set '{first_object}'.")
     return ""
 
 
@@ -407,7 +407,7 @@ def _compare_lists(
     len_first = len(first_object)
     len_second = len(second_object)
     if len_first != len_second:
-        return f"{msg} List {first_object} has {len_first} item(s) but {second_object} has {len_second} item(s)"
+        return f"{msg} List '{first_object}' has {len_first} item(s) but '{second_object}' has {len_second} item(s)"
     max_element = len(first_object)
     for i in range(0, max_element):
         res = diff_data(
