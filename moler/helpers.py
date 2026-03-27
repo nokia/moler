@@ -19,7 +19,7 @@ from math import isclose
 from types import FunctionType, MethodType
 
 from six import string_types, integer_types
-from typing import Optional
+from typing import Optional, Tuple
 from moler.exceptions import MolerException
 
 
@@ -601,7 +601,7 @@ def regexp_without_anchors(regexp):
 
 
 def remove_state_from_sm(source_sm: dict, source_transitions: dict, state_to_remove: str,
-                         forbidden: Optional[dict] = None) -> tuple[dict, dict]:
+                         forbidden: Optional[dict] = None) -> Tuple[dict, dict]:
     """
     Remove a state from a state machine dict.
     :param source_sm: a dict with a state machine description
