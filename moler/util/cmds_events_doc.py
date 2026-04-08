@@ -6,7 +6,7 @@ Perform command autotest for selected command(s).
 from __future__ import print_function
 
 __author__ = 'Grzegorz Latuszek', 'Michal Ernst', 'Michal Plichta, Marcin Usielski'
-__copyright__ = 'Copyright (C) 2018-2024, Nokia'
+__copyright__ = 'Copyright (C) 2018-2026, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com', 'michal.ernst@nokia.com', 'michal.plichta@nokia.com,' \
                                                                      ' marcin.usielski@nokia.com'
 
@@ -18,6 +18,7 @@ from importlib import import_module
 from os import walk, sep
 from os.path import abspath, join, relpath, exists, split
 from pprint import pformat
+from typing import Dict, List
 
 from moler.command import Command
 from moler.event import Event
@@ -245,64 +246,56 @@ def check_cmd_or_event(path2cmds):
     return observer_type, base_class
 
 
-def check_if_documentation_exists(path2cmds):
-    """
-    Check if documentation exists and has proper structure.
+def _mark_documentation_error(moler_class, wrong_commands, errors_found, error_msg):
+    wrong_commands[moler_class.__name__] = 1
+    errors_found.append(error_msg)
 
-    :param path2cmds: relative path to comands directory
-    :type path2cmds: str
-    :return: True if all checks passed
-    :rtype: bool
-    """
-    observer_type, base_class = check_cmd_or_event(path2cmds)
-    wrong_commands = {}
-    errors_found = []
-    print()
-    number_of_command_found = 0
-    for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds, base_class=base_class):
-        number_of_command_found += 1
-        start_time = time.monotonic()
-        print(f"processing: '{moler_class}'...", end="")
 
-        test_data = _retrieve_command_documentation(moler_module, observer_type)
+def _process_documentation_variant(moler_module, moler_class, test_data, variant,
+                                   observer_type, base_class, wrong_commands, errors_found):
+    error_msgs = _validate_documentation_consistency(moler_module, test_data, variant, observer_type)
+    if error_msgs:
+        wrong_commands[moler_class.__name__] = 1
+        errors_found.extend(error_msgs)
+        return
 
-        error_msg = _validate_documentation_existence(moler_module, test_data, observer_type)
-        if error_msg:
-            wrong_commands[moler_class.__name__] = 1
-            errors_found.append(error_msg)
-            continue
+    cmd_output, cmd_kwargs, cmd_result = _get_doc_variant(test_data, variant, observer_type)
 
-        for variant in test_data:
-            error_msgs = _validate_documentation_consistency(moler_module, test_data, variant, observer_type)
-            if error_msgs:
-                wrong_commands[moler_class.__name__] = 1
-                errors_found.extend(error_msgs)
-                continue
+    buffer_io = _buffer_connection()
+    try:
+        moler_cmd, creation_str = _create_command(moler_class,
+                                                  buffer_io.moler_connection,
+                                                  cmd_kwargs)
+    except Exception as err:
+        _mark_documentation_error(moler_class, wrong_commands, errors_found, str(err))
+        raise err
 
-            cmd_output, cmd_kwargs, cmd_result = _get_doc_variant(test_data, variant, observer_type)
+    error_msg = _run_command_parsing_test(moler_cmd, creation_str,
+                                          buffer_io,
+                                          cmd_output, cmd_result,
+                                          variant,
+                                          base_class,
+                                          observer_type)
+    if error_msg:
+        _mark_documentation_error(moler_class, wrong_commands, errors_found, error_msg)
 
-            buffer_io = _buffer_connection()
-            try:
-                moler_cmd, creation_str = _create_command(moler_class,
-                                                          buffer_io.moler_connection,
-                                                          cmd_kwargs)
-            except Exception as err:
-                wrong_commands[moler_class.__name__] = 1
-                errors_found.append(str(err))
-                raise err
-                continue
 
-            error_msg = _run_command_parsing_test(moler_cmd, creation_str,
-                                                  buffer_io,
-                                                  cmd_output, cmd_result,
-                                                  variant,
-                                                  base_class,
-                                                  observer_type)
-            if error_msg:
-                wrong_commands[moler_class.__name__] = 1
-                errors_found.append(error_msg)
-        print(f" - {time.monotonic() - start_time:.3f} s.")
+def _process_documentation_for_observer(moler_module, moler_class, observer_type,
+                                        base_class, wrong_commands, errors_found):
+    test_data = _retrieve_command_documentation(moler_module, observer_type)
 
+    error_msg = _validate_documentation_existence(moler_module, test_data, observer_type)
+    if error_msg:
+        _mark_documentation_error(moler_class, wrong_commands, errors_found, error_msg)
+        return
+
+    for variant in test_data:
+        _process_documentation_variant(moler_module, moler_class, test_data, variant,
+                                       observer_type, base_class, wrong_commands, errors_found)
+
+
+def _report_documentation_check_result(observer_type, path2cmds, number_of_command_found,
+                                       wrong_commands, errors_found):
     print("")
     if errors_found:
         print("\n".join(errors_found))
@@ -320,6 +313,33 @@ def check_if_documentation_exists(path2cmds):
         return False
     print(f"All of {number_of_command_found} processed {observer_type.lower()}s have correct documentation")
     return True
+
+
+def check_if_documentation_exists(path2cmds: str) -> bool:
+    """
+    Check if documentation exists and has proper structure.
+
+    :param path2cmds: relative path to comands directory
+    :type path2cmds: str
+    :return: True if all checks passed
+    :rtype: bool
+    """
+    observer_type, base_class = check_cmd_or_event(path2cmds)
+    wrong_commands: Dict[str, int] = {}
+    errors_found: List[str] = []
+    print()
+    number_of_command_found = 0
+    for moler_module, moler_class in _walk_moler_nonabstract_commands(path=path2cmds, base_class=base_class):
+        number_of_command_found += 1
+        start_time = time.monotonic()
+        print(f"processing: '{moler_class}'...", end="")
+
+        _process_documentation_for_observer(moler_module, moler_class, observer_type,
+                                            base_class, wrong_commands, errors_found)
+        print(f" - {time.monotonic() - start_time:.3f} s.")
+
+    return _report_documentation_check_result(observer_type, path2cmds, number_of_command_found,
+                                              wrong_commands, errors_found)
 
 
 if __name__ == '__main__':

@@ -3,7 +3,7 @@
 Moler related configuration
 """
 __author__ = "Grzegorz Latuszek, Marcin Usielski, Michal Ernst, Tomasz Krol"
-__copyright__ = "Copyright (C) 2018-2022, Nokia"
+__copyright__ = "Copyright (C) 2018-2026, Nokia"
 __email__ = "grzegorz.latuszek@nokia.com, marcin.usielski@nokia.com, michal.ernst@nokia.com, tomasz.krol@nokia.com"
 import os
 from contextlib import contextmanager
@@ -267,22 +267,7 @@ def load_logger_from_config(config):
     log_cfg.configure_moler_main_logger()
 
 
-def _config_rotating(config):
-    if "KIND" in config["LOGGER"]:
-        print(
-            "Warning! Please update LOGGER to new style. 'KIND' should now exist in LOG_ROTATION section."
-        )  # Logger is not available here.
-        log_cfg.set_kind(config["LOGGER"]["KIND"])
-    if "INTERVAL" in config["LOGGER"]:
-        print(
-            "Warning! Please update LOGGER to new style. 'INTERVAL' should now exist in LOG_ROTATION section."
-        )  # Logger is not available here.
-        log_cfg.set_interval(config["LOGGER"]["INTERVAL"])
-    if "BACKUP_COUNT" in config["LOGGER"]:
-        print(
-            "Warning! Please update LOGGER to new style. 'BACKUP_COUNT' should now exist in LOG_ROTATION section."
-        )  # Logger is not available here.
-        log_cfg.set_backup_count(config["LOGGER"]["BACKUP_COUNT"])
+def _update_config_log_rotation(config: dict) -> None:
     if "LOG_ROTATION" in config["LOGGER"]:
         log_rotation = config["LOGGER"]["LOG_ROTATION"]
         if "KIND" in log_rotation:
@@ -300,6 +285,25 @@ def _config_rotating(config):
             log_cfg.set_compressed_file_extension(
                 log_rotation["COMPRESSED_FILE_EXTENSION"]
             )
+
+
+def _config_rotating(config):
+    if "KIND" in config["LOGGER"]:
+        print(
+            "Warning! Please update LOGGER to new style. 'KIND' should now exist in LOG_ROTATION section."
+        )  # Logger is not available here.
+        log_cfg.set_kind(config["LOGGER"]["KIND"])
+    if "INTERVAL" in config["LOGGER"]:
+        print(
+            "Warning! Please update LOGGER to new style. 'INTERVAL' should now exist in LOG_ROTATION section."
+        )  # Logger is not available here.
+        log_cfg.set_interval(config["LOGGER"]["INTERVAL"])
+    if "BACKUP_COUNT" in config["LOGGER"]:
+        print(
+            "Warning! Please update LOGGER to new style. 'BACKUP_COUNT' should now exist in LOG_ROTATION section."
+        )  # Logger is not available here.
+        log_cfg.set_backup_count(config["LOGGER"]["BACKUP_COUNT"])
+    _update_config_log_rotation(config)
     if "CONSOLE_LOGS" in config["LOGGER"]:
         for logger_name in config["LOGGER"]["CONSOLE_LOGS"]:
             log_cfg.add_console_log(logger_name)

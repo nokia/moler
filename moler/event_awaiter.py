@@ -126,16 +126,30 @@ class EventAwaiter:
             except IndexError:
                 cmd.start()
             else:
-                events_after_command = event
-                if event is None:
-                    events_after_command = ()
-                elif isinstance(event, ConnectionObserver):
-                    events_after_command = (event,)
-                for event in events_after_command:
-                    event.start()
-                for cmd_item in cmds_items:
-                    cmd_item.start()
-                for event in events_after_command:
-                    event.await_done(timeout=event_timeout)
-                if sleep_after_event > 0.:
-                    MolerTest.sleep(sleep_after_event)
+                cls._execute_after(
+                    event=event,
+                    cmds_items=cmds_items,
+                    event_timeout=event_timeout,
+                    sleep_after_event=sleep_after_event
+                )
+
+    @classmethod
+    def _execute_after(cls, event, cmds_items, event_timeout, sleep_after_event) -> None:
+        """
+        Execute the given command after the given event is done.
+
+        :return: None
+        """
+        events_after_command = event
+        if event is None:
+            events_after_command = ()
+        elif isinstance(event, ConnectionObserver):
+            events_after_command = (event,)
+        for event in events_after_command:
+            event.start()
+        for cmd_item in cmds_items:
+            cmd_item.start()
+        for event in events_after_command:
+            event.await_done(timeout=event_timeout)
+        if sleep_after_event > 0.:
+            MolerTest.sleep(sleep_after_event)

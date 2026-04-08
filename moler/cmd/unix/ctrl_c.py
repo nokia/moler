@@ -4,12 +4,11 @@ Ctrl+C command module.
 """
 
 __author__ = 'Marcin Usielski'
-__copyright__ = 'Copyright (C) 2019-2025, Nokia'
+__copyright__ = 'Copyright (C) 2019-2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
 import re
 from moler.cmd.commandchangingprompt import CommandChangingPrompt
-from moler.cmd.commandtextualgeneric import CommandTextualGeneric
 
 
 class CtrlC(CommandChangingPrompt):
