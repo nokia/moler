@@ -1,3 +1,7 @@
+## moler 4.9.0
+ * Removed code for old, unsupported  Pythons (below 3.8)
+ * Terminal without fork as default
+
 ## moler 4.8.0
  * Delete device aftret its test
  * Fixing threads remaining after device removal
