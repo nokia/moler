@@ -202,6 +202,13 @@ def test_ping_from_two_terminals(unix_terminal, unix_terminal2):
     assert ret2['packets_transmitted'] == count2
 
 
+def test_ps_ef(unix_terminal):
+    unix = unix_terminal
+    cmd_ps = unix.get_cmd(cmd_name="ps", cmd_params={"options": "-ef"})
+    ret = cmd_ps()
+    assert ret is not None
+
+
 @pytest.fixture
 def unix_terminal():
     unix = UnixLocal(io_type='terminal_no_fork', variant='threaded')

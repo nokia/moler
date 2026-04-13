@@ -1,3 +1,6 @@
+## moler 4.9.1
+ * Default terminal switch
+
 ## moler 4.9.0
  * Removed code for old, unsupported  Pythons (below 3.8)
  * Terminal without fork as default
