@@ -9,6 +9,7 @@ import fcntl
 import os
 import pty
 import shlex
+import struct
 import termios
 import subprocess
 
@@ -83,11 +84,17 @@ class PtyProcessUnicodeNotFork:
         :return: None
         """
         if rows <= 0 or cols <= 0:
-            raise ValueError("Terminal dimensions must be positive")
+            raise ValueError(f"Terminal dimensions (rows={rows}, cols={cols}) must be positive")
         if self.fd < 0:
             raise MolerException("Cannot resize closed pty process")
 
-        termios.tcsetwinsize(self.fd, (rows, cols))
+        if hasattr(termios, "tcsetwinsize"):
+            termios.tcsetwinsize(self.fd, (rows, cols))
+        else:
+            # Fallback for Python/platforms that do not expose tcsetwinsize(). < 3.10
+            tiocswinsz = getattr(termios, "TIOCSWINSZ", -2146929561)
+            window_size = struct.pack("HHHH", rows, cols, 0, 0)
+            fcntl.ioctl(self.fd, tiocswinsz, window_size)
         self.dimensions = (rows, cols)
 
     def write(self, data: Union[str, bytes]) -> int:
