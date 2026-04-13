@@ -88,9 +88,9 @@ class PtyProcessUnicodeNotFork:
         if self.fd < 0:
             raise MolerException("Cannot resize closed pty process")
 
-        if hasattr(termios, "tcsetwinsize"):
+        try:
             termios.tcsetwinsize(self.fd, (rows, cols))
-        else:
+        except AttributeError:
             # Fallback for Python/platforms that do not expose tcsetwinsize(). < 3.10
             tiocswinsz = getattr(termios, "TIOCSWINSZ", -2146929561)
             window_size = struct.pack("HHHH", rows, cols, 0, 0)
