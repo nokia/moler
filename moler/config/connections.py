@@ -246,17 +246,17 @@ def _register_builtin_unix_connections(connection_factory, moler_conn_class):
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal",
                                              variant="threaded",
-                                             constructor=terminal_nofork_thd_conn_mt)
+                                             constructor=terminal_thd_conn_mt)
 
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal",
                                              variant="multi-threaded",
-                                             constructor=terminal_nofork_thd_conn_mt)
+                                             constructor=terminal_thd_conn_mt)
 
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal",
                                              variant="single-threaded",
-                                             constructor=terminal_nofork_thd_conn_st)
+                                             constructor=terminal_thd_conn_st)
 
     # TODO: unify passing logger to io_conn (logger/logger_name)
     connection_factory.register_construction(io_type="terminal_no_fork",
