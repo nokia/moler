@@ -9,6 +9,7 @@ import fcntl
 import os
 import pty
 import shlex
+import termios
 import subprocess
 
 from typing import Optional, Tuple, Union
@@ -70,6 +71,24 @@ class PtyProcessUnicodeNotFork:
         self.pid = process.pid
         self.process = process
         self._closed = False
+
+        # Apply initial terminal dimensions configured for this PTY.
+        self.setwinsize(*self.dimensions)
+
+    def setwinsize(self, rows: int, cols: int) -> None:
+        """
+        Set terminal dimensions of the pty process.
+        :param rows: terminal rows
+        :param cols: terminal columns
+        :return: None
+        """
+        if rows <= 0 or cols <= 0:
+            raise ValueError("Terminal dimensions must be positive")
+        if self.fd < 0:
+            raise MolerException("Cannot resize closed pty process")
+
+        termios.tcsetwinsize(self.fd, (rows, cols))
+        self.dimensions = (rows, cols)
 
     def write(self, data: Union[str, bytes]) -> int:
         """
