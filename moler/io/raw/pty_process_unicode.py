@@ -73,7 +73,7 @@ class PtyProcessUnicodeNotFork:
         self._closed = False
 
         # Apply initial terminal dimensions configured for this PTY.
-        self.setwinsize(*self.dimensions)
+        self.setwinsize(rows=self.dimensions[0], cols=self.dimensions[1])
 
     def setwinsize(self, rows: int, cols: int) -> None:
         """
