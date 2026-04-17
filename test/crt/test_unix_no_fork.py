@@ -4,7 +4,6 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
-from pprint import pformat
 import subprocess
 
 import pytest
@@ -211,7 +210,7 @@ def test_ps_ef(unix_terminal):
     cmd_ps = unix.get_cmd(cmd_name="ps", cmd_params={"options": ps_params})
     cmd_ps.start()
     # execute command ps -ef in local terminal and check if it returns something
-    ret_local = subprocess.Popen(f"ps {ps_params}", shell=True, text=True, stdout=subprocess.PIPE,
+    ret_local = subprocess.Popen(["ps", ps_params], text=True, stdout=subprocess.PIPE,
                                   stderr=subprocess.PIPE).communicate()
     assert ret_local is not None
     ret_moler = cmd_ps.await_done(timeout=10)
