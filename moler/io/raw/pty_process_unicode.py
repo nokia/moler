@@ -87,7 +87,7 @@ class PtyProcessUnicodeNotFork:
         :return: None
         """
         max_size = 65535
-        if rows <= 0 or cols <= 0 or rows > max_size or cols > max_size:
+        if rows < 1 or cols < 1 or rows > max_size or cols > max_size:
             raise ValueError(f"Terminal dimensions (rows={rows}, cols={cols}) must be between 1 and {max_size}, "
                              "inclusive.")
         if self.fd < 0:
@@ -95,8 +95,8 @@ class PtyProcessUnicodeNotFork:
 
         try:
             termios.tcsetwinsize(self.fd, (rows, cols))
-        except AttributeError:
-            # Fallback for Python/platforms that do not expose tcsetwinsize(). Python < 3.11
+        except (AttributeError, NotImplementedError):
+            # New way of setting terminal dimensions failed. Try old way - Python < 3.11
             tiocswinsz = getattr(termios, "TIOCSWINSZ", None)
             if tiocswinsz is None:
                 osname = platform.system()
@@ -111,8 +111,8 @@ class PtyProcessUnicodeNotFork:
                     raise MolerException(f"Unsupported system: '{osname}' for setting terminal dimensions.")
             window_size = struct.pack("HHHH", rows, cols, 0, 0)
             fcntl.ioctl(self.fd, tiocswinsz, window_size)
-        except NotImplementedError:
-            raise MolerException(f"Platform: '{platform.system()}' does not support setting terminal dimensions.")
+        except Exception as e:
+            raise MolerException(f"Failed to set terminal dimensions: {e}") from e
         self.dimensions = (rows, cols)
 
     def write(self, data: Union[str, bytes]) -> int:
