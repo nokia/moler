@@ -6,6 +6,7 @@ __email__ = "marcin.usielski@nokia.com"
 import codecs
 import errno
 import fcntl
+import logging
 import os
 import pty
 import shlex
@@ -30,6 +31,7 @@ class PtyProcessUnicodeNotFork:
         :param dimensions: dimensions of the pty (rows, cols)
         :param buffer_size: buffer size for reading data
         """
+        self.logger = logging.getLogger(f"{__name__}.{self.__class__.__name__}")
         self.cmd: str = cmd
         self.dimensions: Tuple[int, int] = dimensions
         self.buffer_size: int = buffer_size
@@ -41,6 +43,7 @@ class PtyProcessUnicodeNotFork:
         self.slave_fd: int = -1  # File descriptor for pty slave
         self.process: Optional[subprocess.Popen] = None  # Subprocess.Popen object
         self._closed: bool = True
+
 
     def create_pty_process(self) -> None:
         """Create PtyProcessUnicode without forking process."""
@@ -98,15 +101,19 @@ class PtyProcessUnicodeNotFork:
             tiocswinsz = getattr(termios, "TIOCSWINSZ", None)
             if tiocswinsz is None:
                 osname = platform.system()
+                self.logger.warning(f"Platform: '{osname}' does not have value for TIOCSWINSZ, using fallback"
+                                    " for system-specific implementation of setting terminal dimensions.")
                 is_bsd_or_macos_or_sunos = "BSD" in osname or "Darwin" in osname or "SunOS" in osname
                 if is_bsd_or_macos_or_sunos:
                     tiocswinsz = -2146929561
-                elif platform.system() == "Linux":
+                elif osname == "Linux":
                     tiocswinsz = 21524
                 else:
                     raise MolerException(f"Unsupported system: '{osname}' for setting terminal dimensions.")
             window_size = struct.pack("HHHH", rows, cols, 0, 0)
             fcntl.ioctl(self.fd, tiocswinsz, window_size)
+        except NotImplementedError:
+            raise MolerException(f"Platform: '{platform.system()}' does not support setting terminal dimensions.")
         self.dimensions = (rows, cols)
 
     def write(self, data: Union[str, bytes]) -> int:
