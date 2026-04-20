@@ -83,15 +83,17 @@ class PtyProcessUnicodeNotFork:
         :param cols: terminal columns
         :return: None
         """
-        if rows <= 0 or cols <= 0:
-            raise ValueError(f"Terminal dimensions (rows={rows}, cols={cols}) must be positive")
+        max_size = 65535
+        if rows <= 0 or cols <= 0 or rows > max_size or cols > max_size:
+            raise ValueError(f"Terminal dimensions (rows={rows}, cols={cols}) must be positive, less than or equal"
+                             f" to {max_size}")
         if self.fd < 0:
             raise MolerException("Cannot resize closed pty process")
 
         try:
             termios.tcsetwinsize(self.fd, (rows, cols))
         except AttributeError:
-            # Fallback for Python/platforms that do not expose tcsetwinsize(). <= 3.10
+            # Fallback for Python/platforms that do not expose tcsetwinsize(). < 3.11
             tiocswinsz = getattr(termios, "TIOCSWINSZ", -2146929561)
             window_size = struct.pack("HHHH", rows, cols, 0, 0)
             fcntl.ioctl(self.fd, tiocswinsz, window_size)
