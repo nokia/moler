@@ -11,7 +11,7 @@ import os
 import pty
 import shlex
 import struct
-import platform
+import sys
 import termios
 import subprocess
 
@@ -24,6 +24,13 @@ from moler.exceptions import MolerException
 
 class PtyProcessUnicodeNotFork:
     """PtyProcessUnicode without forking process."""
+
+    # struct winsize uses unsigned short for row/col; same upper bound as validation.
+    _MAX_WINSIZE_DIM = 65535
+    # When termios.TIOCSWINSZ is missing, fcntl.ioctl needs the platform request value.
+    _TIOCSWINSZ_LINUX = 0x5414
+    _TIOCSWINSZ_BSD_DARWIN = -2146929561  # macOS / BSD-style TIOCSWINSZ (signed ioctl request)
+
     def __init__(self, cmd: str = "/bin/bash", dimensions: Tuple[int, int] = (25, 120), buffer_size: int = 4096):
         """
         Initialize PtyProcessUnicodeNotFork.
@@ -43,6 +50,40 @@ class PtyProcessUnicodeNotFork:
         self.slave_fd: int = -1  # File descriptor for pty slave
         self.process: Optional[subprocess.Popen] = None  # Subprocess.Popen object
         self._closed: bool = True
+
+    @staticmethod
+    def _format_winsize_os_error(exc: OSError) -> str:
+        msg = f"Failed to set terminal dimensions: {exc}"
+        if exc.errno is not None:
+            try:
+                msg += f" [errno {exc.errno}: {os.strerror(exc.errno)}]"
+            except ValueError:
+                msg += f" [errno {exc.errno}]"
+        return msg
+
+    def _resolve_tiocswinsz(self) -> int:
+        """Return ioctl request for TIOCSWINSZ; may use a platform-specific fallback."""
+        tiocswinsz = getattr(termios, "TIOCSWINSZ", None)
+        if tiocswinsz is not None:
+            return tiocswinsz
+        plat = sys.platform.lower()
+        self.logger.warning(
+            "termios.TIOCSWINSZ is missing; using built-in ioctl request for sys.platform=%r",
+            plat,
+        )
+        if plat.startswith("linux"):
+            return self._TIOCSWINSZ_LINUX
+        if plat == "darwin" or plat.startswith(("freebsd", "openbsd", "netbsd", "dragonfly", "sunos")):
+            return self._TIOCSWINSZ_BSD_DARWIN
+        raise MolerException(
+            f"Unsupported platform for terminal resize (sys.platform={plat!r}): "
+            "no TIOCSWINSZ and no built-in fallback."
+        )
+
+    def _set_winsize_ioctl(self, rows: int, cols: int) -> None:
+        request = self._resolve_tiocswinsz()
+        window_size = struct.pack("HHHH", rows, cols, 0, 0)
+        fcntl.ioctl(self.fd, request, window_size)
 
     def create_pty_process(self) -> None:
         """Create PtyProcessUnicode without forking process."""
@@ -86,31 +127,25 @@ class PtyProcessUnicodeNotFork:
         :param cols: terminal columns, must be between 1 and 65535 inclusive
         :return: None
         """
-        max_size = 65535
-        if rows < 1 or cols < 1 or rows > max_size or cols > max_size:
-            raise ValueError(f"Terminal dimensions (rows={rows}, cols={cols}) must be between 1 and {max_size}, "
-                             "inclusive.")
+        if rows < 1 or cols < 1 or rows > self._MAX_WINSIZE_DIM or cols > self._MAX_WINSIZE_DIM:
+            raise ValueError(
+                f"Terminal dimensions (rows={rows}, cols={cols}) must be between 1 and {self._MAX_WINSIZE_DIM}, "
+                "inclusive."
+            )
         if self.fd < 0:
             raise MolerException("Cannot resize closed pty process")
 
         try:
-            termios.tcsetwinsize(self.fd, (rows, cols))
-        except (AttributeError, NotImplementedError):
-            # New way of setting terminal dimensions failed. Try old way - Python < 3.11
-            tiocswinsz = getattr(termios, "TIOCSWINSZ", None)
-            if tiocswinsz is None:
-                osname = platform.system()
-                self.logger.warning(f"Platform: '{osname}' does not have value for TIOCSWINSZ, using fallback"
-                                    " for system-specific implementation of setting terminal dimensions.")
-                is_bsd_or_macos_or_sunos = "BSD" in osname or "Darwin" in osname or "SunOS" in osname
-                if is_bsd_or_macos_or_sunos:
-                    tiocswinsz = -2146929561
-                elif osname == "Linux":
-                    tiocswinsz = 21524
-                else:
-                    raise MolerException(f"Unsupported system: '{osname}' for setting terminal dimensions.")
-            window_size = struct.pack("HHHH", rows, cols, 0, 0)
-            fcntl.ioctl(self.fd, tiocswinsz, window_size)
+            try:
+                termios.tcsetwinsize(self.fd, (rows, cols))
+            except (AttributeError, NotImplementedError):
+                # Python < 3.11: tcsetwinsize may be missing; use ioctl(TIOCSWINSZ).
+                self.logger.debug("setwinsize: using ioctl(TIOCSWINSZ) fallback (tcsetwinsize unavailable)")
+                self._set_winsize_ioctl(rows, cols)
+        except OSError as e:
+            raise MolerException(self._format_winsize_os_error(e)) from e
+        except MolerException:
+            raise
         except Exception as e:
             raise MolerException(f"Failed to set terminal dimensions: {e}") from e
         self.dimensions = (rows, cols)
