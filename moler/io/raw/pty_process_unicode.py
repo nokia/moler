@@ -44,7 +44,6 @@ class PtyProcessUnicodeNotFork:
         self.process: Optional[subprocess.Popen] = None  # Subprocess.Popen object
         self._closed: bool = True
 
-
     def create_pty_process(self) -> None:
         """Create PtyProcessUnicode without forking process."""
 
