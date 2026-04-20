@@ -27,6 +27,7 @@ class PtyProcessUnicodeNotFork:
 
     # struct winsize uses unsigned short for row/col; same upper bound as validation.
     _MAX_WINSIZE_DIM = 65535
+
     # When termios.TIOCSWINSZ is missing, fcntl.ioctl needs the platform request value.
     _TIOCSWINSZ_LINUX = 0x5414
     _TIOCSWINSZ_BSD_DARWIN = -2146929561  # macOS / BSD-style TIOCSWINSZ (signed ioctl request)
@@ -68,8 +69,7 @@ class PtyProcessUnicodeNotFork:
             return tiocswinsz
         plat = sys.platform.lower()
         self.logger.warning(
-            "termios.TIOCSWINSZ is missing; using built-in ioctl request for sys.platform=%r",
-            plat,
+            f"termios.TIOCSWINSZ is missing; using built-in ioctl request for sys.platform={plat!r}",
         )
         if plat.startswith("linux"):
             return self._TIOCSWINSZ_LINUX
