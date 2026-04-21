@@ -1,5 +1,5 @@
 ## moler 4.10.0
- * Set terminal dimension in 
+ * Set terminal dimension in PtyProessUnicodeNotFork
 
 ## moler 4.9.1
  * Default terminal switch
