@@ -1,3 +1,6 @@
+## moler 4.10.0
+ * Set terminal dimension in 
+
 ## moler 4.9.1
  * Default terminal switch
 
