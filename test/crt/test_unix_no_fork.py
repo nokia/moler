@@ -4,6 +4,8 @@ __author__ = 'Marcin Usielski'
 __copyright__ = 'Copyright (C) 2026, Nokia'
 __email__ = 'marcin.usielski@nokia.com'
 
+import subprocess
+
 import pytest
 import tempfile
 import os
@@ -204,9 +206,30 @@ def test_ping_from_two_terminals(unix_terminal, unix_terminal2):
 
 def test_ps_ef(unix_terminal):
     unix = unix_terminal
-    cmd_ps = unix.get_cmd(cmd_name="ps", cmd_params={"options": "-ef"})
-    ret = cmd_ps()
-    assert ret is not None
+    ps_params = "-ef"
+    cmd_ps = unix.get_cmd(cmd_name="ps", cmd_params={"options": ps_params})
+    cmd_ps.start()
+    # execute command ps -ef in local terminal and check if it returns something
+    ret_local = subprocess.Popen(["ps", ps_params], text=True, stdout=subprocess.PIPE,
+                                  stderr=subprocess.PIPE).communicate()
+    assert ret_local is not None
+    ret_moler = cmd_ps.await_done(timeout=10)
+    assert ret_moler is not None
+    local_lines = ret_local[0].splitlines()
+    matched = 0
+    diff = 0
+    for item in ret_moler:
+        cmd_name = item['CMD']
+        found = False
+        for line in local_lines:
+            if cmd_name in line:
+                found = True
+                matched += 1
+                break
+        if not found:
+            diff += 1
+    assert matched > 0
+    assert matched > diff
 
 
 @pytest.fixture
