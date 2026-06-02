@@ -7,9 +7,9 @@ google for: 3gpp specification 27.007
 (always check against latest version of standard)
 """
 
-__author__ = "Adam Klekowski"
-__copyright__ = "Copyright (C) 2020, Nokia"
-__email__ = "adam.klekowski@nokia.com"
+__author__ = "Adam Klekowski, Kamil Pielka"
+__copyright__ = "Copyright (C) 2020-2026, Nokia"
+__email__ = "adam.klekowski@nokia.com, kamil.pielka@nokia.com"
 
 import re
 
@@ -73,7 +73,7 @@ class GetApns(GenericAtCommand):
     # +CGDCONT: 1,"IPV4V6","apn1-ips-05","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0,,,,,,,,,"",,,,0
     _re_apn = re.compile(
         r"^\s*\+CGDCONT\:\s(?P<apn_num>([0-9]+)),\"(?P<apn_ip_name>(IP(V4V6)?))\",\""
-        '(?P<apn_name>([a-zA-Z0-9-]*))".*$'
+        '(?P<apn_name>([a-zA-Z0-9._-]*))".*$'
     )
 
     def _parse_apns(self, line):
@@ -136,6 +136,7 @@ AT+CGDCONT?
 +CGDCONT: 1,"IP","","0.0.0.0",0,0,0,0
 +CGDCONT: 2,"IPV4V6","","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
 +CGDCONT: 3,"IPV4V6","","0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0",0,0,0,0
++CGDCONT: 4,"IP","site.server.com","0.0.0.0",0,0,0,0,,,,,,,,,"",,,,0
 
 OK
 """
@@ -146,4 +147,5 @@ COMMAND_RESULT_ip = [
     {"apn_num": "1", "apn_ip_name": "IP", "apn_name": ""},
     {"apn_num": "2", "apn_ip_name": "IPV4V6", "apn_name": ""},
     {"apn_num": "3", "apn_ip_name": "IPV4V6", "apn_name": ""},
+    {"apn_num": "4", "apn_ip_name": "IP", "apn_name": "site.server.com"},
 ]
