@@ -1,3 +1,6 @@
+## moler 4.10.1
+ * get_apns: allow dotted and underscored APN names in CGDCONT parser
+
 ## moler 4.10.0
  * Set terminal dimension in PtyProessUnicodeNotFork
 
