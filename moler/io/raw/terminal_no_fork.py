@@ -72,8 +72,8 @@ class ThreadedTerminalNoFork(IOConnection):
         self.target_prompt = target_prompt
         self._cmd = cmd
         self.set_prompt_cmd = set_prompt_cmd
-        self._re_set_prompt_cmd = re.sub(
-            "['\"].*['\"]", "", self.set_prompt_cmd.strip()
+        self._re_set_prompt_cmd = re.escape(
+            re.sub("['\"].*['\"]", "", self.set_prompt_cmd.strip())
         )
         self._terminal_delayafterclose = terminal_delayafterclose
         self._join_timeout = 10
@@ -131,28 +131,35 @@ class ThreadedTerminalNoFork(IOConnection):
         Close ThreadedTerminal connection & stop pulling thread.
         :return: None
         """
+        pulling_thread_alive = False
         if self.pulling_thread:
             try:
                 self.pulling_thread.join(timeout=self._join_timeout)
-                if self.pulling_thread.is_alive():
+                pulling_thread_alive = self.pulling_thread.is_alive()
+                if pulling_thread_alive:
                     self.logger.warning(
-                        f"Pulling thread did not finish after {self._join_timeout} timeout."
+                        f"Pulling thread did not finish after {self._join_timeout}s timeout."
                     )
             except Exception as ex:
                 self.logger.warning(f"Exception while joining pulling thread: {ex}")
         self.moler_connection.shutdown()
         super().close()
 
-        if self._terminal and self._terminal.isalive():
+        terminal = self._terminal
+        if terminal and terminal.isalive():
             self._notify_on_disconnect()
             try:
-                self._terminal.close(force=True)
+                terminal.close(force=True)
             except Exception as ex:
                 self.logger.warning(f"Exception while closing terminal: {ex}")
-        self._terminal = None
+        if not pulling_thread_alive:
+            # Only drop the terminal reference if no thread can still touch it,
+            # to avoid AttributeError on None inside pull_data.
+            self._terminal = None
         self._shell_operable.clear()
         self._export_sent = False
-        self.pulling_thread = None
+        if not pulling_thread_alive:
+            self.pulling_thread = None
         self.read_buffer = ""
 
     def send(self, data: str) -> None:
@@ -184,24 +191,28 @@ class ThreadedTerminalNoFork(IOConnection):
         """
         logging.getLogger("moler_threads").debug(f"ENTER {self}")
         heartbeat = tracked_thread.report_alive()
-        reads: List[int] = []
+        reads: List = []
 
         while not pulling_done.is_set():
-            assert self._terminal is not None
+            terminal = self._terminal
+            if terminal is None:
+                pulling_done.set()
+                break
             if next(heartbeat):
                 logging.getLogger("moler_threads").debug(f"ALIVE {self}")
             try:
                 reads, _, _ = select.select(
-                    [self._terminal.fd], [], [], self._select_timeout
+                    [terminal.fd], [], [], self._select_timeout
                 )
             except ValueError as exc:
                 self.logger.warning(f"'{exc.__class__}: {exc}'")
                 self._notify_on_disconnect()
                 pulling_done.set()
+                continue
 
-            if self._terminal.fd in reads:
+            if terminal.fd in reads:
                 try:
-                    data = self._terminal.read(self._read_buffer_size)
+                    data = terminal.read(self._read_buffer_size)
                     self._log_debug_incoming_data(data)
                     if self._shell_operable.is_set():
                         self.data_received(data=data, recv_time=datetime.datetime.now())
@@ -224,16 +235,18 @@ class ThreadedTerminalNoFork(IOConnection):
         for line in lines:
             line = remove_all_known_special_chars(line)
             if (
-                not re.search(self._re_set_prompt_cmd, line) and re.search(
-                    self.target_prompt, line) and not self._shell_operable.is_set()
+                not re.search(self._re_set_prompt_cmd, line)
+                and re.search(self.target_prompt, line)
             ):
                 self._notify_on_connect()
                 self._shell_operable.set()
                 self.data_received(
                     data=self.read_buffer, recv_time=datetime.datetime.now()
                 )
+                self.read_buffer = ""
+                return
             elif not self._export_sent and re.search(
-                self.first_prompt, self.read_buffer, re.MULTILINE
+                self.first_prompt, self.read_buffer
             ):
                 self.send(self.set_prompt_cmd)
                 self._export_sent = True
