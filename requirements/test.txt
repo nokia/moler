@@ -2,7 +2,6 @@
 pycodestyle
 coveralls
 pytest
-pytest-mccabe
 pytest-random
 mock
 pytest-cov
