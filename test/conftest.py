@@ -21,11 +21,13 @@ from moler.moler_connection_for_single_thread_runner import MolerConnectionForSi
 
 
 current_process = psutil.Process()
-if platform.system() == 'Linux':
-    (max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
-else:
+if platform.system() == 'Windows':
     # https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/setmaxstdio?view=vs-2019
     (max_open_files_limit_soft, max_open_files_limit_hard) = (510, 512)  # TODO: any way on Win?
+else:
+    # Unix (Linux, Darwin, BSD, ...): read the real RLIMIT_NOFILE via stdlib resource module.
+    import resource
+    (max_open_files_limit_soft, max_open_files_limit_hard) = resource.getrlimit(resource.RLIMIT_NOFILE)
 
 
 def system_resources_usage():
