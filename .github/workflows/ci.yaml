@@ -20,7 +20,7 @@ jobs:
       MOLER_DEBUG_THREADS: True
       PYTHON_COVERAGE: '3.14'
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
@@ -95,9 +95,9 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest]
-        python-version: [3.14]
+        python-version: ["3.14"]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
       - name: Set up Python ${{ matrix.os }} ${{ matrix.python-version }}
         uses: actions/setup-python@v5
         with:
