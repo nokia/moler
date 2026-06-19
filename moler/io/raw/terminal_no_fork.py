@@ -36,11 +36,11 @@ class ThreadedTerminalNoFork(IOConnection):
         moler_connection: Connection,
         cmd: str = "/bin/bash",
         select_timeout: float = 0.002,
-        read_buffer_size: int = 4096000,
+        read_buffer_size: int = 40960,
         first_prompt: str = r"[%$#\]]+",
         target_prompt: str = r"moler_bash#",
         set_prompt_cmd: str = 'unset PROMPT_COMMAND; export PS1="moler_bash# "\n',
-        dimensions: Tuple[int, int] = (1000, 3000),
+        dimensions: Tuple[int, int] = (100, 300),
         terminal_delayafterclose: float = 0.2,
     ):
         """
