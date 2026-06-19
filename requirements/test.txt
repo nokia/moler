@@ -2,7 +2,6 @@
 pycodestyle
 coveralls
 pytest
-pytest-random
 mock
 pytest-cov
 pytest-asyncio
