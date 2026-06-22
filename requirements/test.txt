@@ -1,12 +1,8 @@
 -r base.txt
 pycodestyle
-coveralls
+coverage
 pytest
-pytest-mccabe
-pytest-random
 mock
-pytest-cov
 pytest-asyncio
 flake8
-pydocstyle
 pylint

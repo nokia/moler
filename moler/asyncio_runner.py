@@ -35,23 +35,22 @@ from moler.util.loghelper import debug_into_logger
 
 
 current_process = psutil.Process()
-if platform.system() == 'Linux':
-
-    # Check if RLIMIT_NOFILE is available in your psutil
-    # noinspection PyUnresolvedReferences
-    (max_open_files_limit_soft, max_open_files_limit_hard) = current_process.rlimit(psutil.RLIMIT_NOFILE)
-else:
+if platform.system() == 'Windows':
     # https://docs.microsoft.com/en-us/cpp/c-runtime-library/reference/setmaxstdio?view=vs-2019
     (max_open_files_limit_soft, max_open_files_limit_hard) = (510, 512)  # TODO: any way on Win?
+else:
+    # Unix (Linux, Darwin, BSD, ...): read the real RLIMIT_NOFILE via stdlib resource module.
+    import resource
+    (max_open_files_limit_soft, max_open_files_limit_hard) = resource.getrlimit(resource.RLIMIT_NOFILE)
 
 
 def system_resources_usage():
-    if platform.system() == 'Linux':
-        curr_fds_open = current_process.num_fds()
-    else:
+    if platform.system() == 'Windows':
         ofiles = current_process.open_files()
         osockets = current_process.connections(kind="all")
         curr_fds_open = len(ofiles) + len(osockets)  # TODO: any better way on Win?
+    else:
+        curr_fds_open = current_process.num_fds()
     curr_threads_nb = threading.active_count()
     return curr_fds_open, curr_threads_nb
 

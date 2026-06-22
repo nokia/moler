@@ -290,6 +290,25 @@ def change_logging_suffix(suffix=None, logger_name=None):
     )
 
 
+def _is_foreign_file_handler(handler):
+    """
+    Tell whether a FileHandler was not created by Moler and must not be reopened.
+
+    Other libraries (e.g. pytest, since its 9.0 logging change) attach their own
+    FileHandlers to Moler's non-propagating loggers. pytest's default handler points
+    to os.devnull ('/dev/null'); reopening it with a Moler suffix/path would yield an
+    unwritable path like '/dev/null.suffix' and raise PermissionError. Such handlers
+    are owned by the other library, so Moler should leave them untouched.
+
+    :param handler: logging.FileHandler to inspect.
+    :return: True if the handler points to os.devnull and should be skipped.
+    """
+    try:
+        return os.path.abspath(handler.baseFilename) == os.path.abspath(os.devnull)
+    except (AttributeError, TypeError):
+        return False
+
+
 def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_name):
     """
     Reopen all log files with new suffix.
@@ -308,6 +327,8 @@ def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_nam
         written_to_log = False
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
+                if _is_foreign_file_handler(handler):
+                    continue
                 new_log_full_path = _get_new_filepath_with_suffix(
                     old_path=handler.baseFilename,
                     old_suffix=old_suffix,
@@ -367,6 +388,8 @@ def _reopen_all_logfiles_in_new_path(old_logging_path, new_logging_path):
 
         for handler in logger_handlers:
             if isinstance(handler, logging.FileHandler):
+                if _is_foreign_file_handler(handler):
+                    continue
                 handler.close()
                 handler.baseFilename = handler.baseFilename.replace(
                     old_logging_path, new_logging_path
