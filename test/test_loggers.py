@@ -330,3 +330,72 @@ def test_loggers_suffix():
     assert all(value is None for value in moler.config.loggers._logging_suffixes.values())
     change_logging_suffix(None)
     assert all(value is None for value in moler.config.loggers._logging_suffixes.values())
+
+
+def test_setup_new_file_handler_marks_handler_as_moler_owned(tmp_path):
+    import moler.config.loggers as m_logger
+
+    logger_name = "marker_logger"
+    logger = logging.getLogger(logger_name)
+    logger.handlers = []
+    log_path = tmp_path / "owned.log"
+
+    handler = m_logger.setup_new_file_handler(
+        logger_name=logger_name,
+        log_level=logging.INFO,
+        log_filename=str(log_path),
+        formatter=logging.Formatter("%(message)s"),
+    )
+
+    try:
+        assert getattr(handler, "_moler_owned", False) is True
+    finally:
+        handler.close()
+        logger.handlers = []
+
+
+def test_reopen_with_new_suffix_skips_foreign_file_handler(tmp_path, monkeypatch):
+    import moler.config.loggers as m_logger
+
+    logger_name = "foreign_suffix_logger"
+    logger = logging.getLogger(logger_name)
+    logger.handlers = []
+
+    foreign_path = tmp_path / "foreign.log"
+    handler = logging.FileHandler(filename=str(foreign_path))
+    logger.addHandler(handler)
+    monkeypatch.setattr(m_logger, "active_loggers", {logger_name})
+
+    try:
+        m_logger._reopen_all_logfiles_with_new_suffix(  # pylint: disable=protected-access
+            logger_suffixes={logger_name: None},
+            new_suffix=".suffix",
+            logger_name=logger_name,
+        )
+        assert handler.baseFilename == str(foreign_path)
+    finally:
+        handler.close()
+        logger.handlers = []
+
+
+def test_reconfigure_logging_path_skips_foreign_file_handler(tmp_path, monkeypatch):
+    import moler.config.loggers as m_logger
+
+    logger_name = "foreign_path_logger"
+    logger = logging.getLogger(logger_name)
+    logger.handlers = []
+
+    foreign_path = tmp_path / "foreign.log"
+    handler = logging.FileHandler(filename=str(foreign_path))
+    logger.addHandler(handler)
+    monkeypatch.setattr(m_logger, "active_loggers", {logger_name})
+
+    try:
+        m_logger._reopen_all_logfiles_in_new_path(  # pylint: disable=protected-access
+            old_logging_path="/old/moler/path",
+            new_logging_path="/new/moler/path",
+        )
+        assert handler.baseFilename == str(foreign_path)
+    finally:
+        handler.close()
+        logger.handlers = []
