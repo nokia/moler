@@ -318,8 +318,13 @@ def _is_foreign_file_handler(handler):
             return not bool(handler._moler_owned)
 
         # Backward compatibility for unmarked handlers created in older code paths.
+        # Moler always writes its log files directly inside the logging path using
+        # flat filenames (for example "moler.log"), so an unmarked handler is treated
+        # as Moler-owned only when its file resides directly in that directory. A file
+        # located elsewhere (for example a nested pytest tmp dir) stays foreign even
+        # when the logging path happens to be one of its ancestors.
         moler_log_path = os.path.abspath(_logging_path)
-        return os.path.commonpath([handler_path, moler_log_path]) != moler_log_path
+        return os.path.dirname(handler_path) != moler_log_path
     except (AttributeError, TypeError):
         return False
     except ValueError:
