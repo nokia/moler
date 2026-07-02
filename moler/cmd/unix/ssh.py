@@ -116,7 +116,8 @@ class Ssh(GenericTelnetSsh):
         self._was_overridden_key_pass_keyboard = False
         self._permission_denied_key_pass_keyboard_cmd = None
         if permission_denied_key_pass_keyboard is not None:
-            self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(host=host)  # pylint-disable-line: consider-using-f-string
+            self._permission_denied_key_pass_keyboard_cmd = permission_denied_key_pass_keyboard.format(
+                host=host)  # pylint-disable-line: consider-using-f-string
 
     def build_command_string(self) -> str:
         """
