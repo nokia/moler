@@ -294,19 +294,43 @@ def _is_foreign_file_handler(handler):
     """
     Tell whether a FileHandler was not created by Moler and must not be reopened.
 
-    Other libraries (e.g. pytest, since its 9.0 logging change) attach their own
-    FileHandlers to Moler's non-propagating loggers. pytest's default handler points
-    to os.devnull ('/dev/null'); reopening it with a Moler suffix/path would yield an
-    unwritable path like '/dev/null.suffix' and raise PermissionError. Such handlers
-    are owned by the other library, so Moler should leave them untouched.
+    Other libraries (e.g. pytest, since its 9.0 logging change) may attach their own
+    FileHandlers to Moler's non-propagating loggers. Reopening such handlers under
+    Moler path/suffix rules may break external logging and can fail for paths that
+    should stay unchanged (for example os.devnull).
+
+    Moler marks its own handlers via ``handler._moler_owned``. For backward
+    compatibility with already-created unmarked handlers we treat handlers under
+    current Moler logging path as Moler-owned as well.
 
     :param handler: logging.FileHandler to inspect.
-    :return: True if the handler points to os.devnull and should be skipped.
+    :return: True when handler is foreign and should be skipped.
     """
     try:
-        return os.path.abspath(handler.baseFilename) == os.path.abspath(os.devnull)
+        handler_path = os.path.abspath(handler.baseFilename)
+
+        # Never rewrite os.devnull handlers (for example pytest internal file handler).
+        if handler_path == os.path.abspath(os.devnull):
+            return True
+
+        # Primary ownership signal for current Moler-created handlers.
+        if hasattr(handler, "_moler_owned"):
+            return not bool(handler._moler_owned)
+
+        # Backward compatibility for unmarked handlers created in older code paths.
+        # Moler always writes its log files directly inside the logging path using
+        # flat filenames (for example "moler.log"), so an unmarked handler is treated
+        # as Moler-owned only when its file resides directly in that directory. A file
+        # located elsewhere (for example a nested pytest tmp dir) stays foreign even
+        # when the logging path happens to be one of its ancestors.
+        moler_log_path = os.path.abspath(_logging_path)
+        return os.path.dirname(handler_path) != moler_log_path
     except (AttributeError, TypeError):
         return False
+    except ValueError:
+        # Different path roots on some platforms (for example different drives on Windows)
+        # mean the handler path is outside Moler logging path.
+        return True
 
 
 def _reopen_all_logfiles_with_new_suffix(logger_suffixes, new_suffix, logger_name):
@@ -467,6 +491,7 @@ def setup_new_file_handler(
             )
     cfh.setLevel(log_level)
     cfh.setFormatter(formatter)
+    cfh._moler_owned = True
     if log_filter:
         cfh.addFilter(log_filter)
     logger.addHandler(cfh)
@@ -862,6 +887,7 @@ class RawFileHandler(logging.FileHandler):
     def __init__(self, *args, **kwargs):
         """RawFileHandler must use RawDataFormatter and level == RAW_DATA only"""
         super(RawFileHandler, self).__init__(*args, **kwargs)
+        self._moler_owned = True
         raw_formatter = RawDataFormatter()
         self.setFormatter(raw_formatter)
         self.setLevel(RAW_DATA)
