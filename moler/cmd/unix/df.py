@@ -50,7 +50,7 @@ class Df(GenericUnixCommand):
 
     def _parse_filesystem_line(self, line):
         if self._regex_helper.search_compiled(Df._re_filesystem_line, line) or \
-          self._regex_helper.search_compiled(Df._re_filesystem_line_h, line):
+                self._regex_helper.search_compiled(Df._re_filesystem_line_h, line):
             filesystem = self._regex_helper.group("Filesystem")
             Mounted_on = self._regex_helper.group("Mounted_on")
             if "by_FS" not in self.current_ret:
