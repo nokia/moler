@@ -16,8 +16,8 @@ from moler.io.raw.opentty_retry import _format_pty_usage, _get_pty_usage, openpt
 
 def test_openpty_retries_after_out_of_pty_devices():
     out_of_pty = OSError("out of pty devices")
-    with mock.patch("moler.io.raw.opentty_retry.pty.openpty", side_effect=[out_of_pty, (7, 8)]) as openpty:
-        with mock.patch("moler.io.raw.opentty_retry.time.sleep") as sleep:
+    with mock.patch("moler.io.raw.opentty_retry.openpty", side_effect=[out_of_pty, (7, 8)]) as openpty:
+        with mock.patch("moler.io.raw.opentty_retry.sleep") as sleep:
             master, slave = openpty_with_retry(delay_s=3.0, max_attempts=2)
 
     assert (master, slave) == (7, 8)
@@ -27,8 +27,8 @@ def test_openpty_retries_after_out_of_pty_devices():
 
 def test_openpty_retries_on_singular_out_of_pty_device_message():
     out_of_pty = OSError("out of pty device")
-    with mock.patch("moler.io.raw.opentty_retry.pty.openpty", side_effect=[out_of_pty, (3, 4)]):
-        with mock.patch("moler.io.raw.opentty_retry.time.sleep") as sleep:
+    with mock.patch("moler.io.raw.opentty_retry.openpty", side_effect=[out_of_pty, (3, 4)]):
+        with mock.patch("moler.io.raw.opentty_retry.sleep") as sleep:
             master, slave = openpty_with_retry()
 
     assert (master, slave) == (3, 4)
@@ -37,8 +37,8 @@ def test_openpty_retries_on_singular_out_of_pty_device_message():
 
 def test_openpty_does_not_retry_other_oserror():
     other_error = OSError("permission denied")
-    with mock.patch("moler.io.raw.opentty_retry.pty.openpty", side_effect=other_error):
-        with mock.patch("moler.io.raw.opentty_retry.time.sleep") as sleep:
+    with mock.patch("moler.io.raw.opentty_retry.openpty", side_effect=other_error):
+        with mock.patch("moler.io.raw.opentty_retry.sleep") as sleep:
             with pytest.raises(OSError, match="permission denied"):
                 openpty_with_retry()
 
@@ -47,8 +47,8 @@ def test_openpty_does_not_retry_other_oserror():
 
 def test_openpty_raises_after_retries_exhausted():
     out_of_pty = OSError("out of pty devices")
-    with mock.patch("moler.io.raw.opentty_retry.pty.openpty", side_effect=out_of_pty) as openpty:
-        with mock.patch("moler.io.raw.opentty_retry.time.sleep") as sleep:
+    with mock.patch("moler.io.raw.opentty_retry.openpty", side_effect=out_of_pty) as openpty:
+        with mock.patch("moler.io.raw.opentty_retry.sleep") as sleep:
             with pytest.raises(OSError, match="out of pty devices"):
                 openpty_with_retry(delay_s=3.0, max_attempts=2)
 

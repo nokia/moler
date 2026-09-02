@@ -5,13 +5,15 @@ __email__ = "marcin.usielski@nokia.com"
 
 import logging
 import os
-import pty
 import sys
-import time
 
+from pty import openpty
+from time import sleep
 from typing import Optional, Tuple
 
 # Unix only. Does not work on Windows.
+# openpty/sleep are imported as module-level names so tests can patch them here
+# without replacing the attributes of the shared pty/time modules process-wide.
 
 _OPENPTY_RETRY_DELAY_S = 3.0
 _OPENPTY_MAX_ATTEMPTS = 2  # first try + one retry after delay
@@ -122,7 +124,7 @@ def openpty_with_retry(
         try:
             usage = _format_pty_usage()
             print(f"PTY usage: {usage}")
-            return pty.openpty()
+            return openpty()
         except OSError as exc:
             last_exc = exc
             if "out of pty device" not in str(exc).lower():
@@ -141,6 +143,6 @@ def openpty_with_retry(
                 f"openpty failed: {exc} ({usage}). Waiting {delay_s}s before retry "
                 f"({attempt}/{max_attempts})."
             )
-            time.sleep(delay_s)
+            sleep(delay_s)
     assert last_exc is not None
     raise last_exc
