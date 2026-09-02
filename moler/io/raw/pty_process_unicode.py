@@ -90,26 +90,31 @@ class PtyProcessUnicodeNotFork:
         # Create a new pty pair (retry if the system is temporarily out of pty devices)
         master_fd, slave_fd = _openpty_with_retry(logger=self.logger)
 
-        # Set master fd to non-blocking mode
-        flags = fcntl.fcntl(master_fd, fcntl.F_GETFL)
-        fcntl.fcntl(master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
+        try:
+            # Set master fd to non-blocking mode
+            flags = fcntl.fcntl(master_fd, fcntl.F_GETFL)
+            fcntl.fcntl(master_fd, fcntl.F_SETFL, flags | os.O_NONBLOCK)
 
-        # Start the subprocess with the slave fd
-        process = subprocess.Popen(
-            shlex.split(self.cmd),
-            stdin=slave_fd,
-            stdout=slave_fd,
-            stderr=slave_fd,
-            start_new_session=True
-        )
+            # Start the subprocess with the slave fd
+            process = subprocess.Popen(
+                shlex.split(self.cmd),
+                stdin=slave_fd,
+                stdout=slave_fd,
+                stderr=slave_fd,
+                start_new_session=True
+            )
+        except Exception:
+            # Both ends are still unreachable from self, so nothing could ever close them:
+            # the pty pair would leak for the lifetime of the process and shrink the
+            # system-wide pty pool. A failed Popen leaves no child to terminate.
+            self._try_close_fd(master_fd, "master")
+            self._try_close_fd(slave_fd, "slave")
+            raise
 
         # Parent must not keep the slave end open; the child holds its own copy. Otherwise the pty
         # would still have a live slave holder after the child dies and master reads would return
         # EAGAIN forever instead of EIO/EOF.
-        try:
-            os.close(slave_fd)
-        except OSError:
-            pass
+        self._try_close_fd(slave_fd, "slave")
 
         # Store the process information
         self.fd = master_fd
@@ -118,7 +123,13 @@ class PtyProcessUnicodeNotFork:
         self._closed = False
 
         # Apply initial terminal dimensions configured for this PTY.
-        self.setwinsize(rows=self.dimensions[0], cols=self.dimensions[1])
+        try:
+            self.setwinsize(rows=self.dimensions[0], cols=self.dimensions[1])
+        except Exception:
+            # The child is running and owns the pty, so tear the whole thing down rather
+            # than leaving a live process behind an fd the caller may never close.
+            self.close(force=True)
+            raise
 
     def setwinsize(self, rows: int, cols: int) -> None:
         """
@@ -205,20 +216,30 @@ class PtyProcessUnicodeNotFork:
             else:
                 raise
 
+    def _try_close_fd(self, fd: int, description: str) -> None:
+        """
+        Close a pty file descriptor, logging instead of raising when it fails.
+        :param fd: file descriptor to close
+        :param description: pty end name used in the log message
+        :return: None
+        """
+        try:
+            os.close(fd)
+        except OSError as e:
+            self.logger.warning(f"Failed to close pty {description} fd {fd}: {e}")
+
     def _close_fd(self) -> None:
         """Close file descriptors."""
         if self.fd >= 0:
-            print(f"Closing pty master fd: {self.fd}")
-            try:
-                os.close(self.fd)
-            except OSError as e:
-                print(f"Failed to close pty master fd {self.fd}: {e}")
+            self._try_close_fd(self.fd, "master")
             self.fd = -1
 
     def _terminate_process(self, force: bool) -> None:
         """Terminate the child process."""
-        # Try to terminate the process gracefully first
-        if self.process and self.isalive():
+        # Liveness is checked via poll() rather than isalive(): close() marks the object
+        # closed before calling here, which makes isalive() report False and would skip
+        # termination altogether. poll() also reaps an already exited child.
+        if self.process and self.process.poll() is None:
             try:
                 if force:
                     self.process.kill()  # SIGKILL

@@ -122,8 +122,6 @@ def openpty_with_retry(
     last_exc: Optional[OSError] = None
     for attempt in range(1, max_attempts + 1):
         try:
-            usage = _format_pty_usage()
-            print(f"PTY usage: {usage}")
             return openpty()
         except OSError as exc:
             last_exc = exc
