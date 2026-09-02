@@ -40,13 +40,16 @@ def test_CancellableFuture_can_be_cancelled_while_it_is_running(observer_runner)
     is_done = threading.Event()
 
     def activity(stop_running, is_done):
-        while not stop_running.is_set():
-            time.sleep(0.5)
+        # awaiting on event (not sleeping) to react on stop request without polling delay
+        while not stop_running.wait(timeout=0.05):
+            pass
         is_done.set()
 
     future = ThreadPoolExecutor().submit(activity, stop_running, is_done)
     observer_lock = threading.Lock()
-    c_future = CancellableFuture(future, observer_lock, stop_running, is_done)
+    # stop_timeout way above default 0.5 sec since loaded CI machine may not schedule
+    # activity's thread for hundreds of milliseconds; it does not slow down passing test
+    c_future = CancellableFuture(future, observer_lock, stop_running, is_done, stop_timeout=4.0)
     try:
         time.sleep(0.1)  # allow threads switch to ensure future running
         assert c_future.running()
