@@ -1,4 +1,8 @@
 ## moler 4.11.1
+ * Retry openpty after a short delay when the system is out of pty devices
+ * Log current vs maximum PTY usage on Linux and macOS when openpty fails
+
+## moler 4.11.0
  * unix command df improvements
 
 ## moler 4.10.1

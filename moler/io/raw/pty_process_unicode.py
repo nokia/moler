@@ -8,7 +8,6 @@ import errno
 import fcntl
 import logging
 import os
-import pty
 import shlex
 import struct
 import sys
@@ -18,6 +17,7 @@ import subprocess
 from typing import Optional, Tuple, Union
 
 from moler.exceptions import MolerException
+from moler.io.raw.opentty_retry import openpty_with_retry as _openpty_with_retry
 
 # Unix only. Does not work on Windows.
 
@@ -48,7 +48,6 @@ class PtyProcessUnicodeNotFork:
         self.decoder = codecs.getincrementaldecoder(self.encoding)(errors='strict')
         self.fd: int = -1  # File descriptor for pty master
         self.pid: int = -1  # Process ID of the child process
-        self.slave_fd: int = -1  # File descriptor for pty slave
         self.process: Optional[subprocess.Popen] = None  # Subprocess.Popen object
         self._closed: bool = True
 
@@ -88,8 +87,8 @@ class PtyProcessUnicodeNotFork:
     def create_pty_process(self) -> None:
         """Create PtyProcessUnicode without forking process."""
 
-        # Create a new pty pair
-        master_fd, slave_fd = pty.openpty()
+        # Create a new pty pair (retry if the system is temporarily out of pty devices)
+        master_fd, slave_fd = _openpty_with_retry(logger=self.logger)
 
         # Set master fd to non-blocking mode
         flags = fcntl.fcntl(master_fd, fcntl.F_GETFL)
@@ -104,7 +103,9 @@ class PtyProcessUnicodeNotFork:
             start_new_session=True
         )
 
-        # Parent must not keep the slave end open; the child holds its own copy.
+        # Parent must not keep the slave end open; the child holds its own copy. Otherwise the pty
+        # would still have a live slave holder after the child dies and master reads would return
+        # EAGAIN forever instead of EIO/EOF.
         try:
             os.close(slave_fd)
         except OSError:
@@ -112,7 +113,6 @@ class PtyProcessUnicodeNotFork:
 
         # Store the process information
         self.fd = master_fd
-        self.slave_fd = -1
         self.pid = process.pid
         self.process = process
         self._closed = False
@@ -205,21 +205,15 @@ class PtyProcessUnicodeNotFork:
             else:
                 raise
 
-    def _close_fds(self) -> None:
+    def _close_fd(self) -> None:
         """Close file descriptors."""
         if self.fd >= 0:
+            print(f"Closing pty master fd: {self.fd}")
             try:
                 os.close(self.fd)
-            except OSError:
-                pass
+            except OSError as e:
+                print(f"Failed to close pty master fd {self.fd}: {e}")
             self.fd = -1
-
-        if self.slave_fd >= 0:
-            try:
-                os.close(self.slave_fd)
-            except OSError:
-                pass
-            self.slave_fd = -1
 
     def _terminate_process(self, force: bool) -> None:
         """Terminate the child process."""
@@ -240,7 +234,7 @@ class PtyProcessUnicodeNotFork:
                         self.process.kill()
                         self.process.wait(timeout=0.5)
             except Exception as e:
-                print(f"Error terminating process: {e}")
+                self.logger.warning(f"Error terminating process: {e}")
 
     def close(self, force: bool = False) -> None:
         """
@@ -256,7 +250,7 @@ class PtyProcessUnicodeNotFork:
         self._terminate_process(force=force)
 
         # Close file descriptors
-        self._close_fds()
+        self._close_fd()
 
     def isalive(self) -> bool:
         """

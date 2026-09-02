@@ -28,12 +28,12 @@ __copyright__ = 'Copyright (C) 2018, Nokia'
 __email__ = 'grzegorz.latuszek@nokia.com'
 
 import asyncio
-import pty
 import os
 import ctypes
 
 from moler.asyncio_runner import get_asyncio_loop_thread, thread_secure_get_event_loop
 from moler.io.io_connection import IOConnection
+from moler.io.raw.opentty_retry import openpty_with_retry
 
 
 class AsyncioTerminal(IOConnection):
@@ -299,7 +299,7 @@ def open_terminal(dimensions):
     :param dimensions: terminal dimensions (rows, columns)
     :return: (master, slave) file descriptors of Pty
     """
-    master, slave = pty.openpty()
+    master, slave = openpty_with_retry()
     _setwinsize(master, dimensions[0], dimensions[1])  # without this you get newline after each character
     _setwinsize(slave, dimensions[0], dimensions[1])
     return master, slave
