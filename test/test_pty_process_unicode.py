@@ -75,11 +75,11 @@ def test_get_pty_usage_unknown_platform():
 
 
 def test_format_pty_usage():
-    with mock.patch.object(pty_mod, "get_pty_usage", return_value=(10, 4096)):
+    with mock.patch.object(pty_mod, "_get_pty_usage", return_value=(10, 4096)):
         assert _format_pty_usage() == "pty devices in use: 10/4096"
-    with mock.patch.object(pty_mod, "get_pty_usage", return_value=(None, 511)):
+    with mock.patch.object(pty_mod, "_get_pty_usage", return_value=(None, 511)):
         assert _format_pty_usage() == "pty devices in use: ?/511"
-    with mock.patch.object(pty_mod, "get_pty_usage", return_value=(None, None)):
+    with mock.patch.object(pty_mod, "_get_pty_usage", return_value=(None, None)):
         assert _format_pty_usage() == "pty devices in use: unknown"
 
 
