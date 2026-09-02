@@ -131,11 +131,16 @@ def openpty_with_retry(
                 usage = _format_pty_usage()
             except Exception as e:
                 usage = f"error formatting pty usage: {e}"
-            finally:
+            if attempt >= max_attempts:
                 log.warning(
-                    f"openpty failed: {exc} ({usage}). Waiting {delay_s}s before retry "
-                    f"({attempt}/{max_attempts})."
+                    f"openpty failed: {exc} ({usage}). Giving up after "
+                    f"{attempt}/{max_attempts} attempts."
                 )
-                time.sleep(delay_s)
+                break
+            log.warning(
+                f"openpty failed: {exc} ({usage}). Waiting {delay_s}s before retry "
+                f"({attempt}/{max_attempts})."
+            )
+            time.sleep(delay_s)
     assert last_exc is not None
     raise last_exc
