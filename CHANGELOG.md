@@ -1,3 +1,6 @@
+## moler 4.12.0
+* Add AT command for Fibocom devices, for enable/disable IP pass-through
+
 ## moler 4.11.1
  * unix command df improvements
 
