@@ -12,6 +12,14 @@ moler.io.raw.memory module
    :show-inheritance:
    :undoc-members:
 
+moler.io.raw.opentty\_retry module
+----------------------------------
+
+.. automodule:: moler.io.raw.opentty_retry
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 moler.io.raw.pty\_process\_unicode module
 -----------------------------------------
 
