@@ -1,3 +1,6 @@
+## moler 4.13.0
+* Add AT command for Fibocom devices, to get information about cell
+
 ## moler 4.12.0
 * Add AT command for Fibocom devices, for enable/disable IP pass-through
 * OutOfPty rerun and closing pty fix
