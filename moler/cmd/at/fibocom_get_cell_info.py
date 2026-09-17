@@ -112,7 +112,7 @@ class FibocomGetCellInfo(GenericAtCommand):
     # (<technology> <detected_as=service|neighbor> cell:)
     # <raw_output=<is_service_cell>,<rest_of_cell_info>>
     # or for empty cell (no cells detected):  <is_service_cell=2>,0,0,00,FFFF,0,0,,127,,,,,,,,,,,,,,,,
-    _re_raw_data = re.compile(r"^\s*(?P<raw_output>([\d\w]*\,){10,}[\d\w]*)\s*$")
+    _re_raw_data = re.compile(r"^\s*(?P<raw_output>([\d\w\.\-\+]*\,){10,}[\d\w\.\-\+]*)\s*$")
 
     def _parse_no_cells_data(self, line):
         """
@@ -185,7 +185,7 @@ class FibocomGetCellInfo(GenericAtCommand):
         :param result_keys: Result keys for the current technology and mode of operation.
         :return: Cell info dictionary.
         """
-        force_str_keys = {"mcc", "mnc", "cell_id", "uarfcn", "earfcn", "narfcn"}
+        force_str_keys = {"mcc", "mnc", "cell_id", "uarfcn", "earfcn", "narfcn", "lac", "tac"}
         list_output = string_raw_output.split(",")
         cell_info_current_ret = {}
         for index, item in enumerate(list_output):
@@ -339,10 +339,12 @@ class FibocomGetCellInfo(GenericAtCommand):
         #     <band>,<bandwidth>,<rssnr_value>,<rxlev>,<rsrp>,<rsrq>
         #     <is_service_cell>,<rat>,<mcc>,<mnc>,<tac>,<cellid>,<narfcn>,<physicalcell_id>,
         #     <band>,<bandwidth>,<ss-sinr>,<rxlev>,<ss_rsrp>,<ss_rsrq>
-        # - neighbor cell is detected as for LTE
+        # - neighbor cell is detected as for LTE, because `LTE-NR EN-DC`` is never used with
+        #   `neighbor cell` output. It means, `self._technology` will be updated to `LTE`
+        #   or any other in case of `neighbor cell` output.
         if self._technology == self.FibocomTechnology.LTE_NR_EN_DC:
             if self._is_service_cell:
-                if self.__lte_nr_primary:
+                if self.__lte_nr_primary:  # primary cell is always as LTE (documented)
                     result_keys = [
                         "is_service_cell",
                         "rat",
@@ -359,7 +361,7 @@ class FibocomGetCellInfo(GenericAtCommand):
                         "rsrp",
                         "rsrq",
                     ]
-                else:
+                else:  # secondary cell is always as NR (documented)
                     result_keys = [
                         "is_service_cell",
                         "rat",
@@ -460,7 +462,7 @@ NR neighbor cell:
             "rat": 9,
             "mcc": "001",
             "mnc": "01",
-            "tac": 1,
+            "tac": "1",
             "cell_id": "2FC001",
             "narfcn": "1ECC5B",
             "physicalcell_id": 1,
@@ -477,7 +479,7 @@ NR neighbor cell:
             "rat": 9,
             "mcc": "001",
             "mnc": "01",
-            "tac": 1,
+            "tac": "1",
             "cell_id": "2FC001",
             "narfcn": "1ECC5B",
             "physicalcell_id": 1,
@@ -516,7 +518,7 @@ UMTS neighbor cell:
             "rat": 3,
             "mcc": "551",
             "mnc": "01",
-            "lac": 1,
+            "lac": "1",
             "cell_id": "2FC001",
             "uarfcn": "36410",
             "psc": 1,
@@ -533,7 +535,7 @@ UMTS neighbor cell:
             "rat": 3,
             "mcc": "551",
             "mnc": "02",
-            "lac": 1,
+            "lac": "1",
             "cell_id": "2FC999",
             "uarfcn": "36411",
             "psc": 1,
@@ -577,7 +579,7 @@ LTE neighbor cell:
             "rat": 4,
             "mcc": "551",
             "mnc": "01",
-            "tac": 1,
+            "tac": "1",
             "cell_id": "2FC001",
             "earfcn": "46410",
             "physicalcell_id": 1,
@@ -594,7 +596,7 @@ LTE neighbor cell:
             "rat": 4,
             "mcc": "551",
             "mnc": "02",
-            "tac": 1,
+            "tac": "1",
             "cell_id": "2FC999",
             "earfcn": "46411",
             "physicalcell_id": 1,
@@ -609,7 +611,7 @@ LTE neighbor cell:
             "rat": 4,
             "mcc": "551",
             "mnc": "01",
-            "tac": 1,
+            "tac": "1",
             "cell_id": "2FC555",
             "earfcn": "46410",
             "physicalcell_id": 1,
@@ -646,7 +648,7 @@ COMMAND_RESULT_get_cell_info_lte_nr_en_dc_cells = {
             "rat": 12,
             "mcc": "551",
             "mnc": "01",
-            "tac": 1,
+            "tac": "1",
             "cell_id": "2FC001",
             "earfcn": "46410",
             "physicalcell_id": 1,
@@ -663,7 +665,7 @@ COMMAND_RESULT_get_cell_info_lte_nr_en_dc_cells = {
             "rat": 12,
             "mcc": "551",
             "mnc": "02",
-            "tac": 1,
+            "tac": "1",
             "cell_id": "2FC999",
             "narfcn": "1ECC5B",
             "physicalcell_id": 1,
